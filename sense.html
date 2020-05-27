@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sense</title>
+</head>
+<body>
+<h1 id="title" s-if="show == true" s-bind="title"></h1>
+<p s-bind="total"></p>
+<button onclick="increase()">Increase</button>
+<input type="text" s-bind="title">
+<hr/>
+<p><b>Wepa!</b> Open up the console and change the <tt>title</tt>
+    and <tt>total</tt> variables to see them being sensed like magic!</p>
+<script src="./sense.js"></script>
+<script>
+    function increase() {
+        total++;
+    }
+
+    var title = '123';
+    let store = {
+        persist: true,
+        localPrefix: '__',
+        data() {
+            return {
+                show: true,
+                title: 'This is the original title',
+                total: 666,
+            }
+        },
+    };
+    sense(store);
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+        // setInterval(function() {
+        //     title = new Date();
+        // }, 1000);
+    });
+</script>
+</body>
+</html>
