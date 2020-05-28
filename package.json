@@ -1,0 +1,19 @@
+{
+  "name": "sensiblejs",
+  "version": "1.0.0",
+  "description": "A super lightweight sensible utility",
+  "main": "sensible.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ricardoaponte/sensiblejs.git"
+  },
+  "author": "Ricardo Aponte Yunqué",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ricardoaponte/sensiblejs/issues"
+  },
+  "homepage": "https://github.com/ricardoaponte/sensiblejs#readme"
+}
