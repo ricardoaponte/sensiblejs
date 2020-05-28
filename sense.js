@@ -12,6 +12,7 @@ function sense(store) {
                     if (store.persist) {
                         new Function('"use strict";' + 'localStorage.setItem("' + store.localPrefix + variable + '",' + JSON.stringify(value) + ');')();
                     }
+
                     // Process data binding for elements
                     document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
                         setElement(element);
@@ -34,14 +35,34 @@ function sense(store) {
             } catch (error) {
 
             }
-            if (dataSource === null) {
-                dataSource = store.data()[variable];
-            }
         } else {
             dataSource = store.data()[variable];
         }
-        // Set internal variable value;
-        new Function(`${store.localPrefix}${variable} = ${JSON.stringify(dataSource)}`)();
+
+        let internalValue;
+
+        // Validate the variable type
+        if (dataSource == null && store.data()[variable].hasOwnProperty('default')) {
+            // Get the default value
+            internalValue = JSON.stringify(store.data()[variable].default);
+        } else {
+            // No casting information available set to direct value assignment
+            if (dataSource != null) {
+                internalValue = JSON.stringify(dataSource);
+            }
+            else {
+                internalValue = JSON.stringify(store.data()[variable]);
+            }
+        }
+
+        if (store.data()[variable].hasOwnProperty('type')) {
+            // Cast the value based on data type
+            new Function(`${store.localPrefix}${variable} = store.data()['${variable}'].type(${internalValue})`)();
+        } else {
+            // No casting information available
+            new Function(`${store.localPrefix}${variable} = ${internalValue}`)();
+        }
+
     }
 
     // Model bindings
@@ -76,6 +97,12 @@ function setElement(element) {
             }
             element.value = Function('"use strict";return(' + store.localPrefix + element.attributes['s-bind'].value + ');')();
             break;
+        case "radio":
+            element.onchange = function (event) {
+                new Function('"use strict";var value = ' + JSON.stringify(event.target.value) + ';' + store.localPrefix + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
+            }
+            element.checked = Function('"use strict";return(' + JSON.stringify(element.value) + ' == ' + store.localPrefix + element.attributes['s-bind'].value + ');')();
+            break;
         case "checkbox":
             element.onchange = function (event) {
                 new Function('"use strict";var value = ' + JSON.stringify(event.target.checked) + ';' + store.localPrefix + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
@@ -84,6 +111,7 @@ function setElement(element) {
             break;
         case "text":
         case "email":
+        case "textarea":
             element.onkeyup = function (event) {
                 new Function('"use strict";var value = ' + JSON.stringify(event.target.value) + ';' + store.localPrefix + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
             };
@@ -91,27 +119,29 @@ function setElement(element) {
             setInner = true;
             break;
         case undefined:
-            switch (element.tagName) {
-                case "SPAN":
-                    element.value = Function('"use strict";return (' + 'store.data().' + element.attributes['s-bind'].value + ')')();
-                    if (element.innerHTML !== '') {
-                        // Parse the code from existing innerHTML
-                        let code = element.innerHTML.match(/{{([^}]+)}}/);
-                        if (code && code.length > 0) {
-                            let codeValue = new Function('"use strict";return ' + code[1] + ';')();
-                            let text = element.innerHTML.replace(element.innerHTML.match(/{{([^}]+)}}/)[0], codeValue);
-                            element.innerHTML = text;
-                        }
-                    }
-                    // else {
-                    //     element.innerHTML = new Function('"use strict";return ' + store.localPrefix + element.attributes['s-bind'].value)();
-                    // }
-                    break;
-                default:
-                    element.value = Function('"use strict";return (' + 'store.data().' + element.attributes['s-bind'].value + ')')();
-                    setInner = true;
+            if (!element.hasOwnProperty('original')) {
+                element.original = element.innerHTML;
             }
-
+            if (element.original !== '') {
+                let code = element.original.substr(element.original.indexOf('{{') + 2, element.original.indexOf('}}') - 2)
+                // If there is code found then process it!
+                if (code && code.length > 1) {
+                    try {
+                        let nonCodeNode1Location = element.original.indexOf('{{');
+                        let nonCodeNode1 = element.original.substring(0, element.original.indexOf('{{'));
+                        let nonCodeNode2Location = element.original.indexOf('}}') + 2;
+                        let nonCodeNode2 = element.original.substring(element.original.indexOf('}}') + 2);
+                        let code = element.original.substr(nonCodeNode1Location + 2, nonCodeNode2Location - nonCodeNode1Location - 4);
+                        let codeValue = new Function('"use strict";return ' + code + ';')();
+                        element.innerHTML = `${nonCodeNode1}${codeValue}${nonCodeNode2}`;
+                    } catch (error) {
+                        console.error(error.message);
+                    }
+                }
+            } else {
+                element.innerHTML = new Function('"use strict";return ' + store.localPrefix + element.attributes['s-bind'].value)();
+            }
+            break;
     }
     if (setInner) {
         element.innerHTML = new Function('"use strict";return ' + store.localPrefix + element.attributes['s-bind'].value)();
@@ -126,7 +156,11 @@ function ifElements() {
     ifElements.forEach((element) => {
         try {
             const display = new Function('"use strict";' + ' return ' + store.localPrefix + element.getAttribute('s-if') + ';')()
-            element.style.display = display ? 'block' : 'none';
+            if (!element.hasOwnProperty('originalDisplay')) {
+                element.originalDisplay = element.style.display;
+            }
+            // Preserve original display
+            element.style.display = display ? element.originalDisplay : 'none';
         } catch (error) {
             console.error(error.message);
         }
