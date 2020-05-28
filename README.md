@@ -1,4 +1,4 @@
-# SenseJS
+# SensibleJS
 
 Super lightweight Javascript sensible utilities
 
