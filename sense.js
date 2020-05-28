@@ -10,6 +10,7 @@ function sense(store) {
                     new Function('"use strict";' + store.localPrefix + variable + ' = ' + JSON.stringify(value) + ';')();
                     // Persist it if needed
                     if (store.persist) {
+                        // Check that the variable has a type
                         new Function('"use strict";' + 'localStorage.setItem("' + store.localPrefix + variable + '",' + JSON.stringify(value) + ');')();
                     }
 
@@ -20,6 +21,8 @@ function sense(store) {
 
                     // Process display of elements
                     ifElements();
+                    // Process appearance of elements
+                    cssElements();
                 }
             });
         } catch (error) {
@@ -69,7 +72,8 @@ function sense(store) {
     modelBindings();
     // Element visibility
     ifElements();
-
+    // Element appearance
+    cssElements()
 }
 
 /**
@@ -118,6 +122,15 @@ function setElement(element) {
             element.value = Function('"use strict";return(' + store.localPrefix + element.attributes['s-bind'].value + ');')();
             setInner = true;
             break;
+        case "color":
+        case "date":
+        case "datetime-local":
+            element.oninput = function (event) {
+                new Function('"use strict";var value = ' + JSON.stringify(event.target.value) + ';' + store.localPrefix + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
+            };
+            element.value = Function('"use strict";return ' + store.localPrefix + element.attributes['s-bind'].value + ';')();
+            setInner = true;
+            break;
         case undefined:
             if (!element.hasOwnProperty('original')) {
                 element.original = element.innerHTML;
@@ -152,8 +165,7 @@ function setElement(element) {
  * Set elements sensible visibility
  */
 function ifElements() {
-    let ifElements = document.querySelectorAll(['[s-if]']);
-    ifElements.forEach((element) => {
+    document.querySelectorAll(['[s-if]']).forEach((element) => {
         try {
             const display = new Function('"use strict";' + ' return ' + store.localPrefix + element.getAttribute('s-if') + ';')()
             if (!element.hasOwnProperty('originalDisplay')) {
@@ -161,6 +173,21 @@ function ifElements() {
             }
             // Preserve original display
             element.style.display = display ? element.originalDisplay : 'none';
+        } catch (error) {
+            console.error(error.message);
+        }
+    })
+}
+
+/**
+ * Set elements sensible appearance
+ */
+function cssElements() {
+    document.querySelectorAll(['[s-css]']).forEach((element) => {
+        try {
+            element.getAttribute('s-css').split(';').forEach(function(style) {
+                Object.assign(element.style, new Function(`return {"${style.split(':')[0].trim()}":${style.split(':')[1].trim()}}`)());
+            });
         } catch (error) {
             console.error(error.message);
         }
