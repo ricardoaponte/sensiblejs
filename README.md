@@ -4,21 +4,51 @@ Super lightweight Javascript sensible utilities
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+
 
 ### Installing
 
 ```
 npm i sensibljs
 ```
+Start by referencing the script
 
-End with an example of getting some data out of the system or using it for a little demo
+```
+<script src="sensible.js">
+```
+Then declare the store object with the settings and fields needed.
+```
+<script>
+    let store = {
+        persist: true,
+        localPrefix: '__',
+        data() {
+            return {
+                show: true,
+                title: {type: String, default: 'This is the default title'},
+                total: {type: Number, default: 100},
+                selectedOption: {type: Number, default: 0},
+                fullName: {type: String, default: 'Your name'},
+                email: {type: String, default: 'example@example.com'},
+                phone: {type: String, default: '123-45678'},
+                message: {type: String, default: 'This is a message'},
+                gender: {type: String, default: 'male'},
+                favcolor: {type: String, default: 'blue'},
+                backgroundColor: {type: String, default: '#000'},
+                birthDate: {type: String, default: ''},
+                birthDateTime: {type: String, default: ''}
+            }
+        },
+    };
+</script>
+```
+Then call the tool passing the store object.
+```
+sensible(store)
+```
+## HTML
 
-
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+This tool will allow you to bind local varibles to DOM elements in an easy and light way.
 
 ## Contributing
 
