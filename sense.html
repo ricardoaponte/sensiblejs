@@ -138,14 +138,20 @@
                         </div>
                         <div>
                             <div class="mt-3 text-lg leading-6 text-gray-500">
-                                <label for="favcolor">Select your favorite color:</label>
+                                <label for="favcolor">Select title text color:</label>
                                 <input type="color" id="favcolor" name="favcolor" s-bind="favcolor">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="mt-3 text-lg leading-6 text-gray-500">
+                                <label for="favcolor">Select title background color:</label>
+                                <input type="color" id="backgroundColor" name="backgroundColor" s-bind="backgroundColor">
                             </div>
                         </div>
                         <div class="">
                             <span class="inline-flex rounded-md shadow-sm">
-                                <button class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700"
-                                        type="submit">Submit</button></span>
+                                <button onclick="resetAll()" class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700"
+                                        type="submit">Reset Data</button></span>
                         </div>
                     </form>
                 </div>
@@ -174,7 +180,7 @@
                 phone: '',
                 message: '',
                 gender: {type: String, default: ''},
-                favcolor: {type: String, default: ''},
+                favcolor: {type: String, default: 'blue'},
                 backgroundColor: {type: String, default: '#000'},
                 birthDate: {type: String, default: ''},
                 birthDateTime: {type: String, default: ''}
@@ -184,6 +190,7 @@
     sense(store);
 
     function resetAll() {
+
     }
 
     document.addEventListener("DOMContentLoaded", function (event) {

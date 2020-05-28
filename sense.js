@@ -65,7 +65,6 @@ function sense(store) {
             // No casting information available
             new Function(`${store.localPrefix}${variable} = ${internalValue}`)();
         }
-
     }
 
     // Model bindings
