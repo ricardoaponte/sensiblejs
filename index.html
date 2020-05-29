@@ -81,6 +81,12 @@
                         Open up the console and change the <tt>title</tt>
                         and <tt>total</tt> variables to see them being sensed like magic!
                     </div>
+                    <div class="mt-3 text-lg leading-6 text-gray-500">
+                        Records:
+                        <ul id="results">
+                            <li s-for="result of results" s-key="email">{{ result.fullName }}</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="px-4 py-16 bg-white sm:px-6 lg:col-span-3 lg:py-4 lg:px-8 xl:pl-12 bg-gray-200">
@@ -128,7 +134,7 @@
                         </div>
                         <div class="mt-3 text-lg leading-6 text-gray-500">
                             <label for="options">Select option: </label>
-                            <select id="options" s-bind="selectedOption" class="form-select>
+                            <select id="options" s-bind="selectedOption" class="form-select">
                                 <option value="1">Option 1</option>
                                 <option value="2">Option 2</option>
                                 <option value="3">Option 3</option>
@@ -169,7 +175,10 @@
                         <div class="">
                             <span class="inline-flex rounded-md shadow-sm">
                                 <button onclick="resetAll()" class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700"
-                                        type="submit">Reset Data</button></span>
+                                        type="button">Reset Data</button></span>
+                            <span class="inline-flex rounded-md shadow-sm">
+                                <button onclick="addRecord()" class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700"
+                                        type="button">Add record</button></span>
                         </div>
                     </form>
                 </div>
@@ -187,9 +196,25 @@
     let store = {
         persist: true,
         localPrefix: '__',
+        datos: {
+            show: {type: Boolean, default: true},
+            title: {type: String, default: 'This is the default title'},
+            total: {type: Number, default: 100},
+            selectedOption: {type: Number, default: 0},
+            fullName: {type: String, default: 'Your name'},
+            email: {type: String, default: 'example@example.com'},
+            phone: {type: String, default: '123-45678'},
+            message: {type: String, default: 'This is a message'},
+            gender: {type: String, default: 'male'},
+            titleColor: {type: String, default: '#FFFFFF'},
+            backgroundColor: {type: String, default: '#5a67d8'},
+            birthDate: {type: String, default: '1969-08-16'},
+            birthDateTime: {type: String, default: '1969-08-16T20:00'},
+            results: {type: Array, default: {fullName: 'Ricardo'}},
+        },
         data() {
             return {
-                show: true,
+                show: {type: Boolean, default: true},
                 title: {type: String, default: 'This is the default title'},
                 total: {type: Number, default: 100},
                 selectedOption: {type: Number, default: 0},
@@ -202,13 +227,14 @@
                 backgroundColor: {type: String, default: '#5a67d8'},
                 birthDate: {type: String, default: '1969-08-16'},
                 birthDateTime: {type: String, default: '1969-08-16T20:00'},
+                results: {type: Array, default: {fullName: 'Ricardo'}},
             }
         },
     };
     sensible(store);
 
-    function resetAll() {
-
+    function addRecord() {
+        results.push({full_name: full_name, email: email});
     }
 
     document.addEventListener("DOMContentLoaded", function (event) {
