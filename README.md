@@ -33,10 +33,10 @@ Then declare the store object with the settings and fields needed.
                 phone: {type: String, default: '123-45678'},
                 message: {type: String, default: 'This is a message'},
                 gender: {type: String, default: 'male'},
-                favcolor: {type: String, default: 'blue'},
-                backgroundColor: {type: String, default: '#000'},
-                birthDate: {type: String, default: ''},
-                birthDateTime: {type: String, default: ''}
+                titleColor: {type: String, default: '#FFFFFF'},
+                backgroundColor: {type: String, default: '#5a67d8'},
+                birthDate: {type: String, default: '1969-08-16'},
+                birthDateTime: {type: String, default: '1969-08-16T20:00'},
             }
         },
     };
