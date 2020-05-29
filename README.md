@@ -63,9 +63,25 @@ There are 3 directives available to use:
 
 ### `s-bind`
 
-**Example:** `<div s-bind="foo">...</div>`
+**Example:** `<div s-bind="name">...</div>`
 
-`s-bind` Makes a 2 way binding between the element and the variable (foo).
+`s-bind` Makes a 2 way binding between the element and the variable (name).
+
+---
+
+### `s-if`
+
+**Example:** `<div s-if="name.length > 0">...</div>`
+
+`s-bind` Shows or hides the element based on boolean result from expression.
+
+---
+
+### `s-css`
+
+**Example:** `<div s-css="background-color: backgroundColor, color: color">...</div>`
+
+`s-css` Applies CSSShows or hides the element based on boolean result from expression.
 
 ## HTML
 

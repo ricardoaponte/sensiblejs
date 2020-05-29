@@ -1,6 +1,6 @@
 {
   "name": "sensibljs",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A super lightweight sensible utility",
   "main": "sensible.js",
   "scripts": {
