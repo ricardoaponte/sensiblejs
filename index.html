@@ -15,7 +15,7 @@
             <div class="px-4 py-16 bg-gray-50 sm:px-6 lg:col-span-2 lg:px-8 lg:py-4 xl:pr-12">
                 <div class="max-w-lg mx-auto">
 
-                    <div s-css="background-color: backgroundColor; color: favcolor" class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9" s-bind="title"
+                    <div s-css="background-color: backgroundColor; color: titleColor" class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9" s-bind="title"
                             s-if="show">
                         {{ title }}
                     </div>
@@ -145,13 +145,13 @@
                         </div>
                         <div>
                             <div class="mt-3 text-lg leading-6 text-gray-500">
-                                <label for="favcolor">Select title text color:</label>
-                                <input type="color" id="favcolor" name="favcolor" s-bind="favcolor">
+                                <label for="titleColor">Select title text color:</label>
+                                <input type="color" id="titleColor" name="titleColor" s-bind="titleColor">
                             </div>
                         </div>
                         <div>
                             <div class="mt-3 text-lg leading-6 text-gray-500">
-                                <label for="favcolor">Select title background color:</label>
+                                <label for="backgroundColor">Select title background color:</label>
                                 <input type="color" id="backgroundColor" name="backgroundColor" s-bind="backgroundColor">
                             </div>
                         </div>
