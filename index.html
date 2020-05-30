@@ -22,7 +22,8 @@
                     </p>
                 </div>
             </div>
-        </div>        <div class="relative mx-auto max-w-7xl lg:grid lg:grid-cols-5">
+        </div>
+        <div class="relative mx-auto max-w-7xl lg:grid lg:grid-cols-5">
             <div class="px-4 py-16 bg-gray-50 sm:px-6 lg:col-span-2 lg:px-8 lg:py-4 xl:pr-12">
                 <div class="max-w-lg mx-auto">
 
@@ -83,7 +84,7 @@
                     </div>
                     <div class="mt-3 text-lg leading-6 text-gray-500">
                         Records:
-                        <ul id="results">
+                        <ul id="resultados">
                             <li s-for="result of results" s-key="email">{{ result.fullName }}</li>
                         </ul>
                     </div>
@@ -198,7 +199,12 @@
         localPrefix: '__',
         data() {
             return {
-                results: {type: Array, default: [{fullName: 'Fulano de Tal'}, {fullName: 'Mengano de Tal'}]},
+                results: {
+                    type: Array, default: [
+                        {fullName: 'Fulano de Tal', email: 'fulano@detal.com', phone: '7871234567'},
+                        {fullName: 'Mengano de Tal', email: 'mengano@detal.com', phone: '7871234568'},
+                    ]
+                },
                 show: {type: Boolean, default: true},
                 title: {type: String, default: 'This is the default title'},
                 total: {type: Number, default: 100},

@@ -2,16 +2,33 @@ const sensible = (store) => {
 
     init(store);
 
-    //let parentElement = {};
-
     function init(store) {
         store.datosTemp = {};
         let initializing = true;
         Object.keys(store.data()).forEach(function (variable) {
             try {
                 if (store.data()[variable].hasOwnProperty('type') && store.data()[variable].type === Array) {
-                    var ao = new ArrayObserver(window[variable])
+                    window[variable] = [];
+                    let ao = new ArrayObserver(window[variable]);
                     ao.Observe(function (result, method) {
+                        if (store.persist) {
+                            localStorage.setItem(store.localPrefix + variable, JSON.stringify(result));
+                        }
+                        store.datosTemp[variable] = result;
+
+                        if (!initializing) {
+                            //Process data binding for elements
+                            document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
+                                setElement(element);
+                                // Process display of elements
+                            })
+                            ifElements();
+                            // Process appearance of elements
+                            cssElements();
+                            // Elements with for loops
+                            forElements();
+
+                        }
                         console.log(result, method);
                     });
                 } else {
@@ -36,12 +53,13 @@ const sensible = (store) => {
                                 //Process data binding for elements
                                 document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
                                     setElement(element);
-                                    // Process display of elements
-                                    ifElements();
-                                    // Process appearance of elements
-                                    cssElements();
                                 })
-
+                                // Process display of elements
+                                ifElements();
+                                // Process appearance of elements
+                                cssElements();
+                                // Elements with for loops
+                                forElements();
                             }
                         }
                     });
@@ -53,6 +71,7 @@ const sensible = (store) => {
         Object.keys(store.data()).forEach(function (variable) {
             // Initialize store data as internal variables
             let dataSource = null;
+            let currentVariable = store.data()[variable];
             if (store.persist) {
                 //dataSource = localStorage.getItem(JSON.stringify(store.localPrefix + variable).replace(/['"]+/g, ''));
                 dataSource = localStorage.getItem(JSON.stringify(store.localPrefix + variable));
@@ -66,19 +85,25 @@ const sensible = (store) => {
             let internalValue;
 
             if (dataSource === null) {
-                internalValue = store.data()[variable].default;
+                internalValue = currentVariable.default;
             } else {
                 internalValue = dataSource;
             }
 
-            window[variable] = internalValue;
-            // if (store.data()[variable].hasOwnProperty('type')) {
-            //     // Cast the value based on data type
-            //     window[variable] = store.data()[variable].type(internalValue);
-            // } else {
-            //     // No casting information available
-            //     window[variable] = internalValue;
-            // }
+            //window[variable] = internalValue;
+            if (currentVariable.hasOwnProperty('type')) {
+                // Cast the value based on data type
+                if (currentVariable.type === Array) {
+                    store.data()[variable].default.forEach((item) =>{
+                        window[variable].push(item);
+                    });
+                } else {
+                    window[variable] = internalValue;
+                }
+            } else {
+                // No casting information available
+                window[variable] = internalValue;
+            }
         })
         initializing = false;
 
@@ -88,7 +113,7 @@ const sensible = (store) => {
         ifElements();
         // Element appearance
         cssElements()
-
+        // Elements with for loops
         forElements();
     }
 
@@ -245,8 +270,15 @@ const sensible = (store) => {
                             //let insertElement = `${nonCodeNode1}${codeValue}${nonCodeNode2}`;
                             localElement = element.cloneNode(true);
                             localElement.removeAttribute('s-for');
+                            localElement.style.display = '';
                             //Why does this work without using var o let?
                             parentElement = element.parentElement;
+                            var child = parentElement.lastElementChild;
+                            while (child) {
+                                parentElement.removeChild(child);
+                                child = parentElement.lastElementChild;
+                            }
+                            parentElement.appendChild(element);
                             let fn = `
                             for(${forloop}) {
                                 var newElement = localElement.cloneNode(true);
@@ -256,7 +288,7 @@ const sensible = (store) => {
                             }
                             `;
                             new Function(fn)();
-                            element.remove();
+                            element.style.display = 'none';
                         } catch (error) {
                             console.error(error.message);
                         }
@@ -348,42 +380,43 @@ const sensible = (store) => {
         });
     }
 
-    //A new array
-    var myArray = [7, 8, 9];
+    // //A new array
+    // var myArray = [7, 8, 9];
+    // window.myArray = myArray;
+    //
+    // //Wire up the observable
+    // var ao = new ArrayObserver(myArray)
+    // ao.Observe(function (result, method) {
+    //     console.log(result, method);
+    // });
+    //
+    // //Do stuff to the array.
+    // myArray.push(4);
+    // myArray.push(5);
+    // myArray.push(6);
+    // myArray.pop();
+    // myArray.pop();
+    // myArray.splice(2, 1);
+    // myArray.sort();
+    // console.log(myArray);
+    /*
+        //A New Object
+        var obj = {prop1: 123}
 
-    //Wire up the observable
-    var ao = new ArrayObserver(myArray)
-    ao.Observe(function (result, method) {
-        console.log(result, method);
-    });
+        //A New Observer
+        var observer = new Observer(obj, "prop1")
+        //The notify callback method.
+        observer.Observe(function (newValue) {
+            document.getElementById("myValue").value = newValue
+        })
+        //set a property in code.
+        obj.prop1 = 456
 
-    //Do stuff to the array.
-    myArray.push(4);
-    myArray.push(5);
-    myArray.push(6);
-    myArray.pop();
-    myArray.pop();
-    myArray.splice(2, 1);
-    myArray.sort();
-    console.log(myArray);
-/*
-    //A New Object
-    var obj = {prop1: 123}
-
-    //A New Observer
-    var observer = new Observer(obj, "prop1")
-    //The notify callback method.
-    observer.Observe(function (newValue) {
-        document.getElementById("myValue").value = newValue
-    })
-    //set a property in code.
-    obj.prop1 = 456
-
-    //And from a DOM Event
-    KeyValue = function (KeyedVAlue) {
-        obj.prop1 = KeyedVAlue
-    }
-*/
+        //And from a DOM Event
+        KeyValue = function (KeyedVAlue) {
+            obj.prop1 = KeyedVAlue
+        }
+    */
 
 }
 exports = sensible;
