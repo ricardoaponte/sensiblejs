@@ -188,20 +188,20 @@ const sensible = (store) => {
                 break;
             case undefined:
                 if (!element.hasOwnProperty('original')) {
-                    element.original = element.innerHTML;
+                    element.parentElement.original = element.innerHTML;
                 }
                 element.innerHTML = window[element.attributes['s-bind'].value];
-                if (element.original !== '') {
-                    let code = element.original.substr(element.original.indexOf('{{') + 2, element.original.indexOf('}}') - 2)
+                if (element.parentElement.original !== '') {
+                    let code = element.parentElement.original.substr(element.parentElement.original.indexOf('{{') + 2, element.parentElement.original.indexOf('}}') - 2)
                     // If there is code found then process it!
                     if (code && code.length > 1) {
                         try {
-                            let nonCodeNode1Location = element.original.indexOf('{{');
-                            let nonCodeNode1 = element.original.substring(0, element.original.indexOf('{{'));
-                            let nonCodeNode2Location = element.original.indexOf('}}') + 2;
-                            let nonCodeNode2 = element.original.substring(element.original.indexOf('}}') + 2);
-                            let code = element.original.substr(nonCodeNode1Location + 2, nonCodeNode2Location - nonCodeNode1Location - 4);
-                            innerHTML = "'" + element.original.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            let nonCodeNode1Location = element.parentElement.original.indexOf('{{');
+                            let nonCodeNode1 = element.parentElement.original.substring(0, element.parentElement.original.indexOf('{{'));
+                            let nonCodeNode2Location = element.parentElement.original.indexOf('}}') + 2;
+                            let nonCodeNode2 = element.parentElement.original.substring(element.parentElement.original.indexOf('}}') + 2);
+                            let code = element.parentElement.original.substr(nonCodeNode1Location + 2, nonCodeNode2Location - nonCodeNode1Location - 4);
+                            innerHTML = "'" + element.parentElement.original.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             element.innerHTML = new Function('"use strict";return ' + innerHTML + ';')();
 
                             //element.innerHTML = `${nonCodeNode1}${codeValue}${nonCodeNode2}`;
@@ -260,19 +260,30 @@ const sensible = (store) => {
     function forElements() {
         document.querySelectorAll(['[s-for]']).forEach((element) => {
             try {
-                if (!element.hasOwnProperty('original')) {
-                    element.original = element.innerHTML;
+                if (element.hasOwnProperty('originalNode')) {
+                    var newElement = element.originalNode.cloneNode(true);
+                    parentElement = element;
+                    element = element.originalNode;
+                    parentElement.appendChild(newElement);
                 }
+                else if (element.parentElement && !element.parentElement.hasOwnProperty('originalNode')) {
+                    element.parentElement.original = element.innerHTML;
+                    element.parentElement.originalNode = element;
+                    element.parentElement.setAttribute('s-for', element.getAttribute('s-for'));
+                    element.parentElement.setAttribute('s-key', element.getAttribute('s-key'));
+                }
+                element.style.display = 'none';
                 let forloop = element.getAttribute('s-for');
                 let key = element.getAttribute('s-key');
-                if (element.original !== '') {
-                    let code = element.original.substr(element.original.indexOf('{{') + 2, element.original.indexOf('}}') - 2)
+                if (element.parentElement && element.parentElement.original !== '') {
+                    let code = element.parentElement.original.substr(element.parentElement.original.indexOf('{{') + 2, element.parentElement.original.indexOf('}}') - 2)
                     // If there is code found then process it!
                     if (code && code.length > 1) {
                         try {
-                            innerHTML = "'" + element.original.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            element.style.display = '';
+                            innerHTML = "'" + element.parentElement.original.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             localElement = element.cloneNode(true);
-                            localElement.original = element.original;
+                            localElement.original = element.parentElement.original;
                             //Why does this work without using var o let?
                             parentElement = element.parentElement;
                             if (parentElement) {
@@ -295,13 +306,29 @@ const sensible = (store) => {
                                         this.parentElement.appendChild(newElement);
                                     }`;
                                 new Function(fn)();
+                                if (parentElement.children.length == 0) {
+                                    if (!element.hasOwnProperty('originalDisplay')) {
+                                        element.originalDisplay = element.style.display;
+                                    }
+                                    element.style.display = 'none';
+                                    parentElement.appendChild(element);
+                                }
+                                else {
+                                    if (!element.hasOwnProperty('originalDisplay')) {
+                                        element.style.display = element.originalDisplay;
+                                    }
+                                    else {
+                                        element.style.display = '';
+                                    }
+
+                                }
                             }
                         } catch (error) {
                             console.error(error.message);
                         }
                     }
-                } else {
-                    element.innerHTML = new Function('"use strict";return ' + element.attributes['s-bind'].value)();
+                // } else {
+                //     element.innerHTML = new Function('"use strict";return ' + element.attributes['s-for'].value)();
                 }
             } catch (error) {
                 console.error(error.message);
