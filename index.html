@@ -75,6 +75,7 @@
                             onclick="total--">
                         Decrease total
                     </button>
+                    <div s-bind="fullName">Test</div>
                     <div class="mt-3 text-lg leading-6 text-gray-500">
                         <p s-bind="selectedOption">Selected option {{ parseInt(selectedOption) }} </p>
                     </div>
@@ -154,7 +155,7 @@
                                 <option value="4">Option 4</option>
                             </select>
                             <select id="options2" s-bind="selectedOption" class="form-select">
-                                <option s-for="availableOption of availableOptions" value="availableOption.id">{{ availableOption.name }}</option>
+                                <option s-for="availableOption of availableOptions" value="{{availableOption.id}}">{{ availableOption.name }}</option>
                             </select>
                         </div>
                         <div>

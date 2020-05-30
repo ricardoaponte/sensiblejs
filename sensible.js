@@ -97,9 +97,8 @@ const sensible = (store) => {
                         internalValue.forEach((value) => {
                             window[variable].push(value);
                         });
-                    }
-                    else {
-                        store.data()[variable].default.forEach((item) =>{
+                    } else {
+                        store.data()[variable].default.forEach((item) => {
                             window[variable].push(item);
                         });
                     }
@@ -141,7 +140,6 @@ const sensible = (store) => {
      * @param element
      */
     function setElement(element) {
-        let setInner = false;
         switch (element.type) {
             case "select-one":
                 element.onchange = function (event) {
@@ -152,7 +150,6 @@ const sensible = (store) => {
             case "radio":
                 element.onchange = function (event) {
                     window[element.attributes['s-bind'].value] = event.target.value;
-                    //new Function('"use strict";var value = ' + JSON.stringify(event.target.value) + ';' + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
                 }
                 if (element.attributes['s-bind'].value === element.id) {
                     element.value = window[element.attributes['s-bind'].value];
@@ -162,7 +159,6 @@ const sensible = (store) => {
             case "checkbox":
                 element.onchange = function (event) {
                     window[element.attributes['s-bind'].value] = event.target.checked;
-                    //new Function('"use strict";var value = ' + JSON.stringify(event.target.checked) + ';' + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
                 }
                 element.checked = window[element.attributes['s-bind'].value];
                 break;
@@ -175,7 +171,6 @@ const sensible = (store) => {
                 };
                 //element.value = Function('"use strict";return(' + element.attributes['s-bind'].value + ');')();
                 element.value = window[element.attributes['s-bind'].value];
-                setInner = true;
                 break;
             case "color":
             case "date":
@@ -184,39 +179,29 @@ const sensible = (store) => {
                     new Function('"use strict";var value = ' + JSON.stringify(event.target.value) + ';' + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
                 };
                 element.value = window[element.attributes['s-bind'].value];
-                setInner = true;
                 break;
             case undefined:
-                if (!element.hasOwnProperty('original')) {
-                    element.parentElement.original = element.innerHTML;
+                if (!element.hasOwnProperty('originalInnerHTML')) {
+                    element.originalInnerHTML = element.innerHTML;
                 }
-                element.innerHTML = window[element.attributes['s-bind'].value];
-                if (element.parentElement.original !== '') {
-                    let code = element.parentElement.original.substr(element.parentElement.original.indexOf('{{') + 2, element.parentElement.original.indexOf('}}') - 2)
+                if (element.originalInnerHTML !== '') {
+                    let code = element.originalInnerHTML.substr(element.originalInnerHTML.indexOf('{{') + 2, element.originalInnerHTML.indexOf('}}') - 2)
                     // If there is code found then process it!
                     if (code && code.length > 1) {
                         try {
-                            let nonCodeNode1Location = element.parentElement.original.indexOf('{{');
-                            let nonCodeNode1 = element.parentElement.original.substring(0, element.parentElement.original.indexOf('{{'));
-                            let nonCodeNode2Location = element.parentElement.original.indexOf('}}') + 2;
-                            let nonCodeNode2 = element.parentElement.original.substring(element.parentElement.original.indexOf('}}') + 2);
-                            let code = element.parentElement.original.substr(nonCodeNode1Location + 2, nonCodeNode2Location - nonCodeNode1Location - 4);
-                            innerHTML = "'" + element.parentElement.original.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            let innerHTML = "'" + element.originalInnerHTML.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             element.innerHTML = new Function('"use strict";return ' + innerHTML + ';')();
 
-                            //element.innerHTML = `${nonCodeNode1}${codeValue}${nonCodeNode2}`;
                         } catch (error) {
                             console.error(error.message);
                         }
+                    } else {
+                        element.innerHTML = window[element.attributes['s-bind'].value];
                     }
                 } else {
-                    //element.innerHTML = new Function('"use strict";return ' + element.attributes['s-bind'].value)();
                     element.innerHTML = window[element.attributes['s-bind'].value];
                 }
                 break;
-        }
-        if (setInner) {
-            element.innerHTML = window[element.attributes['s-bind'].value];
         }
     }
 
@@ -265,9 +250,7 @@ const sensible = (store) => {
                     parentElement = element;
                     element = element.originalNode;
                     parentElement.appendChild(newElement);
-                }
-                else if (element.parentElement && !element.parentElement.hasOwnProperty('originalNode')) {
-                    element.parentElement.original = element.innerHTML;
+                } else if (element.parentElement && !element.parentElement.hasOwnProperty('originalNode')) {
                     element.parentElement.originalNode = element;
                     element.parentElement.setAttribute('s-for', element.getAttribute('s-for'));
                     element.parentElement.setAttribute('s-key', element.getAttribute('s-key'));
@@ -275,15 +258,14 @@ const sensible = (store) => {
                 element.style.display = 'none';
                 let forloop = element.getAttribute('s-for');
                 let key = element.getAttribute('s-key');
-                if (element.parentElement && element.parentElement.original !== '') {
-                    let code = element.parentElement.original.substr(element.parentElement.original.indexOf('{{') + 2, element.parentElement.original.indexOf('}}') - 2)
+                if (element.parentElement && element.parentElement.originalNode.innerHTML !== '') {
+                    let code = element.parentElement.originalNode.innerHTML.substr(element.parentElement.originalNode.innerHTML.indexOf('{{') + 2, element.parentElement.originalNode.innerHTML.indexOf('}}') - 2)
                     // If there is code found then process it!
                     if (code && code.length > 1) {
                         try {
                             element.style.display = '';
-                            innerHTML = "'" + element.parentElement.original.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            innerHTML = "'" + element.parentElement.originalNode.innerHTML.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             localElement = element.cloneNode(true);
-                            localElement.original = element.parentElement.original;
                             //Why does this work without using var o let?
                             parentElement = element.parentElement;
                             if (parentElement) {
@@ -296,7 +278,6 @@ const sensible = (store) => {
                                     var index = 0;
                                     for(${forloop}) {
                                         var newElement = localElement.cloneNode(true);
-                                        newElement.original = localElement.original;
                                         localElement.innerHTML = new Function('"use strict";return' + this.innerHTML + ';')();
                                         newElement.innerHTML = localElement.innerHTML;
                                         var att = document.createAttribute("s-key-value");       
@@ -312,12 +293,10 @@ const sensible = (store) => {
                                     }
                                     element.style.display = 'none';
                                     parentElement.appendChild(element);
-                                }
-                                else {
+                                } else {
                                     if (!element.hasOwnProperty('originalDisplay')) {
                                         element.style.display = element.originalDisplay;
-                                    }
-                                    else {
+                                    } else {
                                         element.style.display = '';
                                     }
 
@@ -327,8 +306,8 @@ const sensible = (store) => {
                             console.error(error.message);
                         }
                     }
-                // } else {
-                //     element.innerHTML = new Function('"use strict";return ' + element.attributes['s-for'].value)();
+                    // } else {
+                    //     element.innerHTML = new Function('"use strict";return ' + element.attributes['s-for'].value)();
                 }
             } catch (error) {
                 console.error(error.message);
