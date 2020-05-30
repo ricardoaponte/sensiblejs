@@ -86,7 +86,7 @@
                         Records:
                         <div class="container flex mx-auto w-full items-center justify-center">
                             <ul class="flex flex-col bg-gray-300 p-4 w-full">
-                                <li s-for="result of results" s-key="result.email" class="border-gray-400 flex flex-row mb-2">
+                                <li s-for="result of results" s-key="result.email" s-bind="results" class="border-gray-400 flex flex-row mb-2">
                                     <div class="select-none cursor-pointer bg-gray-200 rounded-md flex flex-1 items-center p-4  transition duration-500 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
                                         <div class="flex-1 pl-1 mr-16">
                                             <div class="font-medium">{{ result.fullName}}</div>
@@ -152,6 +152,9 @@
                                 <option value="2">Option 2</option>
                                 <option value="3">Option 3</option>
                                 <option value="4">Option 4</option>
+                            </select>
+                            <select id="options2" s-bind="selectedOption" class="form-select">
+                                <option s-for="availableOption of availableOptions" value="availableOption.id">{{ availableOption.name }}</option>
                             </select>
                         </div>
                         <div>
@@ -234,6 +237,7 @@
                 title: {type: String, default: 'This is the default title'},
                 total: {type: Number, default: 100},
                 selectedOption: {type: Number, default: 0},
+                availableOptions: {type: Array, default:[{id: 1, name: 'Option 1'},{id: 2, name: 'Option 2'},{id: 3, name: 'Option 3'},{id: 4, name: 'Option 4'},{id: 5, name: 'Option 5'},]},
                 fullName: {type: String, default: 'Your name'},
                 email: {type: String, default: 'example@example.com'},
                 phone: {type: String, default: '123-45678'},

@@ -13,15 +13,7 @@ const sensible = (store) => {
                     let ao = new ArrayObserver(window[variable]);
                     ao.Observe(function (result, method) {
                         if (store.persist) {
-                            localStorage.setItem(store.localPrefix + variable, JSON.stringify(results));
-                            // let existingData = localStorage.getItem(store.localPrefix + variable);
-                            // if (existingData) {
-                            //     existingData = JSON.parse(existingData);
-                            //     existingData.push(result);
-                            // }
-                            // else {
-                            //     localStorage.setItem(store.localPrefix + variable, JSON.stringify(result));
-                            // }
+                            localStorage.setItem(store.localPrefix + variable, JSON.stringify(window[variable]));
                         }
                         store.datosTemp[variable] = result;
 
@@ -36,9 +28,7 @@ const sensible = (store) => {
                             cssElements();
                             // Elements with for loops
                             forElements();
-
                         }
-                        console.log(result, method);
                     });
                 } else {
                     Object.defineProperty(window, variable, {
@@ -155,7 +145,7 @@ const sensible = (store) => {
         switch (element.type) {
             case "select-one":
                 element.onchange = function (event) {
-                    new Function('"use strict";var value = ' + JSON.stringify(event.target.value) + ';' + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
+                    new Function('"use strict";var value = ' + event.target.value + ';' + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
                 }
                 element.value = window[element.attributes['s-bind'].value];
                 break;
@@ -211,8 +201,10 @@ const sensible = (store) => {
                             let nonCodeNode2Location = element.original.indexOf('}}') + 2;
                             let nonCodeNode2 = element.original.substring(element.original.indexOf('}}') + 2);
                             let code = element.original.substr(nonCodeNode1Location + 2, nonCodeNode2Location - nonCodeNode1Location - 4);
-                            let codeValue = new Function('"use strict";return ' + code + ';')();
-                            element.innerHTML = `${nonCodeNode1}${codeValue}${nonCodeNode2}`;
+                            innerHTML = "'" + element.original.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            element.innerHTML = new Function('"use strict";return ' + innerHTML + ';')();
+
+                            //element.innerHTML = `${nonCodeNode1}${codeValue}${nonCodeNode2}`;
                         } catch (error) {
                             console.error(error.message);
                         }
@@ -280,31 +272,30 @@ const sensible = (store) => {
                         try {
                             innerHTML = "'" + element.original.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             localElement = element.cloneNode(true);
-                            localElement.removeAttribute('s-for');
-                            localElement.style.display = '';
+                            localElement.original = element.original;
                             //Why does this work without using var o let?
                             parentElement = element.parentElement;
-                            var child = parentElement.lastElementChild;
-                            while (child) {
-                                parentElement.removeChild(child);
-                                child = parentElement.lastElementChild;
+                            if (parentElement) {
+                                var child = parentElement.lastElementChild;
+                                while (child) {
+                                    parentElement.removeChild(child);
+                                    child = parentElement.lastElementChild;
+                                }
+                                let fn = `
+                                    var index = 0;
+                                    for(${forloop}) {
+                                        var newElement = localElement.cloneNode(true);
+                                        newElement.original = localElement.original;
+                                        localElement.innerHTML = new Function('"use strict";return' + this.innerHTML + ';')();
+                                        newElement.innerHTML = localElement.innerHTML;
+                                        var att = document.createAttribute("s-key-value");       
+                                        att.value = index;
+                                        index++;                           
+                                        newElement.setAttributeNode(att);
+                                        this.parentElement.appendChild(newElement);
+                                    }`;
+                                new Function(fn)();
                             }
-                            parentElement.appendChild(element);
-                            let fn = `
-                            var index = 0;
-                            for(${forloop}) {
-                                var newElement = localElement.cloneNode(true);
-                                localElement.innerHTML = new Function('"use strict";return' + this.innerHTML + ';')();
-                                newElement.innerHTML = localElement.innerHTML;
-                                var att = document.createAttribute("s-key-value");       
-                                att.value = index;
-                                index++;                           
-                                newElement.setAttributeNode(att);
-                                this.parentElement.appendChild(newElement);
-                            }
-                            `;
-                            new Function(fn)();
-                            element.style.display = 'none';
                         } catch (error) {
                             console.error(error.message);
                         }
