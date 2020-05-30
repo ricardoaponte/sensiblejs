@@ -49,16 +49,16 @@ const sensible = (store) => {
                             store.datosTemp[variable] = value;
 
                             if (!initializing) {
-                                //Process data binding for elements
-                                document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
-                                    setElement(element);
-                                })
+                                // Elements with for loops
+                                forElements();
                                 // Process display of elements
                                 ifElements();
                                 // Process appearance of elements
                                 cssElements();
-                                // Elements with for loops
-                                forElements();
+                                //Process data binding for elements
+                                document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
+                                    setElement(element);
+                                })
                             }
                         }
                     });
@@ -112,14 +112,14 @@ const sensible = (store) => {
         })
         initializing = false;
 
-        // Model bindings
-        modelBindings();
         // Element visibility
         ifElements();
         // Element appearance
         cssElements()
         // Elements with for loops
         forElements();
+        // Model bindings
+        modelBindings();
     }
 
 
@@ -143,7 +143,20 @@ const sensible = (store) => {
         switch (element.type) {
             case "select-one":
                 element.onchange = function (event) {
-                    new Function('"use strict";var value = ' + event.target.value + ';' + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
+                    let code = event.target.value.substr(event.target.value.indexOf('{{') + 2, event.target.value.indexOf('}}') - 2)
+                    // If there is code found then process it!
+                    if (code && code.length > 1) {
+                        try {
+                            let value = "'" + event.target.value.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            window[element.attributes['s-bind'].value] = new Function('"use strict";return ' + value + ';')();
+
+                        } catch (error) {
+                            console.error(error.message);
+                        }
+                    }
+                    else {
+                        window[element.attributes['s-bind'].value] = event.target.value;
+                    }
                 }
                 element.value = window[element.attributes['s-bind'].value];
                 break;
@@ -240,7 +253,7 @@ const sensible = (store) => {
     }
 
     /**
-     * Process for directive
+     * Process For directive
      */
     function forElements() {
         document.querySelectorAll(['[s-for]']).forEach((element) => {
@@ -257,7 +270,8 @@ const sensible = (store) => {
                 }
                 element.style.display = 'none';
                 let forloop = element.getAttribute('s-for');
-                let key = element.getAttribute('s-key');
+                // Will we need a key?
+                // let key = element.getAttribute('s-key');
                 if (element.parentElement && element.parentElement.originalNode.innerHTML !== '') {
                     let code = element.parentElement.originalNode.innerHTML.substr(element.parentElement.originalNode.innerHTML.indexOf('{{') + 2, element.parentElement.originalNode.innerHTML.indexOf('}}') - 2)
                     // If there is code found then process it!
@@ -265,6 +279,12 @@ const sensible = (store) => {
                         try {
                             element.style.display = '';
                             innerHTML = "'" + element.parentElement.originalNode.innerHTML.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            if (element.tagName == 'OPTION') {
+                                let code = element.parentElement.originalNode.value.substr(element.parentElement.originalNode.value.indexOf('{{') + 2, element.parentElement.originalNode.value.indexOf('}}') - 2)
+                                if (code && code.length > 1) {
+                                    value = "'" + element.parentElement.originalNode.value.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                                }
+                            }
                             localElement = element.cloneNode(true);
                             //Why does this work without using var o let?
                             parentElement = element.parentElement;
@@ -279,6 +299,9 @@ const sensible = (store) => {
                                     for(${forloop}) {
                                         var newElement = localElement.cloneNode(true);
                                         localElement.innerHTML = new Function('"use strict";return' + this.innerHTML + ';')();
+                                        if (this.value) {
+                                            newElement.value = new Function('"use strict";return' + this.value + ';')();
+                                        }
                                         newElement.innerHTML = localElement.innerHTML;
                                         var att = document.createAttribute("s-key-value");       
                                         att.value = index;
