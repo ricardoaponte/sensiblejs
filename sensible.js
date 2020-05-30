@@ -1,6 +1,7 @@
 const sensible = (store) => {
 
     init(store);
+
     //let parentElement = {};
 
     function init(store) {
@@ -8,37 +9,43 @@ const sensible = (store) => {
         let initializing = true;
         Object.keys(store.data()).forEach(function (variable) {
             try {
-                Object.defineProperty(window, variable, {
-                    get: function () {
-                        //return new Function('"use strict";return window.' + variable + ';')();
-                        return store.datosTemp[variable];
-                    },
-                    set: function (value) {
-                        // Persist it if needed
-                        if (store.persist) {
-                            // Check that the variable has a type
-                            if (typeof value == 'object') {
-                                localStorage.setItem(store.localPrefix + variable, JSON.stringify(value));
+                if (store.data()[variable].hasOwnProperty('type') && store.data()[variable].type === Array) {
+                    var ao = new ArrayObserver(window[variable])
+                    ao.Observe(function (result, method) {
+                        console.log(result, method);
+                    });
+                } else {
+                    Object.defineProperty(window, variable, {
+                        get: function () {
+                            //return new Function('"use strict";return window.' + variable + ';')();
+                            return store.datosTemp[variable];
+                        },
+                        set: function (value) {
+                            // Persist it if needed
+                            if (store.persist) {
+                                // Check that the variable has a type
+                                if (typeof value == 'object') {
+                                    localStorage.setItem(store.localPrefix + variable, JSON.stringify(value));
+                                } else {
+                                    localStorage.setItem(store.localPrefix + variable, value);
+                                }
                             }
-                            else {
-                                localStorage.setItem(store.localPrefix + variable, value);
+                            store.datosTemp[variable] = value;
+
+                            if (!initializing) {
+                                //Process data binding for elements
+                                document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
+                                    setElement(element);
+                                    // Process display of elements
+                                    ifElements();
+                                    // Process appearance of elements
+                                    cssElements();
+                                })
+
                             }
                         }
-                        store.datosTemp[variable] = value;
-
-                        if (!initializing) {
-                            //Process data binding for elements
-                            document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
-                                setElement(element);
-                                // Process display of elements
-                                ifElements();
-                                // Process appearance of elements
-                                cssElements();
-                            })
-
-                        }
-                    }
-                });
+                    });
+                }
             } catch (error) {
                 console.error(error.message);
             }
@@ -341,6 +348,42 @@ const sensible = (store) => {
         });
     }
 
+    //A new array
+    var myArray = [7, 8, 9];
+
+    //Wire up the observable
+    var ao = new ArrayObserver(myArray)
+    ao.Observe(function (result, method) {
+        console.log(result, method);
+    });
+
+    //Do stuff to the array.
+    myArray.push(4);
+    myArray.push(5);
+    myArray.push(6);
+    myArray.pop();
+    myArray.pop();
+    myArray.splice(2, 1);
+    myArray.sort();
+    console.log(myArray);
+/*
+    //A New Object
+    var obj = {prop1: 123}
+
+    //A New Observer
+    var observer = new Observer(obj, "prop1")
+    //The notify callback method.
+    observer.Observe(function (newValue) {
+        document.getElementById("myValue").value = newValue
+    })
+    //set a property in code.
+    obj.prop1 = 456
+
+    //And from a DOM Event
+    KeyValue = function (KeyedVAlue) {
+        obj.prop1 = KeyedVAlue
+    }
+*/
 
 }
 exports = sensible;
