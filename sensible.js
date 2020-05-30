@@ -1,11 +1,12 @@
 const sensible = (store) => {
 
     init(store);
+    //let parentElement = {};
 
     function init(store) {
         store.datosTemp = {};
         let initializing = true;
-        Object.keys(store.data()).forEach(function(variable) {
+        Object.keys(store.data()).forEach(function (variable) {
             try {
                 Object.defineProperty(window, variable, {
                     get: function () {
@@ -15,9 +16,14 @@ const sensible = (store) => {
                     set: function (value) {
                         // Persist it if needed
                         if (store.persist) {
-                           // Check that the variable has a type
-                           localStorage.setItem(store.localPrefix + variable, value);
-                       }
+                            // Check that the variable has a type
+                            if (typeof value == 'object') {
+                                localStorage.setItem(store.localPrefix + variable, JSON.stringify(value));
+                            }
+                            else {
+                                localStorage.setItem(store.localPrefix + variable, value);
+                            }
+                        }
                         store.datosTemp[variable] = value;
 
                         if (!initializing) {
@@ -37,11 +43,12 @@ const sensible = (store) => {
                 console.error(error.message);
             }
         });
-        Object.keys(store.data()).forEach(function(variable) {
+        Object.keys(store.data()).forEach(function (variable) {
             // Initialize store data as internal variables
             let dataSource = null;
             if (store.persist) {
-                dataSource = localStorage.getItem(JSON.stringify(store.localPrefix + variable).replace(/['"]+/g, ''));
+                //dataSource = localStorage.getItem(JSON.stringify(store.localPrefix + variable).replace(/['"]+/g, ''));
+                dataSource = localStorage.getItem(JSON.stringify(store.localPrefix + variable));
                 try {
                     dataSource = JSON.parse(dataSource);
                 } catch (error) {
@@ -52,22 +59,19 @@ const sensible = (store) => {
             let internalValue;
 
             if (dataSource === null) {
-                if (store.data()[variable].hasOwnProperty('default')) {
-                    internalValue = store.data()[variable].default;
-                } else {
-                    internalValue = store.data()[variable];
-                }
+                internalValue = store.data()[variable].default;
             } else {
                 internalValue = dataSource;
             }
 
-            if (store.data()[variable].hasOwnProperty('type')) {
-                // Cast the value based on data type
-                window[variable] = store.data()[variable].type(internalValue);
-            } else {
-                // No casting information available
-                window[variable] = internalValue;
-            }
+            window[variable] = internalValue;
+            // if (store.data()[variable].hasOwnProperty('type')) {
+            //     // Cast the value based on data type
+            //     window[variable] = store.data()[variable].type(internalValue);
+            // } else {
+            //     // No casting information available
+            //     window[variable] = internalValue;
+            // }
         })
         initializing = false;
 
@@ -77,6 +81,8 @@ const sensible = (store) => {
         ifElements();
         // Element appearance
         cssElements()
+
+        forElements();
     }
 
 
@@ -112,7 +118,7 @@ const sensible = (store) => {
                 }
                 if (element.attributes['s-bind'].value === element.id) {
                     element.value = window[element.attributes['s-bind'].value];
-                };
+                }
                 element.checked = window[element.attributes['s-bind'].value] === element.value;
                 break;
             case "checkbox":
@@ -199,7 +205,7 @@ const sensible = (store) => {
     function cssElements() {
         document.querySelectorAll(['[s-css]']).forEach((element) => {
             try {
-                element.getAttribute('s-css').split(';').forEach(function(style) {
+                element.getAttribute('s-css').split(';').forEach(function (style) {
                     Object.assign(element.style, new Function(`return {"${style.split(':')[0].trim()}":${style.split(':')[1].trim()}}`)());
                 });
             } catch (error) {
@@ -227,20 +233,23 @@ const sensible = (store) => {
                             let nonCodeNode1 = element.original.substring(0, element.original.indexOf('{{'));
                             let nonCodeNode2Location = element.original.indexOf('}}') + 2;
                             let nonCodeNode2 = element.original.substring(element.original.indexOf('}}') + 2);
-                            let code = element.original.substr(nonCodeNode1Location + 2, nonCodeNode2Location - nonCodeNode1Location - 4);
+                            code = element.original.substr(nonCodeNode1Location + 2, nonCodeNode2Location - nonCodeNode1Location - 4);
                             //let codeValue = new Function('"use strict";return ' + code + ';')();
                             //let insertElement = `${nonCodeNode1}${codeValue}${nonCodeNode2}`;
-                            newElement = element.cloneNode();
-                            newElement.removeAttribute('s-for');
+                            localElement = element.cloneNode(true);
+                            localElement.removeAttribute('s-for');
+                            //Why does this work without using var o let?
+                            parentElement = element.parentElement;
                             let fn = `
-                            
                             for(${forloop}) {
-                                this.newElement.insertAdjacentElement('afterend', this.newElement);
+                                var newElement = localElement.cloneNode(true);
+                                localElement.innerHTML = ${code};
+                                newElement.innerHTML = ${code};
+                                this.parentElement.appendChild(newElement);
                             }
                             `;
                             new Function(fn)();
                             element.remove();
-                            //element.innerHTML = `${nonCodeNode1}${codeValue}${nonCodeNode2}`;
                         } catch (error) {
                             console.error(error.message);
                         }
@@ -254,80 +263,79 @@ const sensible = (store) => {
         })
     }
 
-    function ArrayObserver(a){
+    function ArrayObserver(a) {
         var _this = this;
         this.array = a;
         this.observers = [];
 
-        this.Observe = function (notifyCallback){
+        this.Observe = function (notifyCallback) {
             _this.observers.push(notifyCallback);
         }
 
-        a.push = function(obj){
+        a.push = function (obj) {
             var push = Array.prototype.push.apply(a, arguments);
-            for(var i = 0; i < _this.observers.length; i++) _this.observers[i](obj, "push");
+            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](obj, "push");
             return push;
         }
 
-        a.pop = function(){
+        a.pop = function () {
             var popped = Array.prototype.pop.apply(a, arguments);
-            for(var i = 0; i < _this.observers.length; i++) _this.observers[i](popped, "pop");
+            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](popped, "pop");
             return popped;
         }
 
-        a.reverse = function() {
+        a.reverse = function () {
             var result = Array.prototype.reverse.apply(a, arguments);
-            for(var i = 0; i < _this.observers.length; i++) _this.observers[i](result, "reverse");
+            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](result, "reverse");
             return result;
         };
 
-        a.shift = function() {
+        a.shift = function () {
             var deleted_item = Array.prototype.shift.apply(a, arguments);
-            for(var i = 0; i < _this.observers.length; i++) _this.observers[i](deleted_item, "shift");
+            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](deleted_item, "shift");
             return deleted_item;
         };
 
-        a.sort = function() {
+        a.sort = function () {
             var result = Array.prototype.sort.apply(a, arguments);
-            for(var i = 0; i < _this.observers.length; i++) _this.observers[i](result, "sort");
+            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](result, "sort");
             return result;
         };
 
-        a.splice = function(i, length, itemsToInsert) {
+        a.splice = function (i, length, itemsToInsert) {
             var returnObj
-            if(itemsToInsert){
+            if (itemsToInsert) {
                 Array.prototype.slice.call(arguments, 2);
                 returnObj = itemsToInsert;
-            }
-            else{
+            } else {
                 returnObj = Array.prototype.splice.apply(a, arguments);
             }
-            for(var i = 0; i < _this.observers.length; i++) _this.observers[i](returnObj, "splice");
+            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](returnObj, "splice");
             return returnObj;
         };
 
-        a.unshift = function() {
+        a.unshift = function () {
             var new_length = Array.prototype.unshift.apply(a, arguments);
-            for(var i = 0; i < _this.observers.length; i++) _this.observers[i](new_length, "unshift");
+            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](new_length, "unshift");
             return arguments;
         };
     }
 
-    function Observer(o, property){
+    function Observer(o, property) {
         var _this = this;
         var value = o[property];
         this.observers = [];
 
-        this.Observe = function (notifyCallback){
+        this.Observe = function (notifyCallback) {
             _this.observers.push(notifyCallback);
         }
 
         Object.defineProperty(o, property, {
-            set: function(val){
+            set: function (val) {
                 _this.value = val;
-                for(var i = 0; i < _this.observers.length; i++) _this.observers[i](val);
+                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](val);
             },
-            get: function(){
+            get: function () {
                 return _this.value;
             }
         });

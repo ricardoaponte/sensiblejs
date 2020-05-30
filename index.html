@@ -196,24 +196,9 @@
     let store = {
         persist: true,
         localPrefix: '__',
-        datos: {
-            show: {type: Boolean, default: true},
-            title: {type: String, default: 'This is the default title'},
-            total: {type: Number, default: 100},
-            selectedOption: {type: Number, default: 0},
-            fullName: {type: String, default: 'Your name'},
-            email: {type: String, default: 'example@example.com'},
-            phone: {type: String, default: '123-45678'},
-            message: {type: String, default: 'This is a message'},
-            gender: {type: String, default: 'male'},
-            titleColor: {type: String, default: '#FFFFFF'},
-            backgroundColor: {type: String, default: '#5a67d8'},
-            birthDate: {type: String, default: '1969-08-16'},
-            birthDateTime: {type: String, default: '1969-08-16T20:00'},
-            results: {type: Array, default: {fullName: 'Ricardo'}},
-        },
         data() {
             return {
+                results: {type: Array, default: [{fullName: 'Fulano de Tal'}, {fullName: 'Mengano de Tal'}]},
                 show: {type: Boolean, default: true},
                 title: {type: String, default: 'This is the default title'},
                 total: {type: Number, default: 100},
@@ -227,7 +212,6 @@
                 backgroundColor: {type: String, default: '#5a67d8'},
                 birthDate: {type: String, default: '1969-08-16'},
                 birthDateTime: {type: String, default: '1969-08-16T20:00'},
-                results: {type: Array, default: {fullName: 'Ricardo'}},
             }
         },
     };
