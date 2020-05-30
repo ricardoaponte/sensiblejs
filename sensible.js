@@ -9,10 +9,19 @@ const sensible = (store) => {
             try {
                 if (store.data()[variable].hasOwnProperty('type') && store.data()[variable].type === Array) {
                     window[variable] = [];
+                    window[variable].length = 0;
                     let ao = new ArrayObserver(window[variable]);
                     ao.Observe(function (result, method) {
                         if (store.persist) {
-                            localStorage.setItem(store.localPrefix + variable, JSON.stringify(result));
+                            localStorage.setItem(store.localPrefix + variable, JSON.stringify(results));
+                            // let existingData = localStorage.getItem(store.localPrefix + variable);
+                            // if (existingData) {
+                            //     existingData = JSON.parse(existingData);
+                            //     existingData.push(result);
+                            // }
+                            // else {
+                            //     localStorage.setItem(store.localPrefix + variable, JSON.stringify(result));
+                            // }
                         }
                         store.datosTemp[variable] = result;
 
@@ -74,7 +83,7 @@ const sensible = (store) => {
             let currentVariable = store.data()[variable];
             if (store.persist) {
                 //dataSource = localStorage.getItem(JSON.stringify(store.localPrefix + variable).replace(/['"]+/g, ''));
-                dataSource = localStorage.getItem(JSON.stringify(store.localPrefix + variable));
+                dataSource = localStorage.getItem(store.localPrefix + variable);
                 try {
                     dataSource = JSON.parse(dataSource);
                 } catch (error) {
@@ -94,9 +103,16 @@ const sensible = (store) => {
             if (currentVariable.hasOwnProperty('type')) {
                 // Cast the value based on data type
                 if (currentVariable.type === Array) {
-                    store.data()[variable].default.forEach((item) =>{
-                        window[variable].push(item);
-                    });
+                    if (internalValue) {
+                        internalValue.forEach((value) => {
+                            window[variable].push(value);
+                        });
+                    }
+                    else {
+                        store.data()[variable].default.forEach((item) =>{
+                            window[variable].push(item);
+                        });
+                    }
                 } else {
                     window[variable] = internalValue;
                 }
@@ -256,18 +272,13 @@ const sensible = (store) => {
                     element.original = element.innerHTML;
                 }
                 let forloop = element.getAttribute('s-for');
+                let key = element.getAttribute('s-key');
                 if (element.original !== '') {
                     let code = element.original.substr(element.original.indexOf('{{') + 2, element.original.indexOf('}}') - 2)
                     // If there is code found then process it!
                     if (code && code.length > 1) {
                         try {
-                            let nonCodeNode1Location = element.original.indexOf('{{');
-                            let nonCodeNode1 = element.original.substring(0, element.original.indexOf('{{'));
-                            let nonCodeNode2Location = element.original.indexOf('}}') + 2;
-                            let nonCodeNode2 = element.original.substring(element.original.indexOf('}}') + 2);
-                            code = element.original.substr(nonCodeNode1Location + 2, nonCodeNode2Location - nonCodeNode1Location - 4);
-                            //let codeValue = new Function('"use strict";return ' + code + ';')();
-                            //let insertElement = `${nonCodeNode1}${codeValue}${nonCodeNode2}`;
+                            innerHTML = "'" + element.original.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             localElement = element.cloneNode(true);
                             localElement.removeAttribute('s-for');
                             localElement.style.display = '';
@@ -280,10 +291,15 @@ const sensible = (store) => {
                             }
                             parentElement.appendChild(element);
                             let fn = `
+                            var index = 0;
                             for(${forloop}) {
                                 var newElement = localElement.cloneNode(true);
-                                localElement.innerHTML = ${code};
-                                newElement.innerHTML = ${code};
+                                localElement.innerHTML = new Function('"use strict";return' + this.innerHTML + ';')();
+                                newElement.innerHTML = localElement.innerHTML;
+                                var att = document.createAttribute("s-key-value");       
+                                att.value = index;
+                                index++;                           
+                                newElement.setAttributeNode(att);
                                 this.parentElement.appendChild(newElement);
                             }
                             `;
