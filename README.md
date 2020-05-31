@@ -24,10 +24,17 @@ Then declare the store object with the settings and fields needed.
         localPrefix: '__',
         data() {
             return {
-                show: true,
+                results: {
+                    type: Array, default: [
+                        {fullName: 'Fulano de Tal', email: 'fulano@detal.com', phone: '7871234567'},
+                        {fullName: 'Mengano de Tal', email: 'mengano@detal.com', phone: '7871234568'},
+                    ]
+                },
+                show: {type: Boolean, default: true},
                 title: {type: String, default: 'This is the default title'},
                 total: {type: Number, default: 100},
                 selectedOption: {type: Number, default: 0},
+                availableOptions: {type: Array, default:[{id: 1, name: 'Option 1'},{id: 2, name: 'Option 2'},{id: 3, name: 'Option 3'},{id: 4, name: 'Option 4'},{id: 5, name: 'Option 5'},]},
                 fullName: {type: String, default: 'Your name'},
                 email: {type: String, default: 'example@example.com'},
                 phone: {type: String, default: '123-45678'},
