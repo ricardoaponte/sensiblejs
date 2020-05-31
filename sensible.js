@@ -1,7 +1,5 @@
-const sensible = (store) => {
-
+function sensible (store) {
     init(store);
-
     function init(store) {
         store.datosTemp = {};
         let initializing = true;
@@ -121,8 +119,6 @@ const sensible = (store) => {
         // Model bindings
         modelBindings();
     }
-
-
     /**
      * Initialize existing elements with store data
      */
@@ -141,13 +137,14 @@ const sensible = (store) => {
      */
     function setElement(element) {
         switch (element.type) {
+            // TODO: multiple
             case "select-one":
                 element.onchange = function (event) {
-                    let code = event.target.value.substr(event.target.value.indexOf('{{') + 2, event.target.value.indexOf('}}') - 2)
+                    let code = event.target.value.substr(event.target.value.indexOf('[[') + 2, event.target.value.indexOf(']]') - 2)
                     // If there is code found then process it!
                     if (code && code.length > 1) {
                         try {
-                            let value = "'" + event.target.value.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            let value = "'" + event.target.value.replace(/{{(^.*\[|\].*$)/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             window[element.attributes['s-bind'].value] = new Function('"use strict";return ' + value + ';')();
 
                         } catch (error) {
@@ -198,11 +195,11 @@ const sensible = (store) => {
                     element.originalInnerHTML = element.innerHTML;
                 }
                 if (element.originalInnerHTML !== '') {
-                    let code = element.originalInnerHTML.substr(element.originalInnerHTML.indexOf('{{') + 2, element.originalInnerHTML.indexOf('}}') - 2)
+                    let code = element.originalInnerHTML.substr(element.originalInnerHTML.indexOf('[[') + 2, element.originalInnerHTML.indexOf(']]') - 2)
                     // If there is code found then process it!
                     if (code && code.length > 1) {
                         try {
-                            let innerHTML = "'" + element.originalInnerHTML.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            let innerHTML = "'" + element.originalInnerHTML.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             element.innerHTML = new Function('"use strict";return ' + innerHTML + ';')();
 
                         } catch (error) {
@@ -273,16 +270,16 @@ const sensible = (store) => {
                 // Will we need a key?
                 // let key = element.getAttribute('s-key');
                 if (element.parentElement && element.parentElement.originalNode.innerHTML !== '') {
-                    let code = element.parentElement.originalNode.innerHTML.substr(element.parentElement.originalNode.innerHTML.indexOf('{{') + 2, element.parentElement.originalNode.innerHTML.indexOf('}}') - 2)
+                    let code = element.parentElement.originalNode.innerHTML.substr(element.parentElement.originalNode.innerHTML.indexOf('[[') + 2, element.parentElement.originalNode.innerHTML.indexOf(']]') - 2)
                     // If there is code found then process it!
                     if (code && code.length > 1) {
                         try {
                             element.style.display = '';
-                            innerHTML = "'" + element.parentElement.originalNode.innerHTML.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            innerHTML = "'" + element.parentElement.originalNode.innerHTML.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             if (element.tagName == 'OPTION') {
-                                let code = element.parentElement.originalNode.value.substr(element.parentElement.originalNode.value.indexOf('{{') + 2, element.parentElement.originalNode.value.indexOf('}}') - 2)
+                                let code = element.parentElement.originalNode.value.substr(element.parentElement.originalNode.value.indexOf('[[') + 2, element.parentElement.originalNode.value.indexOf(']]') - 2)
                                 if (code && code.length > 1) {
-                                    value = "'" + element.parentElement.originalNode.value.replace(/{{/g, "' + ").replace(/}}/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                                    value = "'" + element.parentElement.originalNode.value.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                                 }
                             }
                             localElement = element.cloneNode(true);
@@ -338,6 +335,11 @@ const sensible = (store) => {
         })
     }
 
+    /**
+     * Code by Blaize Stewart, Aug 7, 2019
+     * @param a
+     * @constructor
+     */
     function ArrayObserver(a) {
         var _this = this;
         this.array = a;
@@ -396,6 +398,12 @@ const sensible = (store) => {
         };
     }
 
+    /**
+     * Code by Blaize Stewart, Aug 7, 2019
+     * @param o
+     * @param property
+     * @constructor
+     */
     function Observer(o, property) {
         var _this = this;
         var value = o[property];
@@ -415,44 +423,5 @@ const sensible = (store) => {
             }
         });
     }
-
-    // //A new array
-    // var myArray = [7, 8, 9];
-    // window.myArray = myArray;
-    //
-    // //Wire up the observable
-    // var ao = new ArrayObserver(myArray)
-    // ao.Observe(function (result, method) {
-    //     console.log(result, method);
-    // });
-    //
-    // //Do stuff to the array.
-    // myArray.push(4);
-    // myArray.push(5);
-    // myArray.push(6);
-    // myArray.pop();
-    // myArray.pop();
-    // myArray.splice(2, 1);
-    // myArray.sort();
-    // console.log(myArray);
-    /*
-        //A New Object
-        var obj = {prop1: 123}
-
-        //A New Observer
-        var observer = new Observer(obj, "prop1")
-        //The notify callback method.
-        observer.Observe(function (newValue) {
-            document.getElementById("myValue").value = newValue
-        })
-        //set a property in code.
-        obj.prop1 = 456
-
-        //And from a DOM Event
-        KeyValue = function (KeyedVAlue) {
-            obj.prop1 = KeyedVAlue
-        }
-    */
-
 }
-exports = sensible;
+module.exports.sensible = sensible;
