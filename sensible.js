@@ -417,4 +417,4 @@ function sensible (store) {
         });
     }
 }
-module.exports.sensible = sensible;
+module.exports = sensible;
