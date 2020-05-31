@@ -19,8 +19,8 @@ function sensible (store) {
                             //Process data binding for elements
                             document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
                                 setElement(element);
-                                // Process display of elements
                             })
+                            // Process display of elements
                             ifElements();
                             // Process appearance of elements
                             cssElements();
@@ -31,7 +31,6 @@ function sensible (store) {
                 } else {
                     Object.defineProperty(window, variable, {
                         get: function () {
-                            //return new Function('"use strict";return window.' + variable + ';')();
                             return store.datosTemp[variable];
                         },
                         set: function (value) {
@@ -70,7 +69,6 @@ function sensible (store) {
             let dataSource = null;
             let currentVariable = store.data()[variable];
             if (store.persist) {
-                //dataSource = localStorage.getItem(JSON.stringify(store.localPrefix + variable).replace(/['"]+/g, ''));
                 dataSource = localStorage.getItem(store.localPrefix + variable);
                 try {
                     dataSource = JSON.parse(dataSource);
@@ -87,7 +85,6 @@ function sensible (store) {
                 internalValue = dataSource;
             }
 
-            //window[variable] = internalValue;
             if (currentVariable.hasOwnProperty('type')) {
                 // Cast the value based on data type
                 if (currentVariable.type === Array) {
@@ -144,7 +141,7 @@ function sensible (store) {
                     // If there is code found then process it!
                     if (code && code.length > 1) {
                         try {
-                            let value = "'" + event.target.value.replace(/{{(^.*\[|\].*$)/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            let value = "'" + event.target.value.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             window[element.attributes['s-bind'].value] = new Function('"use strict";return ' + value + ';')();
 
                         } catch (error) {
@@ -177,9 +174,7 @@ function sensible (store) {
             case "textarea":
                 element.onkeyup = function (event) {
                     window[element.attributes['s-bind'].value] = event.target.value;
-                    //new Function('"use strict";var value = ' + JSON.stringify(event.target.value) + ';' + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
                 };
-                //element.value = Function('"use strict";return(' + element.attributes['s-bind'].value + ');')();
                 element.value = window[element.attributes['s-bind'].value];
                 break;
             case "color":
@@ -276,7 +271,7 @@ function sensible (store) {
                         try {
                             element.style.display = '';
                             innerHTML = "'" + element.parentElement.originalNode.innerHTML.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
-                            if (element.tagName == 'OPTION') {
+                            if (element.tagName === 'OPTION') {
                                 let code = element.parentElement.originalNode.value.substr(element.parentElement.originalNode.value.indexOf('[[') + 2, element.parentElement.originalNode.value.indexOf(']]') - 2)
                                 if (code && code.length > 1) {
                                     value = "'" + element.parentElement.originalNode.value.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
@@ -307,7 +302,7 @@ function sensible (store) {
                                         this.parentElement.appendChild(newElement);
                                     }`;
                                 new Function(fn)();
-                                if (parentElement.children.length == 0) {
+                                if (parentElement.children.length === 0) {
                                     if (!element.hasOwnProperty('originalDisplay')) {
                                         element.originalDisplay = element.style.display;
                                     }
@@ -326,8 +321,6 @@ function sensible (store) {
                             console.error(error.message);
                         }
                     }
-                    // } else {
-                    //     element.innerHTML = new Function('"use strict";return ' + element.attributes['s-for'].value)();
                 }
             } catch (error) {
                 console.error(error.message);
