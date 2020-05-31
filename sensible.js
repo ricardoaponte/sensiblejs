@@ -88,7 +88,7 @@ function sensible (store) {
             if (currentVariable.hasOwnProperty('type')) {
                 // Cast the value based on data type
                 if (currentVariable.type === Array) {
-                    if (internalValue) {
+                    if (internalValue !== 'undefined') {
                         internalValue.forEach((value) => {
                             window[variable].push(value);
                         });
