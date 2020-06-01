@@ -232,12 +232,14 @@
         data() {
             return {
                 results: {
-                    type: Array, default: [
+                    type: Array,
+                    default: [
                         {fullName: 'Fulano de Tal', email: 'fulano@detal.com', phone: '7871234567'},
                         {fullName: 'Mengano de Tal', email: 'mengano@detal.com', phone: '7871234568'},
-                    ]
+                    ],
+                    persist: true,
                 },
-                show: {type: Boolean, default: true},
+                show: {type: Boolean, default: true, persist: false},
                 title: {type: String, default: 'This is the default title'},
                 total: {type: Number, default: 100},
                 selectedOption: {type: Number, default: 0},

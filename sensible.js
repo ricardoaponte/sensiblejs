@@ -11,7 +11,9 @@ function sensible (store) {
                     let ao = new ArrayObserver(window[variable]);
                     ao.Observe(function (result, method) {
                         if (store.persist) {
-                            localStorage.setItem(store.localPrefix + variable, JSON.stringify(window[variable]));
+                            if ((typeof store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist !== false)) {
+                                localStorage.setItem(store.localPrefix + variable, JSON.stringify(window[variable]));
+                            }
                         }
                         store.datosTemp[variable] = result;
 
@@ -34,13 +36,14 @@ function sensible (store) {
                             return store.datosTemp[variable];
                         },
                         set: function (value) {
-                            // Persist it if needed
+                            // Persist it if needed and able to
                             if (store.persist) {
-                                // Check that the variable has a type
-                                if (typeof value == 'object') {
-                                    localStorage.setItem(store.localPrefix + variable, JSON.stringify(value));
-                                } else {
-                                    localStorage.setItem(store.localPrefix + variable, value);
+                                if ((typeof store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist !== false)) {
+                                    if (typeof value == 'object') {
+                                        localStorage.setItem(store.localPrefix + variable, JSON.stringify(value));
+                                    } else {
+                                        localStorage.setItem(store.localPrefix + variable, value);
+                                    }
                                 }
                             }
                             store.datosTemp[variable] = value;
@@ -68,7 +71,7 @@ function sensible (store) {
             // Initialize store data as internal variables
             let dataSource = null;
             let currentVariable = store.data()[variable];
-            if (store.persist) {
+            if (store.persist || (store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist === true)) {
                 dataSource = localStorage.getItem(store.localPrefix + variable);
                 try {
                     dataSource = JSON.parse(dataSource);
