@@ -360,14 +360,6 @@ function sensible (store) {
         })
     }
 
-    Object.prototype.isEmpty = function() {
-        for(var key in this) {
-            if(this.hasOwnProperty(key))
-                return false;
-        }
-        return true;
-    }
-
     /**
      * Code by Blaize Stewart, Aug 7, 2019
      * @param a
