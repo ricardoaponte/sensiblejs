@@ -1,4 +1,8 @@
 function sensible (store) {
+    String.prototype.hasCode = function() {
+        return this.search(/\[\[/g, "' + ") >= 0;
+    }
+
     init(store);
     function init(store) {
         store.datosTemp = {};
@@ -71,7 +75,6 @@ function sensible (store) {
                                     store.data()[variable].callBack.call(window[variable]);
                                 }
                             }
-
                         }
                     });
                 }
@@ -94,14 +97,13 @@ function sensible (store) {
 
             let internalValue;
 
-            if (dataSource === null) {
+            if (dataSource === null || dataSource === "") {
                 internalValue = currentVariable.default;
             } else {
                 internalValue = dataSource;
             }
 
             if (currentVariable.hasOwnProperty('type')) {
-                // Cast the value based on data type
                 if (currentVariable.type === Array) {
                     if (internalValue !== 'undefined' && internalValue !== undefined && internalValue !== '') {
                         internalValue.forEach((value) => {
@@ -133,6 +135,7 @@ function sensible (store) {
         // Model bindings
         modelBindings();
     }
+
     /**
      * Initialize existing elements with store data
      */
@@ -142,11 +145,11 @@ function sensible (store) {
         elements.forEach((element) => {
             setElement(element);
         })
-
     }
 
     /**
-     * Set element sensible events
+     * Set element sensible events and content
+     * s-bind
      * @param element
      */
     function setElement(element) {
@@ -203,6 +206,12 @@ function sensible (store) {
                 element.value = window[element.attributes['s-bind'].value];
                 break;
             case undefined:
+                switch(element.tagName) {
+                    case "IMG":
+                        let code = element.attributes['s-bind'].value;
+                        element.src = new Function('"use strict";return ' + code + ';')();
+                        return;
+                }
                 if (!element.hasOwnProperty('originalInnerHTML')) {
                     element.originalInnerHTML = element.innerHTML;
                 }
@@ -211,18 +220,24 @@ function sensible (store) {
                     // If there is code found then process it!
                     if (code && code.length > 1) {
                         try {
-                            let innerHTML = "'" + element.originalInnerHTML.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
-                            element.innerHTML = new Function('"use strict";return ' + innerHTML + ';')();
+                            code = "'" + element.originalInnerHTML.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            let codeResult = new Function('"use strict";return ' + code + ';')();
+                            switch(element.tagName) {
+                                case "IMG":
+                                    element.src = codeResult;
+                                    break;
+                                default:
+                                    element.innerHTML = codeResult;
+                                    break;
+                            }
+                            break;
 
                         } catch (error) {
                             console.error(error.message);
                         }
-                    } else {
-                        element.innerHTML = window[element.attributes['s-bind'].value];
                     }
-                } else {
-                    element.innerHTML = window[element.attributes['s-bind'].value];
                 }
+                element.innerHTML = window[element.attributes['s-bind'].value];
                 break;
         }
     }
@@ -343,6 +358,14 @@ function sensible (store) {
                 console.error(error.message);
             }
         })
+    }
+
+    Object.prototype.isEmpty = function() {
+        for(var key in this) {
+            if(this.hasOwnProperty(key))
+                return false;
+        }
+        return true;
     }
 
     /**

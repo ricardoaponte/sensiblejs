@@ -21,6 +21,7 @@
                         A super lightweight sensible tool
                     </p>
                 </div>
+                <img s-bind="profileData.photo">
             </div>
         </div>
         <div class="relative mx-auto max-w-7xl lg:grid lg:grid-cols-5">
@@ -75,7 +76,11 @@
                             onclick="total--">
                         Decrease total
                     </button>
-                    <div s-bind="fullName">Test</div>
+                    <!-- s-bind example-->
+                    <div s-bind="fullName"></div>
+                    <div s-bind="">Phone: [[phone]]</div>
+                    <p s-bind="">Gender: [[gender]]</p>
+                    <!-- s-bind example -->
                     <div class="mt-3 text-lg leading-6 text-gray-500">
                         <p s-bind="selectedOption">Selected option [[ parseInt(selectedOption) ]] </p>
                     </div>
@@ -144,6 +149,18 @@
                                 <input class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input" id="phone"
                                         placeholder="Phone"
                                         s-bind="phone"/>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="sr-only" for="phone">Load Image</label>
+                            <div class="relative rounded-md shadow-sm">
+                                <img s-bind="photo">
+                                <input class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input mb-3" id="image"
+                                        placeholder="Image url"
+                                        s-bind="photo"/>
+                                <button onclick="loadImage()" class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700">
+                                    Load Image
+                                </button>
                             </div>
                         </div>
                         <div>
@@ -253,6 +270,8 @@
                 backgroundColor: {type: String, default: '#5a67d8'},
                 birthDate: {type: String, default: '1969-08-16'},
                 birthDateTime: {type: String, default: '1969-08-16T20:00'},
+                photo: {type: String, default: 'https://source.unsplash.com/random/800x600'},
+                profileData: {type: Object, default: {fullName: 'Ricardo Aponte', photo: 'https://source.unsplash.com/random/100x50'}, persist: false}
             }
         },
     };
