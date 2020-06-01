@@ -103,14 +103,16 @@ function sensible (store) {
             if (currentVariable.hasOwnProperty('type')) {
                 // Cast the value based on data type
                 if (currentVariable.type === Array) {
-                    if (internalValue !== 'undefined') {
+                    if (internalValue !== 'undefined' && internalValue !== undefined && internalValue !== '') {
                         internalValue.forEach((value) => {
                             window[variable].push(value);
                         });
                     } else {
-                        store.data()[variable].default.forEach((item) => {
-                            window[variable].push(item);
-                        });
+                        if (store.data()[variable].hasOwnProperty('default')) {
+                            store.data()[variable].default.forEach((item) => {
+                                window[variable].push(item);
+                            });
+                        }
                     }
                 } else {
                     window[variable] = internalValue;
@@ -310,9 +312,9 @@ function sensible (store) {
                                             newElement.value = new Function('"use strict";return' + this.value + ';')();
                                         }
                                         newElement.innerHTML = localElement.innerHTML;
-                                        var att = document.createAttribute("s-key-value");       
+                                        var att = document.createAttribute("s-key-value");
                                         att.value = index;
-                                        index++;                           
+                                        index++;
                                         newElement.setAttributeNode(att);
                                         this.parentElement.appendChild(newElement);
                                     }`;
@@ -361,6 +363,12 @@ function sensible (store) {
             var push = Array.prototype.push.apply(a, arguments);
             for (var i = 0; i < _this.observers.length; i++) _this.observers[i](obj, "push");
             return push;
+        }
+
+        a.concat = function (obj) {
+            var concat = Array.prototype.concat.apply(a, obj);
+            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](concat, "concat");
+            return concat;
         }
 
         a.pop = function () {
