@@ -239,12 +239,12 @@
                     ],
                     persist: true,
                 },
-                show: {type: Boolean, default: true, persist: false},
+                show: {type: Boolean, default: true, persist: true}, /** persist: true(default)|false */
                 title: {type: String, default: 'This is the default title'},
                 total: {type: Number, default: 100},
                 selectedOption: {type: Number, default: 0},
                 availableOptions: {type: Array, default:[{id: 1, name: 'Option 1'},{id: 2, name: 'Option 2'},{id: 3, name: 'Option 3'},{id: 4, name: 'Option 4'},{id: 5, name: 'Option 5'},]},
-                fullName: {type: String, default: 'Your name'},
+                fullName: {type: String, default: 'Your name', callBack: showDialog},
                 email: {type: String, default: 'example@example.com'},
                 phone: {type: String, default: '123-45678'},
                 message: {type: String, default: 'This is a message'},
@@ -260,6 +260,11 @@
 
     function addRecord() {
         results.push({fullName: fullName, email: email, phone: phone});
+    }
+
+    function showDialog() {
+        console.log(this);
+        alert(this);
     }
 
     document.addEventListener("DOMContentLoaded", function (event) {

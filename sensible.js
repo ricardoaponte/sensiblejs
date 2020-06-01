@@ -28,7 +28,13 @@ function sensible (store) {
                             cssElements();
                             // Elements with for loops
                             forElements();
+
+                            // Execute field callbacks if any
+                            if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack != '') {
+                                store.data()[variable].callBack.call(window[variable]);
+                            }
                         }
+
                     });
                 } else {
                     Object.defineProperty(window, variable, {
@@ -59,7 +65,13 @@ function sensible (store) {
                                 document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
                                     setElement(element);
                                 })
+
+                                // Execute field callbacks if any
+                                if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack !== '') {
+                                    store.data()[variable].callBack.call(window[variable]);
+                                }
                             }
+
                         }
                     });
                 }
