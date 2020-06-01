@@ -209,7 +209,10 @@ function sensible (store) {
                 switch(element.tagName) {
                     case "IMG":
                         let code = element.attributes['s-bind'].value;
-                        element.src = new Function('"use strict";return ' + code + ';')();
+                        let result = new Function('"use strict";return ' + code + ';')();
+                        if (result) {
+                            element.src = result;
+                        }
                         return;
                 }
                 if (!element.hasOwnProperty('originalInnerHTML')) {
