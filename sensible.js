@@ -48,6 +48,11 @@ function sensible(store) {
                     observer.Observe(function (value) {
                         if (!initializing) {
                             updateAll();
+                            // Execute field callbacks if any
+                            if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack != '') {
+                                store.data()[variable].callBack.call(window[variable]);
+                            }
+
                         }
                     })
                 });
@@ -58,6 +63,10 @@ function sensible(store) {
                 observer.Observe(function (value) {
                     if (!initializing) {
                         updateAll();
+                        // Execute field callbacks if any
+                        if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack != '') {
+                            store.data()[variable].callBack.call(window[variable]);
+                        }
                     }
                 })
             }
