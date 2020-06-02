@@ -28,9 +28,9 @@
             <div class="px-4 py-16 bg-gray-50 sm:px-6 lg:col-span-2 lg:px-8 lg:py-4 xl:pr-12">
                 <div class="max-w-lg mx-auto">
 
-                    <div s-css="background-color: backgroundColor; color: titleColor" class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9" s-bind="title"
+                    <div s-css="background-color: backgroundColor; color: titleColor" class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9" s-bind="myTitle"
                             s-if="show">
-                        [[ title ]]
+                        [[ myTitle ]]
                     </div>
                     <div class="flex content-center px-5 py-3 bg-blue-100" s-if="fullName.length > 0">
                         <p>Hello&nbsp;
@@ -85,7 +85,7 @@
                         <p s-bind="selectedOption">Selected option [[ parseInt(selectedOption) ]] </p>
                     </div>
                     <div class="mt-3 text-lg leading-6 text-gray-500">
-                        Open up the console and change the <tt>title</tt>
+                        Open up the console and change the <tt>myTitle</tt>
                         and <tt>total</tt> variables to see them being sensed like magic!
                     </div>
                     <div class="mt-3 text-lg leading-6 text-gray-500">
@@ -116,7 +116,7 @@
                             <div class="relative rounded-md shadow-sm">
                                 <input class="block w-full px-4 py-3 placeholder-gray-500 rounded transition duration-150 ease-in-out form-input" id="title"
                                         placeholder="Title"
-                                        s-bind="title"/>
+                                        s-bind="myTitle"/>
                             </div>
                         </div>
                         <div>
@@ -157,7 +157,7 @@
                                 <img s-bind="photo">
                                 <input class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input mb-3" id="image"
                                         placeholder="Image url"
-                                        s-bind="photo"/>
+                                        s-bind="profileData.photo"/>
                                 <button onclick="loadImage()" class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700">
                                     Load Image
                                 </button>
@@ -231,16 +231,9 @@
     }
 
     function removeItem(item) {
+        this.event.preventDefault();
         let index = item.closest('[s-key-value]').getAttribute('s-key-value')
         results.splice(index, 1);
-        // if (item.email != '') {
-        //     results.forEach(function(item, index, object) {
-        //         if (result.email === item.email) {
-        //
-        //         }
-        //     });
-        // }
-        // console.log(item);
     }
 
     let store = {
@@ -256,11 +249,11 @@
                     ],
                     persist: true,
                 },
+                availableOptions: {type: Array, default:[{id: 1, name: 'Option 1'},{id: 2, name: 'Option 2'},{id: 3, name: 'Option 3'},{id: 4, name: 'Option 4'},{id: 5, name: 'Option 5'},]},
                 show: {type: Boolean, default: true, persist: true}, /** persist: true(default)|false */
-                title: {type: String, default: 'This is the default title'},
+                myTitle: {type: String, default: 'This is the default title', persist: true},
                 total: {type: Number, default: 100},
                 selectedOption: {type: Number, default: 0},
-                availableOptions: {type: Array, default:[{id: 1, name: 'Option 1'},{id: 2, name: 'Option 2'},{id: 3, name: 'Option 3'},{id: 4, name: 'Option 4'},{id: 5, name: 'Option 5'},]},
                 fullName: {type: String, default: 'Your name', callBack: showDialog},
                 email: {type: String, default: 'example@example.com', callBack: function() { console.log(this)}},
                 phone: {type: String, default: '123-45678'},

@@ -1,89 +1,66 @@
-function sensible (store) {
-    String.prototype.hasCode = function() {
+function sensible(store) {
+    String.prototype.hasCode = function () {
         return this.search(/\[\[/g, "' + ") >= 0;
     }
 
     init(store);
+
     function init(store) {
         store.datosTemp = {};
         let initializing = true;
         Object.keys(store.data()).forEach(function (variable) {
-            try {
-                if (store.data()[variable].hasOwnProperty('type') && store.data()[variable].type === Array) {
+            if (store.data()[variable].hasOwnProperty('type') && store.data()[variable].type === Array) {
+                if (window[variable] === undefined) {
                     window[variable] = [];
-                    window[variable].length = 0;
-                    let ao = new ArrayObserver(window[variable]);
-                    ao.Observe(function (result, method) {
-                        if (store.persist) {
-                            if ((typeof store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist !== false)) {
-                                localStorage.setItem(store.localPrefix + variable, JSON.stringify(window[variable]));
-                            }
-                        }
-                        store.datosTemp[variable] = result;
-
-                        if (!initializing) {
-                            //Process data binding for elements
-                            document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
-                                setElement(element);
-                            })
-                            // Process display of elements
-                            ifElements();
-                            // Process appearance of elements
-                            cssElements();
-                            // Elements with for loops
-                            forElements();
-
-                            // Execute field callbacks if any
-                            if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack != '') {
-                                store.data()[variable].callBack.call(window[variable]);
-                            }
-                        }
-
-                    });
-                } else {
-                    Object.defineProperty(window, variable, {
-                        get: function () {
-                            return store.datosTemp[variable];
-                        },
-                        set: function (value) {
-                            // Persist it if needed and able to
-                            if (store.persist) {
-                                if ((typeof store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist !== false)) {
-                                    if (typeof value == 'object') {
-                                        localStorage.setItem(store.localPrefix + variable, JSON.stringify(value));
-                                    } else {
-                                        localStorage.setItem(store.localPrefix + variable, value);
-                                    }
-                                }
-                            }
-                            store.datosTemp[variable] = value;
-
-                            if (!initializing) {
-                                // Elements with for loops
-                                forElements();
-                                // Process display of elements
-                                ifElements();
-                                // Process appearance of elements
-                                cssElements();
-                                //Process data binding for elements
-                                document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
-                                    setElement(element);
-                                })
-
-                                // Execute field callbacks if any
-                                if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack !== '') {
-                                    store.data()[variable].callBack.call(window[variable]);
-                                }
-                            }
-                        }
-                    });
                 }
-            } catch (error) {
-                console.error(error.message);
+                let arrayObserver = new ArrayObserver(window[variable])
+                arrayObserver.Observe(function (result, method) {
+                    if (store.persist) {
+                        if ((typeof store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist !== false)) {
+                            localStorage.setItem(store.localPrefix + variable, JSON.stringify(window[variable]));
+                        }
+                    }
+                    store.datosTemp[variable] = result;
+
+                    if (!initializing) {
+                        //Process data binding for elements
+                        document.querySelectorAll([`[s-bind=${variable}]`]).forEach((element) => {
+                            setElement(element);
+                        })
+                        // Process display of elements
+                        ifElements();
+                        // Process appearance of elements
+                        cssElements();
+                        // Elements with for loops
+                        forElements();
+
+                        // Execute field callbacks if any
+                        if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack != '') {
+                            store.data()[variable].callBack.call(window[variable]);
+                        }
+                    }
+                });
             }
-        });
-        Object.keys(store.data()).forEach(function (variable) {
-            // Initialize store data as internal variables
+            else if (store.data()[variable].hasOwnProperty('type') && store.data()[variable].type === Object) {
+                window[variable] = {};
+                Object.keys(store.data()[variable].default).forEach(function (property) {
+                    var observer = new Observer(window[variable], property);
+                    observer.Observe(function (value) {
+                        if (!initializing) {
+                            updateAll();
+                        }
+                    })
+                });
+            }
+            else {
+                //The notify callback method.
+                var observer = new Observer(window, variable);
+                observer.Observe(function (value) {
+                    if (!initializing) {
+                        updateAll();
+                    }
+                })
+            }
             let dataSource = null;
             let currentVariable = store.data()[variable];
             if (store.persist || (store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist === true)) {
@@ -107,6 +84,9 @@ function sensible (store) {
                 if (currentVariable.type === Array) {
                     if (internalValue !== 'undefined' && internalValue !== undefined && internalValue !== '') {
                         internalValue.forEach((value) => {
+                            if (!window[variable]) {
+                                window[variable] = [];
+                            }
                             window[variable].push(value);
                         });
                     } else {
@@ -116,24 +96,32 @@ function sensible (store) {
                             });
                         }
                     }
-                } else {
+                }
+                else if (currentVariable.type === Object) {
+                    Object.keys(store.data()[variable].default).forEach(function (property) {
+                        window[variable][property] = internalValue[property];
+                    });
+                }
+                else {
                     window[variable] = internalValue;
                 }
             } else {
-                // No casting information available
                 window[variable] = internalValue;
             }
-        })
+        });
         initializing = false;
+        updateAll();
+    }
 
-        // Element visibility
+    function updateAll() {
+        // Model bindings
+        modelBindings();
+        // Element display
         ifElements();
         // Element appearance
         cssElements()
         // Elements with for loops
         forElements();
-        // Model bindings
-        modelBindings();
     }
 
     /**
@@ -162,13 +150,12 @@ function sensible (store) {
                     if (code && code.length > 1) {
                         try {
                             let value = "'" + event.target.value.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
-                            window[element.attributes['s-bind'].value] = new Function('"use strict";return ' + value + ';')();
+                            window[element.attributes['s-bind'].value] = exec(value);
 
                         } catch (error) {
                             console.error(error.message);
                         }
-                    }
-                    else {
+                    } else {
                         window[element.attributes['s-bind'].value] = event.target.value;
                     }
                 }
@@ -206,14 +193,18 @@ function sensible (store) {
                 element.value = window[element.attributes['s-bind'].value];
                 break;
             case undefined:
-                switch(element.tagName) {
+                switch (element.tagName) {
                     case "IMG":
                         let code = element.attributes['s-bind'].value;
-                        let result = new Function('"use strict";return ' + code + ';')();
-                        if (result) {
-                            element.src = result;
+                        try {
+                            let result = exec(code);
+                            if (result) {
+                                element.src = result;
+                            }
+                            return;
+                        } catch (error) {
+                            return;
                         }
-                        return;
                 }
                 if (!element.hasOwnProperty('originalInnerHTML')) {
                     element.originalInnerHTML = element.innerHTML;
@@ -224,11 +215,8 @@ function sensible (store) {
                     if (code && code.length > 1) {
                         try {
                             code = "'" + element.originalInnerHTML.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
-                            let codeResult = new Function('"use strict";return ' + code + ';')();
-                            switch(element.tagName) {
-                                case "IMG":
-                                    element.src = codeResult;
-                                    break;
+                            let codeResult = exec(code);
+                            switch (element.tagName) {
                                 default:
                                     element.innerHTML = codeResult;
                                     break;
@@ -252,7 +240,7 @@ function sensible (store) {
         document.querySelectorAll(['[s-if]']).forEach((element) => {
             try {
                 //TODO: Evaluate code inside
-                const display = new Function('"use strict";' + ' return ' + element.getAttribute('s-if') + ';')();
+                const display = exec(element.getAttribute('s-if'));
                 if (!element.hasOwnProperty('originalDisplay')) {
                     element.originalDisplay = element.style.display;
                 }
@@ -271,7 +259,8 @@ function sensible (store) {
         document.querySelectorAll(['[s-css]']).forEach((element) => {
             try {
                 element.getAttribute('s-css').split(';').forEach(function (style) {
-                    Object.assign(element.style, new Function(`return {"${style.split(':')[0].trim()}":${style.split(':')[1].trim()}}`)());
+                    //Object.assign(element.style, new Function(`return {"${style.split(':')[0].trim()}":${style.split(':')[1].trim()}}`)());
+                    Object.assign(element.style, exec(`{"${style.split(':')[0].trim()}":${style.split(':')[1].trim()}}`));
                 });
             } catch (error) {
                 console.error(error.message);
@@ -305,15 +294,15 @@ function sensible (store) {
                     if (code && code.length > 1) {
                         try {
                             element.style.display = '';
+                            value = '';
                             innerHTML = "'" + element.parentElement.originalNode.innerHTML.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
                             if (element.tagName === 'OPTION') {
                                 let code = element.parentElement.originalNode.value.substr(element.parentElement.originalNode.value.indexOf('[[') + 2, element.parentElement.originalNode.value.indexOf(']]') - 2)
                                 if (code && code.length > 1) {
-                                    value = "'" + element.parentElement.originalNode.value.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                                    value = element.parentElement.originalNode.value.replace(/\[\[/g, "").replace(/\]\]/g, "").replace(/(\r\n|\n|\r)/gm, "");
                                 }
                             }
                             localElement = element.cloneNode(true);
-                            //Why does this work without using var o let?
                             parentElement = element.parentElement;
                             if (parentElement) {
                                 var child = parentElement.lastElementChild;
@@ -326,8 +315,8 @@ function sensible (store) {
                                     for(${forloop}) {
                                         var newElement = localElement.cloneNode(true);
                                         localElement.innerHTML = new Function('"use strict";return' + this.innerHTML + ';')();
-                                        if (this.value) {
-                                            newElement.value = new Function('"use strict";return' + this.value + ';')();
+                                        if (this.value !== '' && this.value !== undefined && this.value !== 'undefined' ) {
+                                            newElement.value = new Function('"use strict";return ' + this.value + ';')();
                                         }
                                         newElement.innerHTML = localElement.innerHTML;
                                         var att = document.createAttribute("s-key-value");
@@ -376,64 +365,77 @@ function sensible (store) {
         this.Observe = function (notifyCallback) {
             _this.observers.push(notifyCallback);
         }
-
-        a.push = function (obj) {
-            var push = Array.prototype.push.apply(a, arguments);
-            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](obj, "push");
-            return push;
-        }
-
-        a.concat = function (obj) {
-            var concat = Array.prototype.concat.apply(a, obj);
-            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](concat, "concat");
-            return concat;
-        }
-
-        a.pop = function () {
-            var popped = Array.prototype.pop.apply(a, arguments);
-            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](popped, "pop");
-            return popped;
-        }
-
-        a.reverse = function () {
-            var result = Array.prototype.reverse.apply(a, arguments);
-            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](result, "reverse");
-            return result;
-        };
-
-        a.shift = function () {
-            var deleted_item = Array.prototype.shift.apply(a, arguments);
-            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](deleted_item, "shift");
-            return deleted_item;
-        };
-
-        a.sort = function () {
-            var result = Array.prototype.sort.apply(a, arguments);
-            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](result, "sort");
-            return result;
-        };
-
-        a.splice = function (i, length, itemsToInsert) {
-            var returnObj
-            if (itemsToInsert) {
-                Array.prototype.slice.call(arguments, 2);
-                returnObj = itemsToInsert;
-            } else {
-                returnObj = Array.prototype.splice.apply(a, arguments);
+        try {
+            a.push = function (obj) {
+                var push = Array.prototype.push.apply(a, arguments);
+                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](obj, "push");
+                return push;
             }
-            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](returnObj, "splice");
-            return returnObj;
-        };
 
-        a.unshift = function () {
-            var new_length = Array.prototype.unshift.apply(a, arguments);
-            for (var i = 0; i < _this.observers.length; i++) _this.observers[i](new_length, "unshift");
-            return arguments;
-        };
+            a.concat = function (obj) {
+                var concat = Array.prototype.concat.apply(a, obj);
+                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](concat, "concat");
+                return concat;
+            }
+
+            a.pop = function () {
+                var popped = Array.prototype.pop.apply(a, arguments);
+                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](popped, "pop");
+                return popped;
+            }
+
+            a.reverse = function () {
+                var result = Array.prototype.reverse.apply(a, arguments);
+                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](result, "reverse");
+                return result;
+            };
+
+            a.shift = function () {
+                var deleted_item = Array.prototype.shift.apply(a, arguments);
+                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](deleted_item, "shift");
+                return deleted_item;
+            };
+
+            a.sort = function () {
+                var result = Array.prototype.sort.apply(a, arguments);
+                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](result, "sort");
+                return result;
+            };
+
+            a.splice = function (i, length, itemsToInsert) {
+                var returnObj
+                if (itemsToInsert) {
+                    Array.prototype.slice.call(arguments, 2);
+                    returnObj = itemsToInsert;
+                } else {
+                    returnObj = Array.prototype.splice.apply(a, arguments);
+                }
+                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](returnObj, "splice");
+                return returnObj;
+            };
+
+            a.unshift = function () {
+                var new_length = Array.prototype.unshift.apply(a, arguments);
+                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](new_length, "unshift");
+                return arguments;
+            };
+
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     /**
-     * Code by Blaize Stewart, Aug 7, 2019
+     * Execute code and return result
+     * @param value
+     * @returns {*}
+     */
+    function exec(value) {
+        return new Function('"use strict";return ' + value + ';')();
+    }
+
+    /**
+     * Original Code by Blaize Stewart, Aug 7, 2019
      * @param o
      * @param property
      * @constructor
@@ -448,9 +450,18 @@ function sensible (store) {
         }
 
         Object.defineProperty(o, property, {
-            set: function (val) {
-                _this.value = val;
-                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](val);
+            set: function (value) {
+                _this.value = value;
+                for (var i = 0; i < _this.observers.length; i++) _this.observers[i](value);
+                if (store.persist) {
+                    if ((typeof store.data()[property].hasOwnProperty('persist') && store.data()[property].persist !== false)) {
+                        if (typeof value == 'object') {
+                            localStorage.setItem(store.localPrefix + property, JSON.stringify(value));
+                        } else {
+                            localStorage.setItem(store.localPrefix + property, value);
+                        }
+                    }
+                }
             },
             get: function () {
                 return _this.value;
@@ -458,4 +469,5 @@ function sensible (store) {
         });
     }
 }
+
 module.exports = sensible;
