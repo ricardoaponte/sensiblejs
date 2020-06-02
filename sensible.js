@@ -43,7 +43,19 @@ function sensible(store) {
             }
             else if (store.data()[variable].hasOwnProperty('type') && store.data()[variable].type === Object) {
                 window[variable] = {};
+                var observer = new Observer(window, variable, variable);
+                observer.Observe(function (value) {
+                    if (!initializing) {
+                        updateAll();
+                        // Execute field callbacks if any
+                        if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack != '') {
+                            store.data()[variable].callBack.call(window[variable]);
+                        }
+
+                    }
+                })
                 Object.keys(store.data()[variable].default).forEach(function (property) {
+                    window[variable] = {};
                     var observer = new Observer(window[variable], property, variable);
                     observer.Observe(function (value) {
                         if (!initializing) {
@@ -208,6 +220,7 @@ function sensible(store) {
                         try {
                             let result = exec(code);
                             if (result) {
+                                element.src = result;
                                 // The only way I could set this.
                                 document.getElementById(element.id).src = result;
                             }
