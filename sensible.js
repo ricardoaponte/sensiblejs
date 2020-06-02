@@ -522,4 +522,4 @@ function sensible(store) {
     }
 }
 
-module.exports = {sensible};
+module.exports = sensible;
