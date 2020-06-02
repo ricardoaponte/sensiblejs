@@ -116,7 +116,7 @@
                             <div class="relative rounded-md shadow-sm">
                                 <input class="block w-full px-4 py-3 placeholder-gray-500 rounded transition duration-150 ease-in-out form-input" id="title"
                                         placeholder="Title"
-                                        s-bind="myTitle"/>
+                                        s-bind="myTitle" s-blur/>
                             </div>
                         </div>
                         <div>
@@ -124,7 +124,7 @@
                             <div class="relative rounded-md shadow-sm">
                                 <input class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input" id="full_name"
                                         placeholder="Full name"
-                                        s-bind="fullName"/>
+                                        s-bind="fullName" s-blur/>
                             </div>
                         </div>
                         <div>
@@ -157,10 +157,7 @@
                                 <img s-bind="photo">
                                 <input class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input mb-3" id="image"
                                         placeholder="Image url"
-                                        s-bind="profileData.picture"/>
-                                <button onclick="loadImage()" class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700">
-                                    Load Image
-                                </button>
+                                        s-bind="photo" s-blur/>
                             </div>
                         </div>
                         <div>

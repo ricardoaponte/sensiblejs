@@ -1,6 +1,19 @@
 function sensible(store) {
-    String.prototype.hasCode = function () {
-        return this.search(/\[\[/g, "' + ") >= 0;
+
+    const storeTemplate = {
+        persist: true,
+        localPrefix: '__',
+        private: false,
+        data: {
+        },
+    };
+
+    function hasCode(value) {
+        return value.substr(value.indexOf('[[') + 2, value.indexOf(']]') - 2).length > 0
+    }
+
+    function getCode(value) {
+        return value.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "");
     }
 
     init(store);
@@ -43,7 +56,7 @@ function sensible(store) {
             }
             else if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Object) {
                 window[variable] = {};
-                var observer = new Observer(window, variable, variable);
+                const observer = new Observer(window, variable, variable);
                 observer.Observe(function (value) {
                     if (!initializing) {
                         updateAll();
@@ -56,7 +69,7 @@ function sensible(store) {
                 })
                 Object.keys(store.data[variable].default).forEach(function (property) {
                     window[variable] = {};
-                    var observer = new Observer(window[variable], property, variable);
+                    const observer = new Observer(window[variable], property, variable);
                     observer.Observe(function (value) {
                         if (!initializing) {
                             updateAll();
@@ -71,7 +84,7 @@ function sensible(store) {
             }
             else {
                 //The notify callback method.
-                var observer = new Observer(window, variable, false);
+                const observer = new Observer(window, variable, false);
                 observer.Observe(function (value) {
                     if (!initializing) {
                         updateAll();
@@ -166,11 +179,10 @@ function sensible(store) {
             // TODO: multiple
             case "select-one":
                 element.onchange = function (event) {
-                    let code = event.target.value.substr(event.target.value.indexOf('[[') + 2, event.target.value.indexOf(']]') - 2)
                     // If there is code found then process it!
-                    if (code && code.length > 1) {
+                    if (hasCode(event.target.value)) {
                         try {
-                            let value = "'" + event.target.value.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
+                            let value = getCode(`'${event.target.value}'`);
                             window[element.attributes['s-bind'].value] = exec(value);
 
                         } catch (error) {
@@ -180,14 +192,14 @@ function sensible(store) {
                         window[element.attributes['s-bind'].value] = event.target.value;
                     }
                 }
-                element.value = window[element.attributes['s-bind'].value];
+                element.value = exec(getCode(element.attributes['s-bind'].value));
                 break;
             case "radio":
                 element.onchange = function (event) {
                     window[element.attributes['s-bind'].value] = event.target.value;
                 }
                 if (element.attributes['s-bind'].value === element.id) {
-                    element.value = window[element.attributes['s-bind'].value];
+                    element.value = exec(getCode(element.attributes['s-bind'].value));
                 }
                 element.checked = window[element.attributes['s-bind'].value] === element.value;
                 break;
@@ -200,29 +212,38 @@ function sensible(store) {
             case "text":
             case "email":
             case "textarea":
-                element.onkeyup = function (event) {
+                let senser = 'onkeyup';
+                if (element.attributes['s-blur'] && element.attributes['s-blur'].value === "") {
+                   senser = 'onblur'; 
+                }
+                element[senser] = function (event) {
+                    // If the data did not change, don't trigger
+                    if (event.target.value === window[element.attributes['s-bind'].value]) {
+                        return;
+                    }
                     window[element.attributes['s-bind'].value] = event.target.value;
                 };
-                element.value = window[element.attributes['s-bind'].value];
+                element.value = exec(getCode(element.attributes['s-bind'].value));
                 break;
             case "color":
             case "date":
             case "datetime-local":
                 element.oninput = function (event) {
+                    // TODO: Optimize this
                     new Function('"use strict";var value = ' + JSON.stringify(event.target.value) + ';' + element.attributes['s-bind'].value + ' = ' + element.attributes['s-bind'].value + ' = value;')();
                 };
-                element.value = window[element.attributes['s-bind'].value];
+                element.value = exec(getCode(element.attributes['s-bind'].value));
                 break;
             case undefined:
                 switch (element.tagName) {
                     case "IMG":
-                        let code = element.attributes['s-bind'].value;
+                        let srcCode = element.attributes['s-bind'].value;
                         try {
-                            let result = exec(code);
-                            if (result) {
-                                element.src = result;
+                            let image = exec(srcCode);
+                            if (image) {
+                                element.src = image;
                                 // The only way I could set this.
-                                document.getElementById(element.id).src = result;
+                                document.getElementById(element.id).src = image;
                             }
                             return;
                         } catch (error) {
@@ -233,12 +254,9 @@ function sensible(store) {
                     element.originalInnerHTML = element.innerHTML;
                 }
                 if (element.originalInnerHTML !== '') {
-                    let code = element.originalInnerHTML.substr(element.originalInnerHTML.indexOf('[[') + 2, element.originalInnerHTML.indexOf(']]') - 2)
-                    // If there is code found then process it!
-                    if (code && code.length > 1) {
+                    if (hasCode(element.originalInnerHTML)) {
                         try {
-                            code = "'" + element.originalInnerHTML.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "") + "'";
-                            let codeResult = exec(code);
+                            let codeResult = exec(getCode(`'${element.originalInnerHTML}'`));
                             switch (element.tagName) {
                                 default:
                                     element.innerHTML = codeResult;
@@ -504,4 +522,4 @@ function sensible(store) {
     }
 }
 
-module.exports = sensible;
+module.exports = {sensible, storeTemplate};
