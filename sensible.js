@@ -8,15 +8,15 @@ function sensible(store) {
     function init(store) {
         store.datosTemp = {};
         let initializing = true;
-        Object.keys(store.data()).forEach(function (variable) {
-            if (store.data()[variable].hasOwnProperty('type') && store.data()[variable].type === Array) {
+        Object.keys(store.data).forEach(function (variable) {
+            if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Array) {
                 if (window[variable] === undefined) {
                     window[variable] = [];
                 }
                 let arrayObserver = new ArrayObserver(window[variable])
                 arrayObserver.Observe(function (result, method) {
                     if (store.persist) {
-                        if ((store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist !== false)) {
+                        if ((store.data[variable].hasOwnProperty('persist') && store.data[variable].persist !== false)) {
                             localStorage.setItem(store.localPrefix + variable, JSON.stringify(window[variable]));
                         }
                     }
@@ -35,34 +35,34 @@ function sensible(store) {
                         forElements();
 
                         // Execute field callbacks if any
-                        if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack != '') {
-                            store.data()[variable].callBack.call(window[variable]);
+                        if (store.data[variable].hasOwnProperty('callBack') && store.data[variable].callBack != '') {
+                            store.data[variable].callBack.call(window[variable]);
                         }
                     }
                 });
             }
-            else if (store.data()[variable].hasOwnProperty('type') && store.data()[variable].type === Object) {
+            else if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Object) {
                 window[variable] = {};
                 var observer = new Observer(window, variable, variable);
                 observer.Observe(function (value) {
                     if (!initializing) {
                         updateAll();
                         // Execute field callbacks if any
-                        if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack != '') {
-                            store.data()[variable].callBack.call(window[variable]);
+                        if (store.data[variable].hasOwnProperty('callBack') && store.data[variable].callBack != '') {
+                            store.data[variable].callBack.call(window[variable]);
                         }
 
                     }
                 })
-                Object.keys(store.data()[variable].default).forEach(function (property) {
+                Object.keys(store.data[variable].default).forEach(function (property) {
                     window[variable] = {};
                     var observer = new Observer(window[variable], property, variable);
                     observer.Observe(function (value) {
                         if (!initializing) {
                             updateAll();
                             // Execute field callbacks if any
-                            if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack != '') {
-                                store.data()[variable].callBack.call(window[variable]);
+                            if (store.data[variable].hasOwnProperty('callBack') && store.data[variable].callBack != '') {
+                                store.data[variable].callBack.call(window[variable]);
                             }
 
                         }
@@ -76,15 +76,15 @@ function sensible(store) {
                     if (!initializing) {
                         updateAll();
                         // Execute field callbacks if any
-                        if (store.data()[variable].hasOwnProperty('callBack') && store.data()[variable].callBack != '') {
-                            store.data()[variable].callBack.call(window[variable]);
+                        if (store.data[variable].hasOwnProperty('callBack') && store.data[variable].callBack != '') {
+                            store.data[variable].callBack.call(window[variable]);
                         }
                     }
                 })
             }
             let dataSource = null;
-            let currentVariable = store.data()[variable];
-            if (store.persist || (store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist === true)) {
+            let currentVariable = store.data[variable];
+            if (store.persist || (store.data[variable].hasOwnProperty('persist') && store.data[variable].persist === true)) {
                 dataSource = localStorage.getItem(store.localPrefix + variable);
                 try {
                     dataSource = JSON.parse(dataSource);
@@ -111,15 +111,15 @@ function sensible(store) {
                             window[variable].push(value);
                         });
                     } else {
-                        if (store.data()[variable].hasOwnProperty('default')) {
-                            store.data()[variable].default.forEach((item) => {
+                        if (store.data[variable].hasOwnProperty('default')) {
+                            store.data[variable].default.forEach((item) => {
                                 window[variable].push(item);
                             });
                         }
                     }
                 }
                 else if (currentVariable.type === Object) {
-                    Object.keys(store.data()[variable].default).forEach(function (property) {
+                    Object.keys(store.data[variable].default).forEach(function (property) {
                         window[variable][property] = internalValue[property];
                     });
                 }
@@ -478,7 +478,7 @@ function sensible(store) {
                 for (var i = 0; i < _this.observers.length; i++) _this.observers[i](value);
                 if (store.persist) {
                     if (_obj !== false) {
-                        if ((store.data()[_obj].hasOwnProperty('persist') && store.data()[_obj].persist !== false)) {
+                        if ((store.data[_obj].hasOwnProperty('persist') && store.data[_obj].persist !== false)) {
                             if (typeof value == 'object') {
                                 localStorage.setItem(store.localPrefix + _obj + '.' + property, JSON.stringify(value));
                             } else {
@@ -487,7 +487,7 @@ function sensible(store) {
                         }
                     }
                     else {
-                        if ((store.data()[property].hasOwnProperty('persist') && store.data()[property].persist !== false)) {
+                        if ((store.data[property].hasOwnProperty('persist') && store.data[property].persist !== false)) {
                             if (typeof value == 'object') {
                                 localStorage.setItem(store.localPrefix + property, JSON.stringify(value));
                             } else {

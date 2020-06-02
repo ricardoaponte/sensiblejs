@@ -239,8 +239,7 @@
     let store = {
         persist: true,
         localPrefix: '__',
-        data() {
-            return {
+        data: {
                 results: {
                     type: Array,
                     default: [
@@ -264,10 +263,10 @@
                 birthDate: {type: String, default: '1969-08-16'},
                 birthDateTime: {type: String, default: '1969-08-16T20:00'},
                 photo: {type: String, default: 'https://source.unsplash.com/random/800x600'},
-                profileData: {type: Object, default: {fullName: 'Ricardo Aponte', picture: 'https://source.unsplash.com/random/100x50'}, persist: false, callBack: showMemberModal}
-            }
-        },
-    };
+                profileData: {type: Object, default: {fullName: 'Ricardo Aponte', picture: 'https://source.unsplash.com/random/100x50'}, persist: false, callBack: showMemberModal},
+            },
+        };
+
     sensible(store);
 
     function showMemberModal() {
