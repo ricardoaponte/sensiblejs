@@ -21,13 +21,14 @@
                         A super lightweight sensible tool
                     </p>
                 </div>
-                <img s-bind="profileData.picture">
             </div>
         </div>
         <div class="relative mx-auto max-w-7xl lg:grid lg:grid-cols-5">
             <div class="px-4 py-16 bg-gray-50 sm:px-6 lg:col-span-2 lg:px-8 lg:py-4 xl:pr-12">
                 <div class="max-w-lg mx-auto">
-
+                    <div class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9">
+                        <img s-bind="profileData.picture">
+                    </div>
                     <div s-css="background-color: backgroundColor; color: titleColor" class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9" s-bind="myTitle"
                             s-if="show">
                         [[ myTitle ]]
