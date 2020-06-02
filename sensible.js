@@ -16,7 +16,7 @@ function sensible(store) {
                 let arrayObserver = new ArrayObserver(window[variable])
                 arrayObserver.Observe(function (result, method) {
                     if (store.persist) {
-                        if ((typeof store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist !== false)) {
+                        if ((store.data()[variable].hasOwnProperty('persist') && store.data()[variable].persist !== false)) {
                             localStorage.setItem(store.localPrefix + variable, JSON.stringify(window[variable]));
                         }
                     }
@@ -44,7 +44,7 @@ function sensible(store) {
             else if (store.data()[variable].hasOwnProperty('type') && store.data()[variable].type === Object) {
                 window[variable] = {};
                 Object.keys(store.data()[variable].default).forEach(function (property) {
-                    var observer = new Observer(window[variable], property);
+                    var observer = new Observer(window[variable], property, variable);
                     observer.Observe(function (value) {
                         if (!initializing) {
                             updateAll();
@@ -54,7 +54,7 @@ function sensible(store) {
             }
             else {
                 //The notify callback method.
-                var observer = new Observer(window, variable);
+                var observer = new Observer(window, variable, false);
                 observer.Observe(function (value) {
                     if (!initializing) {
                         updateAll();
@@ -440,8 +440,9 @@ function sensible(store) {
      * @param property
      * @constructor
      */
-    function Observer(o, property) {
+    function Observer(o, property, obj) {
         var _this = this;
+        let _obj = obj;
         var value = o[property];
         this.observers = [];
 
@@ -454,11 +455,22 @@ function sensible(store) {
                 _this.value = value;
                 for (var i = 0; i < _this.observers.length; i++) _this.observers[i](value);
                 if (store.persist) {
-                    if ((typeof store.data()[property].hasOwnProperty('persist') && store.data()[property].persist !== false)) {
-                        if (typeof value == 'object') {
-                            localStorage.setItem(store.localPrefix + property, JSON.stringify(value));
-                        } else {
-                            localStorage.setItem(store.localPrefix + property, value);
+                    if (_obj !== false) {
+                        if ((store.data()[_obj].hasOwnProperty('persist') && store.data()[property].persist !== false)) {
+                            if (typeof value == 'object') {
+                                localStorage.setItem(store.localPrefix + property, JSON.stringify(value));
+                            } else {
+                                localStorage.setItem(store.localPrefix + property, value);
+                            }
+                        }
+                    }
+                    else {
+                        if ((store.data()[property].hasOwnProperty('persist') && store.data()[property].persist !== false)) {
+                            if (typeof value == 'object') {
+                                localStorage.setItem(store.localPrefix + property, JSON.stringify(value));
+                            } else {
+                                localStorage.setItem(store.localPrefix + property, value);
+                            }
                         }
                     }
                 }
