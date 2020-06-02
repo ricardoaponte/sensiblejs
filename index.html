@@ -21,7 +21,7 @@
                         A super lightweight sensible tool
                     </p>
                 </div>
-                <img s-bind="profileData.photo">
+                <img s-bind="profileData.picture">
             </div>
         </div>
         <div class="relative mx-auto max-w-7xl lg:grid lg:grid-cols-5">
@@ -157,7 +157,7 @@
                                 <img s-bind="photo">
                                 <input class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input mb-3" id="image"
                                         placeholder="Image url"
-                                        s-bind="profileData.photo"/>
+                                        s-bind="profileData.picture"/>
                                 <button onclick="loadImage()" class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700">
                                     Load Image
                                 </button>
@@ -264,11 +264,15 @@
                 birthDate: {type: String, default: '1969-08-16'},
                 birthDateTime: {type: String, default: '1969-08-16T20:00'},
                 photo: {type: String, default: 'https://source.unsplash.com/random/800x600'},
-                profileData: {type: Object, default: {fullName: 'Ricardo Aponte', photo: 'https://source.unsplash.com/random/100x50'}, persist: false}
+                profileData: {type: Object, default: {fullName: 'Ricardo Aponte', picture: 'https://source.unsplash.com/random/100x50'}, persist: false, callBack: showMemberModal}
             }
         },
     };
     sensible(store);
+
+    function showMemberModal() {
+        console.log('Show');
+    }
 
     function addRecord() {
         results.push({fullName: fullName, email: email, phone: phone});

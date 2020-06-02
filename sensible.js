@@ -451,8 +451,7 @@ function sensible(store) {
      */
     function Observer(o, property, obj) {
         var _this = this;
-        let _obj = obj;
-        var value = o[property];
+        var _obj = obj;
         this.observers = [];
 
         this.Observe = function (notifyCallback) {
@@ -465,11 +464,11 @@ function sensible(store) {
                 for (var i = 0; i < _this.observers.length; i++) _this.observers[i](value);
                 if (store.persist) {
                     if (_obj !== false) {
-                        if ((store.data()[_obj].hasOwnProperty('persist') && store.data()[property].persist !== false)) {
+                        if ((store.data()[_obj].hasOwnProperty('persist') && store.data()[_obj].persist !== false)) {
                             if (typeof value == 'object') {
-                                localStorage.setItem(store.localPrefix + property, JSON.stringify(value));
+                                localStorage.setItem(store.localPrefix + _obj + '.' + property, JSON.stringify(value));
                             } else {
-                                localStorage.setItem(store.localPrefix + property, value);
+                                localStorage.setItem(store.localPrefix + _obj + '.' + property, value);
                             }
                         }
                     }
