@@ -208,7 +208,8 @@ function sensible(store) {
                         try {
                             let result = exec(code);
                             if (result) {
-                                element.src = result;
+                                // The only way I could set this.
+                                document.getElementById(element.id).src = result;
                             }
                             return;
                         } catch (error) {
