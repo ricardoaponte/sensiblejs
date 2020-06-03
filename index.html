@@ -31,7 +31,19 @@
                     </div>
                     <div s-css="background-color: backgroundColor; color: titleColor" class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9" s-bind="myTitle"
                             s-if="show">
-                        [[ myTitle ]]
+                        My Title is: [[ myTitle ]]
+                    </div>
+                    <div>
+                        <div class="mt-3 text-lg leading-6 text-gray-500">
+                            <label for="titleColor">Select title text color:</label>
+                            <input type="color" id="titleColor" name="titleColor" s-bind="titleColor">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="mt-3 text-lg leading-6 text-gray-500">
+                            <label for="backgroundColor">Select title background color:</label>
+                            <input type="color" id="backgroundColor" name="backgroundColor" s-bind="backgroundColor">
+                        </div>
                     </div>
                     <div class="flex content-center px-5 py-3 bg-blue-100" s-if="fullName.length > 0">
                         <p>Hello&nbsp;
@@ -203,18 +215,6 @@
                                 <option s-for="availableOption of availableOptions" value="[[availableOption.id]]">[[ availableOption.name ]]</option>
                             </select>
                         </div>
-                        <div>
-                            <div class="mt-3 text-lg leading-6 text-gray-500">
-                                <label for="titleColor">Select title text color:</label>
-                                <input type="color" id="titleColor" name="titleColor" s-bind="titleColor">
-                            </div>
-                        </div>
-                        <div>
-                            <div class="mt-3 text-lg leading-6 text-gray-500">
-                                <label for="backgroundColor">Select title background color:</label>
-                                <input type="color" id="backgroundColor" name="backgroundColor" s-bind="backgroundColor">
-                            </div>
-                        </div>
                     </form>
                 </div>
             </div>
@@ -248,7 +248,7 @@
                 },
                 availableOptions: {type: Array, default:[{id: 1, name: 'Option 1'},{id: 2, name: 'Option 2'},{id: 3, name: 'Option 3'},{id: 4, name: 'Option 4'},{id: 5, name: 'Option 5'},]},
                 show: {type: Boolean, default: true, persist: true}, /** persist: true(default)|false */
-                myTitle: {type: String, default: 'This is the default title', persist: true},
+                myTitle: {type: String, default: 'This is the default title', persist: true, callBack: executeMe},
                 total: {type: Number, default: 100},
                 selectedOption: {type: Number, default: 0},
                 fullName: {type: String, default: 'Your name', callBack: showDialog},
@@ -267,6 +267,10 @@
 
     sensible(store);
 
+    function executeMe() {
+        console.log('Execute!');
+    }
+
     function showMemberModal() {
         console.log('Show');
     }
@@ -277,7 +281,7 @@
 
     function showDialog() {
         console.log(this);
-        alert(this);
+        //alert(this);
     }
 
     document.addEventListener("DOMContentLoaded", function (event) {
