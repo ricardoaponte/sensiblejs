@@ -5,7 +5,10 @@ function sensible(store) {
     init(store);
 
     function init(store) {
+
+        // New feature, needs documentation
         getVariables(store);
+
         let initializing = true;
         Object.keys(store.data).forEach(function (variable) {
             if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Array) {
@@ -119,32 +122,44 @@ function sensible(store) {
      * Process all directives
      */
     function updateAll() {
-        // Model bindings
-        modelBindings();
-        // Element display
-        document.querySelectorAll("[s-if]").forEach((element) => {
-            ifElement(element);
-        });
-        // Element FOR
-        document.querySelectorAll("[s-for]").forEach((element) => {
-            forElement(element);
-        });
+        elementBindings();
+        elementIfs();
+        elementFors();
+        elementCss();
+    }
 
+    function elementCss() {
         // Element CSS
         document.querySelectorAll("[s-css]").forEach((element) => {
             cssElement(element);
         });
     }
 
+    function elementFors() {
+        // Element FOR
+        document.querySelectorAll("[s-for]").forEach((element) => {
+            forElement(element);
+        });
+    }
+
+    /**
+     * Evaluate each elements s-if. display or not
+     */
+    function elementIfs() {
+        // Element display
+        document.querySelectorAll("[s-if]").forEach((element) => {
+            ifElement(element);
+        });
+    }
+
     /**
      * Initialize existing elements with store data directives
      */
-    function modelBindings() {
-        // Model bindings
-        let elements = document.querySelectorAll(['[s-bind]']);
-        elements.forEach((element) => {
+    function elementBindings() {
+        // Element bindings
+        document.querySelectorAll("[s-bind]").forEach((element) => {
             setElement(element);
-        })
+        });
     }
 
     /**
@@ -251,6 +266,10 @@ function sensible(store) {
         }
     }
 
+    /**
+     * Process Elements by variable
+     * @param variable
+     */
     function processElements(variable) {
         document.querySelectorAll("[s-bind]").forEach((element) => {
             if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-bind').indexOf(variable) >= 0 || element.getAttribute('s-bind') === variable) {
@@ -310,24 +329,29 @@ function sensible(store) {
     }
 
     /**
-     * Process FOR directive
+     * Process s-for directive
      */
     function forElement(element) {
         try {
-            // If the original node is already set then assign it to the current element
             let templateElement;
             let parentElement;
+            // Check if this element has already been processed by checking if it already
+            // has the template element property set.
             if (element.hasOwnProperty('templateElement')) {
+                // The element has been processed before. Set the template element to the one saved within.
                 templateElement = element.templateElement.cloneNode(true);
+                // Save the element's parent element for later usage.
                 parentElement = element;
             } else if (element.parentElement && !element.parentElement.hasOwnProperty('originalNode')) {
-                // Save the original element and directive attributes inside it's parent element
-                element.parentElement.templateElement = element.cloneNode(true);
-                element.parentElement.setAttribute('s-for', element.getAttribute('s-for'));
-                element.parentElement.setAttribute('s-key', element.getAttribute('s-key'));
-                // Set the template element to its parents' template element
-                templateElement = element.parentElement.templateElement;
+                // Save the element's parent element for later usage.
                 parentElement = element.parentElement;
+                // Save the original element and directive attributes inside it's parent element
+                parentElement.templateElement = element.cloneNode(true);
+                parentElement.setAttribute('s-for', element.getAttribute('s-for'));
+                parentElement.setAttribute('s-key', element.getAttribute('s-key'));
+
+                // Set the template element to the parents element template element
+                templateElement = parentElement.templateElement;
             } else {
                 console.log('Unexpected route...');
                 return;

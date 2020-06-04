@@ -37,40 +37,40 @@
                     <div>
                         <div class="mt-3 text-lg leading-6 text-gray-500">
                             <label for="titleColor">Select title text color:</label>
-                            <input type="color" id="titleColor" name="titleColor" s-bind="titleColor">
+                            <input type="color" id="titleColor" name="titleColor" s-bind="titleColor" class="shadow-md" s-css="width: `${total}px`; height: `${total}px`">
                         </div>
                     </div>
                     <div>
-                        <div class="mt-3 text-lg leading-6 text-gray-500">
+                        <div class="mt-3 text-lg leading-6 text-gray-500 mb-3">
                             <label for="backgroundColor">Select title background color:</label>
-                            <input type="color" id="backgroundColor" name="backgroundColor" s-bind="backgroundColor">
+                            <input type="color" id="backgroundColor" name="backgroundColor" s-bind="backgroundColor" class="shadow-md" s-css="width: `${total}px`; height: `${total}px`">
                         </div>
                     </div>
-                    <div class="flex content-center px-5 py-3 bg-blue-100" s-if="fullName.length > 0">
+                    <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="fullName.length > 0">
                         <p>Hello&nbsp;
                         <h1 s-bind="fullName">[[ `${fullName}` ]]</h1></p>
                     </div>
-                    <div class="flex content-center px-5 py-3 bg-blue-100" s-if="email != ''">
+                    <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="email != ''">
                         <p>Your email is &nbsp;
                         <h1 s-bind="email"></h1></p>
                     </div>
-                    <div class="flex content-center px-5 py-3 bg-blue-100" s-if="birthDate != ''">
+                    <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="birthDate != ''">
                         <p>Your birthday &nbsp;
                         <h1 s-bind="birthDate"></h1></p>
                     </div>
-                    <div class="flex content-center px-5 py-3 bg-blue-100" s-if="birthDateTime != ''">
+                    <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="birthDateTime != ''">
                         <p>Your birthday time &nbsp;
                         <h1 s-bind="birthDateTime"></h1></p>
                     </div>
-                    <div class="flex content-center px-5 py-3 bg-blue-100" s-if="phone != ''">
+                    <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="phone != ''">
                         <p>Your phone is &nbsp;
                         <h1 s-bind="phone"></h1></p>
                     </div>
-                    <div class="flex content-center px-5 py-3 bg-blue-100" s-if="gender != ''">
+                    <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="gender != ''">
                         <p>Your are: &nbsp;
                         <h1 s-bind="gender"></h1></p>
                     </div>
-                    <div class="flex content-center px-5 py-3 bg-blue-100" s-if="message != ''">
+                    <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="message != ''">
                         <p>Your message: &nbsp;
                         <h1 s-bind="message"></h1></p>
                     </div>
@@ -188,9 +188,9 @@
                         <div>
                             <label class="sr-only" for="message">Message</label>
                             <div class="relative rounded-md shadow-sm">
-                                <textarea class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input" id="message" placeholder="Message"
-                                        rows="4"
-                                        s-bind="message"></textarea>
+                                    <textarea class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input" id="message" placeholder="Message"
+                                            rows="4"
+                                            s-bind="message"></textarea>
                             </div>
                         </div>
                         <div class="">
@@ -198,8 +198,8 @@
                             <!--                                <button onclick="resetAll()" class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700"-->
                             <!--                                        type="button">Reset Data</button></span>-->
                             <span class="inline-flex rounded-md shadow-sm">
-                                <button onclick="addRecord()" class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700"
-                                        type="button">Add record</button></span>
+                                    <button onclick="addRecord()" class="inline-flex justify-center px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700"
+                                            type="button">Add record</button></span>
                         </div>
                         <div class="mt-3 text-lg leading-6 text-gray-500">
                             <label for="options">Select option: </label>
@@ -238,29 +238,69 @@
     let store = {
         persist: true,
         localPrefix: '__',
+        // Data definitions.
         data: {
-                results: {
-                    type: Array,
-                    persist: true,
-                },
-                availableOptions: {type: Array, default:[{id: 1, name: 'Option 1'},{id: 2, name: 'Option 2'},{id: 3, name: 'Option 3'},{id: 4, name: 'Option 4'},{id: 5, name: 'Option 5'},]},
-                show: {type: Boolean, default: true, persist: true}, /** persist: true(default)|false */
-                myTitle: {type: String, default: 'This is the default title', persist: true, callBack: executeMe},
-                total: {type: Number, default: 100},
-                selectedOption: {type: Number, default: 0},
-                fullName: {type: String, default: 'Your name', callBack: showDialog},
-                email: {type: String, default: 'example@example.com', callBack: function() { console.log(this)}},
-                phone: {type: String, default: '123-45678'},
-                message: {type: String, default: 'This is a message'},
-                gender: {type: String, default: 'male'},
-                titleColor: {type: String, default: '#FFFFFF'},
-                backgroundColor: {type: String, default: '#5a67d8'},
-                birthDate: {type: String, default: '1969-08-16'},
-                birthDateTime: {type: String, default: '1969-08-16T20:00'},
-                photo: {type: String, default: 'https://source.unsplash.com/random/800x600'},
-                profileData: {type: Object, default: {fullName: 'Ricardo Aponte', picture: 'https://source.unsplash.com/random/100x50'}, persist: false, callBack: showMemberModal},
+            results: {
+                type: Array,
+                persist: true,
             },
-        };
+            availableOptions: {
+                type: Array,
+                default: [
+                    {id: 1, name: 'Option 1'},
+                    {id: 2, name: 'Option 2'},
+                    {id: 3, name: 'Option 3'},
+                    {id: 4, name: 'Option 4'},
+                    {id: 5, name: 'Option 5'},
+                ]
+            },
+            show: {
+                type: Boolean,
+                default: true,
+                persist: true /** persist: true(default)|false */
+            },
+            myTitle: {
+                type: String,
+                default: 'This is the default title',
+                persist: true,
+                callBack: executeMe
+            },
+            total: {
+                type: Number,
+                default: 50
+            },
+            selectedOption: {
+                type: Number,
+                default: 1
+            },
+            fullName: {
+                type: String,
+                default: 'Your name here',
+                callBack: showDialog
+            },
+            email: {
+                type: String,
+                default: 'example@example.com',
+                callBack: function () {
+                    console.log(this)
+                }
+            },
+            profileData: {
+                type: Object,
+                default: {fullName: 'Ricardo Aponte', picture: 'https://source.unsplash.com/random/100x50'},
+                persist: false,
+                callBack: showMemberModal
+            },
+            phone: {type: String, default: '123-45678'},
+            message: {type: String, default: 'This is a message'},
+            gender: {type: String, default: 'male'},
+            titleColor: {type: String, default: '#FFFFFF'},
+            backgroundColor: {type: String, default: '#5a67d8'},
+            birthDate: {type: String, default: '1969-08-16'},
+            birthDateTime: {type: String, default: '1969-08-16T20:00'},
+            photo: {type: String, default: 'https://source.unsplash.com/random/800x600'},
+        },
+    };
 
     sensible(store);
 
