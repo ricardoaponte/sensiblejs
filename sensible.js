@@ -488,4 +488,18 @@ function sensible(store) {
         });
     }
 }
-module.exports = sensible;
+
+// Adapt for either browser or not. AMD support
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    module.exports = sensible;
+}
+else {
+    if (typeof define === 'function' && define.amd) {
+        define([], function() {
+            return sensible();
+        });
+    }
+    else {
+        window.sensible = sensible;
+    }
+}
