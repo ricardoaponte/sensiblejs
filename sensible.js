@@ -276,13 +276,13 @@ function sensible(store) {
      */
     function ifElement(element) {
         try {
-            //TODO: Evaluate code inside
             const display = exec(element.getAttribute('s-if'));
             if (!element.hasOwnProperty('originalDisplay')) {
+                // Preserve original display
                 element.originalDisplay = element.style.display;
             }
-            // Preserve original display
-            element.style.display = display ? element.originalDisplay : 'none';
+            //TODO: Evaluate how this impacts other display settings
+            element.style.display = display ? 'block' : 'none';
         } catch (error) {
             console.error(error.message);
         }
