@@ -98,8 +98,8 @@ function sensible(store) {
                 window[variable] = internalValue;
             }
         });
-        initializing = false;
         updateAll();
+        initializing = false;
     }
 
     /**
@@ -252,7 +252,7 @@ function sensible(store) {
         });
 
         document.querySelectorAll("[s-for]").forEach((element) => {
-            if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-for') === variable) {
+            if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-for').indexOf(variable) >= 0 ||element.getAttribute('s-for') === variable) {
                 forElement(element);
             }
         });
