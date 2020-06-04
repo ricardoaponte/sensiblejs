@@ -75,7 +75,7 @@ function sensible(store) {
                 if (currentVariable.type === Array) {
                     if (internalValue !== 'undefined' && internalValue !== undefined && internalValue !== '') {
                         internalValue.forEach((value) => {
-                            if (!window[variable]) {
+                            if (window[variable] === undefined) {
                                 window[variable] = [];
                             }
                             window[variable].push(value);
