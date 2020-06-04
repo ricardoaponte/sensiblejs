@@ -258,13 +258,13 @@ function sensible(store) {
         });
 
         document.querySelectorAll("[s-if]").forEach((element) => {
-            if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-if') === variable) {
+            if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-if').indexOf(variable) >= 0 || element.getAttribute('s-if') === variable) {
                 ifElement(element);
             }
         });
 
         document.querySelectorAll("[s-css]").forEach((element) => {
-            if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-css') === variable) {
+            if (element.innerHTML.indexOf(variable) >= 0|| element.getAttribute('s-css').indexOf(variable) >= 0  || element.getAttribute('s-css') === variable) {
                 cssElement(element);
             }
         });
