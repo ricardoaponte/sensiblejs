@@ -108,7 +108,7 @@
                                 <li s-for="result of results" s-key="result.email" s-bind="results" class="border-gray-400 flex flex-row mb-2">
                                     <div class="select-none cursor-pointer bg-gray-200 rounded-md flex flex-1 items-center p-4  transition duration-500 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
                                         <div class="flex-1 pl-1 mr-16">
-                                            <div class="font-medium">[[ result.fullName]]</div>
+                                            <div class="font-medium">[[index]] . [[ result.fullName]]</div>
                                             <div class="text-gray-600 text-sm">[[ result.email]]</div>
                                         </div>
                                         <div class="text-gray-600 text-xs">[[result.phone]]</div>
