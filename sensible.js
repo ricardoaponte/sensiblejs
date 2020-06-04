@@ -5,6 +5,7 @@ function sensible(store) {
     init(store);
 
     function init(store) {
+        getVariables(store);
         let initializing = true;
         Object.keys(store.data).forEach(function (variable) {
             if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Array) {
@@ -50,14 +51,15 @@ function sensible(store) {
             }
             let dataSource = null, currentVariable = store.data[variable];
             if (store.persist) {
-                dataSource = localStorage.getItem(store.localPrefix + variable);
-                try {
-                    dataSource = JSON.parse(dataSource);
-                } catch (error) {
-                    //console.error(error);
+                if (store.data[variable].hasOwnProperty('persist') === false || store.data[variable].persist === true) {
+                    dataSource = localStorage.getItem(store.localPrefix + variable);
+                    try {
+                        dataSource = JSON.parse(dataSource);
+                    } catch (error) {
+                        //console.error(error);
+                    }
                 }
-            } else if (store.data[variable].hasOwnProperty('persist') && store.data[variable].persist === true) {
-                dataSource = localStorage.getItem(store.localPrefix + variable);
+            } else {
                 try {
                     dataSource = JSON.parse(dataSource);
                 } catch (error) {
@@ -126,6 +128,11 @@ function sensible(store) {
         // Element FOR
         document.querySelectorAll("[s-for]").forEach((element) => {
             forElement(element);
+        });
+
+        // Element CSS
+        document.querySelectorAll("[s-css]").forEach((element) => {
+            cssElement(element);
         });
     }
 
@@ -529,12 +536,36 @@ function sensible(store) {
     /**
      * Initiate existing id recognition.
      */
-    function getIds() {
-        let ids = [];
-        for (let variable of document.querySelectorAll('[id]')) {
-            ids.push(variable.id);
+    function getVariables(store) {
+        for (let variable of document.querySelectorAll('[s-bind]')) {
+            let variableName = variable.getAttribute('s-bind');
+            if (variableName.indexOf('[') >= 0) {
+                variableName = variableName.replace('[', '').replace(']', '');
+                store.data[variableName] = {};
+                store.data[variableName].type = Array;
+            }
+            else if (variableName.indexOf('{') >= 0) {
+                variableName = variableName.replace('{', '').replace('}', '');
+                store.data[variableName] = {};
+                store.data[variableName].type = Object;
+            }
+            if (!store.data.hasOwnProperty(variableName)) {
+                store.data[variableName] = {};
+                store.data[variableName].type = String;
+                if (variable.hasOwnProperty('value')) {
+                    store.data[variableName].default = variable.value;
+                }
+                else if (variable.getAttribute('value')) {
+                    store.data[variableName].default = variable.getAttribute('value');
+                }
+                else {
+                    store.data[variableName].default = '';
+                }
+                if (variable.getAttribute('s-callback') !== null) {
+                    store.data[variableName].callBack = new Function('"use strict"; ' + variable.getAttribute('s-callback'));
+                }
+            }
         }
-        console.log(ids);
     }
 
 }
