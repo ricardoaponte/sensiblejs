@@ -2,6 +2,8 @@
 
 Super lightweight Javascript sensible utilities
 
+*** DO NOT USE IN PRODUCTION ***
+
 ## Getting Started
 
 
