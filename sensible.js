@@ -245,8 +245,8 @@ function sensible(store) {
     }
 
     function processElements(variable) {
-        document.querySelectorAll(`[s-bind],[s-bind*=${variable}]`).forEach((element) => {
-            if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-bind') === variable) {
+        document.querySelectorAll("[s-bind]").forEach((element) => {
+            if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-bind').indexOf(variable) >= 0 || element.getAttribute('s-bind') === variable) {
                 setElement(element);
             }
         });
