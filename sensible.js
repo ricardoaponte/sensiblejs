@@ -315,11 +315,14 @@ function sensible(store) {
             element.getAttribute('s-css').split(';').forEach(function (style) {
                 //Object.assign(element.style, new Function(`return {"${style.split(':')[0].trim()}":${style.split(':')[1].trim()}}`)());
                 let cssAttribute = style.substring(0, style.indexOf(':')).trim()
-                let code = exec(getCode("'" + style.substring(style.indexOf(':') + 1) + "'"));
+                let code = exec("'" + getCode(style.substring(style.indexOf(':') + 1)) + "'").trim();
                 if (code.indexOf('${') >= 0) {
                     code = exec(code);
                 }
-                Object.assign(element.style, exec(`{"${cssAttribute}":'${code}'}`));
+                if (window[code] === undefined) {
+                    code = "'" + code + "'";
+                }
+                Object.assign(element.style, exec(`{"${cssAttribute}":${code}}`));
             });
         } catch (error) {
             console.error(error.message);
@@ -362,7 +365,10 @@ function sensible(store) {
                 if (hasCode(templateElement.innerHTML)) {
                     try {
                         let value = '';
-                        let innerHTML = getCode("'" + templateElement.innerHTML + "'");
+                        let innerHTML = getCode(templateElement.innerHTML);
+                        if (innerHTML.indexOf('${') >= 0) {
+                            innerHTML = exec(innerHTML);
+                        }
                         // TODO: Evaluate other elements like OPTIONS or a different way to evaluate this
                         if (templateElement.tagName === 'OPTION') {
                             let code = getCode(templateElement.value);
