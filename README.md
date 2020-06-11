@@ -2,7 +2,7 @@
 
 Super lightweight Javascript sensible utilities
 
-*** DO NOT USE IN PRODUCTION ***
+*** DO NOT USE IN PRODUCTION JUST YET! ***
 
 ## Getting Started
 
@@ -136,11 +136,19 @@ There are 3 directives available to use:
 
 ---
 
+### `s-blur`
+
+**Example:** `<input s-bind="name" s-blur>`
+
+`s-blur` Updates the variable when the element looses it's focus. If you do not specify this directive, the variable will be updated onkeyup.
+
+---
+
 ### `s-if`
 
 **Example:** `<div s-if="name.length > 0">...</div>`
 
-`s-bind` Shows or hides the element based on boolean result from expression.
+`s-if` Shows or hides the element based on boolean result from expression.
 
 ---
 
@@ -150,9 +158,30 @@ There are 3 directives available to use:
 
 `s-css` Applies CSSShows or hides the element based on boolean result from expression.
 
+---
+
+### `s-for`
+
+**Example:** `<ul> <li s-for="name of names">[[names]]</li> </ul>`
+
+**Example:** `<div s-for="product of products">Product name: [[product.name]], cost: [[product.cost]]</div>`
+
+---
+
+### `s-callback`
+
+**Example:** `<input type="checkbox" s-bind="show" s-callback="executeThis()"`
+
+
+`s-callback` Execute a function when the elements bind variable changes.
+
+Note: If the store data property specifies a callback function, then the store data takes precedence.
+
 ## HTML
 
 This tool will allow you to bind local varibles to DOM elements in an easy and light way.
+
+There is an example file (index.html) included in the package with a lot of examples.
 
 ## Contributing
 

@@ -44,7 +44,6 @@ function sensible(store) {
                     })
                 });
             } else {
-                //The notify callback method.
                 const observer = new Observer(window, variable, false);
                 observer.Observe(function (value) {
                     if (!initializing) {
@@ -55,18 +54,12 @@ function sensible(store) {
             let dataSource = null, currentVariable = store.data[variable];
             if (store.persist) {
                 if (store.data[variable].hasOwnProperty('persist') === false || store.data[variable].persist === true) {
+                    //TODO: Find a way to identify if the data stored is an object.
                     dataSource = localStorage.getItem(store.localPrefix + variable);
                     try {
                         dataSource = JSON.parse(dataSource);
                     } catch (error) {
-                        //console.error(error);
                     }
-                }
-            } else {
-                try {
-                    dataSource = JSON.parse(dataSource);
-                } catch (error) {
-
                 }
             }
 
@@ -321,9 +314,12 @@ function sensible(store) {
         try {
             element.getAttribute('s-css').split(';').forEach(function (style) {
                 //Object.assign(element.style, new Function(`return {"${style.split(':')[0].trim()}":${style.split(':')[1].trim()}}`)());
-                let cssAttribute = style.substring(0, style.indexOf(':'))
-                let code = getCode("'" + style.substring(style.indexOf(':') + 1) + "'");
-                Object.assign(element.style, exec(`{"${cssAttribute}":${code}}`));
+                let cssAttribute = style.substring(0, style.indexOf(':')).trim()
+                let code = exec(getCode("'" + style.substring(style.indexOf(':') + 1) + "'"));
+                if (code.indexOf('${') >= 0) {
+                    code = exec(code);
+                }
+                Object.assign(element.style, exec(`{"${cssAttribute}":'${code}'}`));
             });
         } catch (error) {
             console.error(error.message);
