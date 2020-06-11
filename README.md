@@ -7,23 +7,23 @@ Super lightweight Javascript sensible utilities
 ## Getting Started
 
 
-
 ### Installing
 
 ```
 npm i sensibljs
 ```
-Start by referencing the script
+Start by referencing the script in your html document.
 
 ```
 <script src="sensible.js">
 ```
-Then in your html document create the elements that you need. In this example we have a simple form.
+Then in your html document create the elements that you need. In this example we have a simple form to enter a name and a submit.
 ```
 <form>
     <label for="name">Name</>
     <input id="name" type="text" placeholder="Name">
     <input id="email" type="email" placeholder="Email address">
+    <button>Submit</button>
 </form>
 ```
 Now configure the elements that will be sensed. This is done by using the `s-bind` directive.
@@ -37,9 +37,8 @@ Sensiblejs will detect this and configure the variable and bind it to the elemen
 </form>
 ```
 Now anything you type inside either element will automatically update the variable specified.
-
-You can also specify to show or hide an element based on an expression. For this you need to use the
-`s-if` directive.
+You can also specify to show or hide an element based on an expression. 
+For this you need to use the `s-if` directive.
 ```
 <form>
     <label for="name">Name</>
@@ -48,7 +47,7 @@ You can also specify to show or hide an element based on an expression. For this
     <button s-if="name.length > 0">Create record</button>
 </form>
 ```
-In the example above we added a button, and it has the `v-if` directive with the expression
+In the example above we added the v-if directive with the expression
 `name.length > 0` meaning that the button will be visible if the length of the variable name
 is larger than zero.
 
@@ -63,7 +62,15 @@ To accomplish this you need to use the `s-css` directive.
     <button s-if="name.length > 0" s-css="backgroundColor: [[name.length >= 5 ? 'green' : 'white']]">Create record</button>
 </form>
 ```
+In the example above, the background color of the button will change to green when the name variables is 5 or more characters long
+and white when is below 5 characters.
 
+There are 2 options for sensing variable changes, on keyup or on lost focus (blur). To specify which one you must
+add the `s-blur` directive, this directive does not require a value.
+```
+    <input s-bind="name" **s-blur** id="name" type="text" placeholder="Name">
+```
+In the example above the variable will be updated when the element looses it's focus.
 
 That is all you need to start.
 
