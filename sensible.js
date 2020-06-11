@@ -321,7 +321,9 @@ function sensible(store) {
         try {
             element.getAttribute('s-css').split(';').forEach(function (style) {
                 //Object.assign(element.style, new Function(`return {"${style.split(':')[0].trim()}":${style.split(':')[1].trim()}}`)());
-                Object.assign(element.style, exec(`{"${style.split(':')[0].trim()}":${style.split(':')[1].trim()}}`));
+                let cssAttribute = style.substring(0, style.indexOf(':'))
+                let code = getCode("'" + style.substring(style.indexOf(':') + 1) + "'");
+                Object.assign(element.style, exec(`{"${cssAttribute}":${code}}`));
             });
         } catch (error) {
             console.error(error.message);

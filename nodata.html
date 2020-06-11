@@ -29,7 +29,7 @@
                     <div class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9">
                         <img s-bind="profileData.picture">
                     </div>
-                    <div s-css="background-color: [[myTitle.length >= 5 ? 'green' : 'red']]" s-bind="customTitle" value="test" s-callback="console.log('custom title');"></div>
+                    <div s-bind="customTitle" value="test" s-callback="console.log('custom title');"></div>
                     <div s-css="background-color: backgroundColor; color: titleColor" class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9" s-bind="myTitle"
                             s-if="show">
                         My Title is: [[ myTitle ]]
