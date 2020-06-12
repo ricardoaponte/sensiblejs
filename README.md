@@ -17,7 +17,7 @@ Start by referencing the script in your html document.
 ```
 <script src="sensible.js">
 ```
-Then in your html document create the elements that you need. In this example we have a simple form to enter a name and a submit.
+Then in your html document create the elements that you need. In this example we have a simple form to enter a name, and a submit button.
 ```
 <form>
     <label for="name">Name</>
@@ -27,7 +27,7 @@ Then in your html document create the elements that you need. In this example we
 </form>
 ```
 Now configure the elements that will be sensed. This is done by using the `s-bind` directive.
-This is a basic two field example that declares 2 variables.
+This is a basic two fields example that declares 2 variables.
 Sensiblejs will detect this and configure the variable and bind it to the element. 
 ```
 <form>
@@ -37,6 +37,7 @@ Sensiblejs will detect this and configure the variable and bind it to the elemen
 </form>
 ```
 Now anything you type inside either element will automatically update the variable specified.
+
 You can also specify to show or hide an element based on an expression. 
 For this you need to use the `s-if` directive.
 ```
@@ -47,12 +48,12 @@ For this you need to use the `s-if` directive.
     <button s-if="name.length > 0">Create record</button>
 </form>
 ```
-In the example above we added the v-if directive with the expression
-`name.length > 0` meaning that the button will be visible if the length of the variable name
+In the example above we added the s-if directive with the expression
+`name.length > 0` meaning the button will be visible if the length of the variable name
 is larger than zero.
 
-Furthermore, you can dynamically specify css properties to sense variables value changes. Let's say
-that you want to make the background color of the name field to green once it reached at least 5 characters.
+Furthermore, you can dynamically specify css properties to sense variables value changes. Let's say that you want to make the background color of the name field to green once it reached at least five characters. 
+
 To accomplish this you need to use the `s-css` directive.
 ```
 <form>
@@ -62,8 +63,7 @@ To accomplish this you need to use the `s-css` directive.
     <button s-if="name.length > 0" s-css="backgroundColor: [[name.length >= 5 ? 'green' : 'white']]">Create record</button>
 </form>
 ```
-In the example above, the background color of the button will change to green when the name variables is 5 or more characters long
-and white when is below 5 characters.
+In the example above, the background color of the button will change to green when the name variables is five or more characters long and white when is below five characters.
 
 There are two options for sensing variable changes, on keyup or on lost focus (blur). To specify which one you must
 add the `s-blur` directive, this directive does not require a value.
@@ -159,7 +159,7 @@ There are 3 directives available to use:
 
 **Example:** `<div s-css="background-color: backgroundColor, color: myColor">...</div>`
 
-`s-css` Applies CSS on the element based on the result from expression. In the example above the css style attribute background-color will be set to the value of the `backgroundColor` variable, and the color attribute will be set to the value of the `myColor` variable.
+`s-css` Applies CSS style attribute on the element based on the result from expression. In the example above the css style attribute background-color will be set to the value of the `backgroundColor` variable, and the color attribute will be set to the value of the `myColor` variable.
 
 ---
 
@@ -200,7 +200,7 @@ See also the list of [contributors](https://github.com/ricardoaponte/contributor
 
 ## License
 
-Copyright © 2020 Ricardo Aponte and contributors
+Copyright © 2020 Ricardo Aponte Yunqué and contributors
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
