@@ -27,7 +27,7 @@ Then in your html document create the elements that you need. In this example we
 </form>
 ```
 Now configure the elements that will be sensed. This is done by using the `s-bind` directive.
-This is a basic 2 field example that declares 2 variables.
+This is a basic two field example that declares 2 variables.
 Sensiblejs will detect this and configure the variable and bind it to the element. 
 ```
 <form>
@@ -65,7 +65,7 @@ To accomplish this you need to use the `s-css` directive.
 In the example above, the background color of the button will change to green when the name variables is 5 or more characters long
 and white when is below 5 characters.
 
-There are 2 options for sensing variable changes, on keyup or on lost focus (blur). To specify which one you must
+There are two options for sensing variable changes, on keyup or on lost focus (blur). To specify which one you must
 add the `s-blur` directive, this directive does not require a value.
 ```
     <input s-bind="name" **s-blur** id="name" type="text" placeholder="Name">
@@ -121,8 +121,11 @@ There are 3 directives available to use:
 | Directive | Description |
 | --- | --- |
 | [`s-bind`](#s-bind) | Adds "two-way data binding" to an element. |
+| [`s-blur`](#s-blur) | Updates the variable value when the element looses it's focus rather than onkeyup which is the default. |
 | [`s-if`](#s-if) | Show or hide an element based on expression. |
-| [`s-css`](#s-css) | Binds element css to a local variable. |
+| [`s-css`](#s-css) | Binds element css to an expression. |
+| [`s-for`](#s-for) | Duplicates elements based on the contents of an array or object. |
+| [`s-key`](#s-key) | Experimental. |
 
 ### Directives
 
@@ -132,7 +135,7 @@ There are 3 directives available to use:
 
 **Example:** `<div s-bind="name">...</div>`
 
-`s-bind` Makes a 2 way binding between the element and the variable (name).
+`s-bind` Makes a two way binding between the element and the variable (`name`).
 
 ---
 
@@ -154,17 +157,19 @@ There are 3 directives available to use:
 
 ### `s-css`
 
-**Example:** `<div s-css="background-color: backgroundColor, color: color">...</div>`
+**Example:** `<div s-css="background-color: backgroundColor, color: myColor">...</div>`
 
-`s-css` Applies CSSShows or hides the element based on boolean result from expression.
+`s-css` Applies CSS on the element based on the result from expression. In the example above the css style attribute background-color will be set to the value of the `backgroundColor` variable, and the color attribute will be set to the value of the `myColor` variable.
 
 ---
 
 ### `s-for`
 
-**Example:** `<ul> <li s-for="name of names">[[names]]</li> </ul>`
+**Example:** `<ul><li s-for="product of product">[[product.name]]</li></ul>`
 
 **Example:** `<div s-for="product of products">Product name: [[product.name]], cost: [[product.cost]]</div>`
+
+`s-for` Duplicates the element based on the contents of an Object or an Array. You can enter code inside double square brackets `[[ ]]`. In the example above the result will be an unordered list of each product's name inside the products array. The code `[[product.name]]` will be replaced by the contents of `product.name`.
 
 ---
 
@@ -185,7 +190,7 @@ There is an example file (index.html) included in the package with a lot of exam
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://gist.github.com/ricardoaponte/12a8f11d720d1f904b17e48cbd2dd03e) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Authors
 
