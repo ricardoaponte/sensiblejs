@@ -409,7 +409,7 @@ function sensible(store) {
                                 }
                                 `;
                         let func = new Function('parentElement', 'templateElement', 'innerHTML', 'value', fn);
-                        func(parentElement, templateElement, innerHTML, value);
+                        func(parentElement, templateElement, getCode("'" + innerHTML + "'"), value);
                     } catch (error) {
                         console.error(error.message);
                     }
