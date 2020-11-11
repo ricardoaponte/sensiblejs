@@ -1,0 +1,8 @@
+{
+  "presets": [["minify", {
+    "mangle": {
+      "keepFnName": false
+    },
+    "keepFnName": false
+  }]]
+}

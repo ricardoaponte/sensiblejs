@@ -13,7 +13,7 @@ npm i sensibljs
 Start by referencing the script at the end of the <head> tag. It will initialize automatically.
 
 ```
-<script src="sensible.js defer">
+<script src="sensible.min.js defer">
 ```
 Then in your html document create the elements that you need. In this example we have a simple form to enter a name, and a submit button.
 ```

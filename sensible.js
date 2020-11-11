@@ -448,38 +448,7 @@
                                     value = getCode(templateElement.value);
                                 }
                             }
-                            let fn = `
-                                var index = 0;
-                                var newElements = [];
-                                // Create new elements
-                                for(${forloop}) {
-                                    let newElement = templateElement.cloneNode(true);
-                                    newElement.removeAttribute('s-for');
-                                    newElement.removeAttribute('s-key');
-                                    let fn = new Function('index', '"use strict";return' + innerHTML + ';');
-                                    newElement.innerHTML = fn(index);
-                                    if (value !== '' && value !== undefined && value !== 'undefined' ) {
-                                       let fn = new Function('index', '"use strict";return' + value + ';');
-                                       newElement.value = fn(index);
-                                    }
-                                    // Assign index to s-key-value attribute
-                                    let attribute = document.createAttribute("s-key-value");
-                                    attribute.value = index;
-                                    newElement.setAttributeNode(attribute);
-                                    newElements.push(newElement);
-                                    index++;
-                                }
-                                // Remove existing elements
-                                let child = parentElement.lastElementChild;
-                                while (child) {
-                                    parentElement.removeChild(child);
-                                    child = parentElement.lastElementChild;
-                                }
-                                // Insert new elements into parent
-                                for (newElement of newElements) {
-                                    parentElement.appendChild(newElement);
-                                }
-                                `;
+                            let fn = `var index=0;var newElements=[];for(${forloop}) {let newElement=templateElement.cloneNode(true);newElement.removeAttribute('s-for');newElement.removeAttribute('s-key');let fn=new Function('index','"use strict";return' + innerHTML + ';');newElement.innerHTML=fn(index);if(value !== '' && value!==undefined && value!=='undefined' ) {let fn=new Function('index','"use strict";return' + value + ';'); newElement.value=fn(index);} let attribute=document.createAttribute("s-key-value");attribute.value=index;newElement.setAttributeNode(attribute);newElements.push(newElement);index++;}let child=parentElement.lastElementChild; while(child){parentElement.removeChild(child);child=parentElement.lastElementChild;}for(newElement of newElements){parentElement.appendChild(newElement);}`;
                             let func = new Function('parentElement', 'templateElement', 'innerHTML', 'value', fn);
                             func(parentElement, templateElement, getCode("'" + innerHTML + "'"), value);
                         } catch (error) {
@@ -686,15 +655,6 @@
                 }
             }
         }
-
-        /**
-         * Initiate existing data declarations.
-         */
-        // function getData(store) {
-        //     for (let variable of document.querySelectorAll('[s-data]')) {
-        //         exec(getCode(variable.getAttribute('s-data')));
-        //     }
-        // }
 
         // Check if we are being run inside a browser.
         if (!(navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom"))) {
