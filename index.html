@@ -163,7 +163,8 @@
                                 <div class="relative rounded-md shadow-sm">
                                     <input class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input" id="phone"
                                             placeholder="Phone"
-                                            s-bind="phone"/>
+                                            s-bind="phone"
+                                            s-callback="alert('phone changed')"/>
                                 </div>
                             </div>
                             <div>
@@ -211,12 +212,6 @@
                                     <option value="4">Option 4</option>
                                 </select>
                             </div>
-                            <div class="mt-3 text-lg leading-6 text-gray-500">
-                                <label for="options2">Select option using data source: </label>
-                                <select id="options2" s-bind="selectedOption" class="form-select">
-                                    <option s-for="availableOption of availableOptions" value="[[availableOption.id]]">[[availableOption.value]]</option>
-                                </select>
-                            </div>
                         </form>
                     </div>
                 </div>
@@ -234,7 +229,7 @@
             results.splice(index, 1);
         }
 
-        let store1 = {
+        let store = {
             persist: true,
             localPrefix: '__',
             // Data definitions.

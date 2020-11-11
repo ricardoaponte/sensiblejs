@@ -10,10 +10,10 @@ Super lightweight Javascript sensible utilities
 ```
 npm i sensibljs
 ```
-Start by referencing the script in your html document.
+Start by referencing the script at the end of the <head> tag. It will initialize automatically.
 
 ```
-<script src="sensible.js">
+<script src="sensible.js defer">
 ```
 Then in your html document create the elements that you need. In this example we have a simple form to enter a name, and a submit button.
 ```
@@ -74,7 +74,7 @@ That is all you need to start.
 
 As you have more variables to sense, it is better to declare all by declaring them in the store object.
 
-The store object allows you to specify the persistence of the data, a way to prefix your variables, and declare
+The store object allows you to specify the persistence of the data, a way to prefix your storage variables, and declare
 the variables you will be using.
 
 The store object has to be declared this way:
@@ -107,14 +107,18 @@ properties of these variables. The syntax for declaring a variable inside the da
 ```
  
 
-Then call the tool passing the store object.
+When the tool initializes it will look for the store object, if none is found it will default to:
 ```
-sensible(store)
+{
+    persist: true,
+    localPrefix: '__',
+    data: {},
+};
 ```
 
 ## Documentation
 
-There are 3 directives available to use:
+There are 7 directives available to use:
 
 | Directive | Description |
 | --- | --- |
@@ -123,7 +127,9 @@ There are 3 directives available to use:
 | [`s-if`](#s-if) | Show or hide an element based on expression. |
 | [`s-css`](#s-css) | Binds element css to an expression. |
 | [`s-for`](#s-for) | Duplicates elements based on the contents of an array or object. |
-| [`s-key`](#s-key) | Experimental. |
+| [`s-click`](#s-click) | Executes the expression when the element is clicked. |
+| [`s-unclick`](#s-unclick) | Executes the expression when there is a click away from the element. |
+| [`s-callback`](#s-callback) | Execute a function when the elements bind variable changes. |
 
 ### Directives
 
@@ -180,6 +186,23 @@ There are 3 directives available to use:
 
 Note: If the store data property specifies a callback function, then the store data takes precedence.
 
+---
+
+### `s-click`
+
+**Example:** `<input type="checkbox" s-click="show = true">`
+
+`s-click` Execute the provided statement when the element is clicked.
+
+---
+
+### `s-unclick`
+
+**Example:** `<input type="checkbox" s-unclick="show = false">`
+
+`s-click` Execute the provided statement when a click is done away from the element.
+
+
 ## HTML
 
 This tool will allow you to bind local varibles to DOM elements in an easy and light way.
@@ -202,5 +225,7 @@ Copyright © 2020 Ricardo Aponte Yunqué and contributors
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
+Thanks to  Blaize Stewart for Observables logic
+Thanks to @stimulus for domReady function
 
 * Inspired by pure necessity

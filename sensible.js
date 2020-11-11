@@ -5,6 +5,12 @@
 }(this, (
     function () {
         'use strict';
+
+        /**
+         * Initialization function, executes automatically
+         * @param store
+         * @returns {Promise<void>}
+         */
         async function init(store) {
             // New feature, needs documentation
             await domReady();
@@ -121,10 +127,13 @@
             elementIfs();
             elementFors();
             elementCss();
-            elementOnClick()
+            elementClick()
             elementUnClick()
         }
 
+        /**
+         * Process s-unclick directive
+         */
         function elementUnClick() {
             // Element CSS
             document.querySelectorAll("[s-unclick]").forEach((element) => {
@@ -132,13 +141,19 @@
             });
         }
 
-        function elementOnClick() {
+        /**
+         * Process s-click directive
+         */
+        function elementClick() {
             // Element CSS
-            document.querySelectorAll("[s-onclick]").forEach((element) => {
-                onclickElement(element);
+            document.querySelectorAll("[s-click]").forEach((element) => {
+                clickElement(element);
             });
         }
 
+        /**
+         * Process s-css directive
+         */
         function elementCss() {
             // Element CSS
             document.querySelectorAll("[s-css]").forEach((element) => {
@@ -146,6 +161,9 @@
             });
         }
 
+        /**
+         * Process s-for directive
+         */
         function elementFors() {
             // Element FOR
             document.querySelectorAll("[s-for]").forEach((element) => {
@@ -329,9 +347,9 @@
         /**
          * Set elements click behavior
          */
-        function onclickElement(element) {
+        function clickElement(element) {
             try {
-                const code = element.getAttribute('s-onclick');
+                const code = element.getAttribute('s-click');
                 document.addEventListener('click', function(event) {
                     var isClickInside = element.contains(event.target);
 
@@ -609,8 +627,7 @@
             });
         }
 
-        // Thanks @stimulus:
-        // https://github.com/stimulusjs/stimulus/blob/master/packages/%40stimulus/core/src/application.ts
+        // Taken from @stimulus:
         function domReady() {
             return new Promise(resolve => {
                 if (document.readyState == "loading") {
@@ -663,9 +680,9 @@
                     } else {
                         store.data[variableName].default = '';
                     }
-                    if (variable.getAttribute('s-callback') !== null) {
-                        store.data[variableName].callBack = new Function('"use strict"; ' + variable.getAttribute('s-callback'));
-                    }
+                }
+                if (variable.getAttribute('s-callback') !== null) {
+                    store.data[variableName].callBack = new Function('"use strict"; ' + variable.getAttribute('s-callback'));
                 }
             }
         }
