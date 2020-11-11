@@ -4,10 +4,24 @@
     <meta charset="UTF-8">
     <title>SensibleJS</title>
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
-    <script src="sensible.min.js" defer></script>
+    <script src="sensible.js" defer></script>
 </head>
 <body class="bg-gray-100">
     <div class="px-8 py-12 max-w-6xl m-auto">
+        <div s-bind="currentMember" class="modal-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <img class="memberUrl" style="width:200px;height:200px" id="url" s-bind="currentMember.url">
+                </div>
+                <div class="col-md-6">
+                    <h1>[[ currentMember.first_name + ' ' + currentMember.last_name ]]</h1>
+                    <h3>[[ currentMember.atmid ]]</h3>
+                    <p>[[ currentMember.type.name ]]</p>
+                </div>
+            </div>
+
+        </div>
+
         <div class="relative bg-white ">
             <div class="absolute inset-0">
                 <div class="absolute inset-y-0 left-0 w-1/2 bg-gray-50"></div>
@@ -237,6 +251,11 @@
                 results: {
                     type: Array,
                     persist: true,
+                },
+                currentMember: {
+                    type: Object,
+                    callBack: showMemberModal,
+                    default: {first_name: 'Ricardo', last_name: 'Aponte', atmid: '666', url: '', type: {name: '123'}}
                 },
                 availableOptions: {
                     type: Array,
