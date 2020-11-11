@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test without store</title>
+    <script src="sensible.js" defer></script>
+    <script>
+        let store = {
+            persist: false,
+            localPrefix: '__',
+            // Data definitions.
+            data: {
+            }
+        };
+    </script>
+</head>
+<body>
+    <div s-if="show">
+        Hello World!
+    </div>
+    <button s-bind="show" s-onclick="show = !show" s-unclick="show = false">Toggle</button>
+</body>
+</html>

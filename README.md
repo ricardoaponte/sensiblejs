@@ -2,8 +2,6 @@
 
 Super lightweight Javascript sensible utilities
 
-*** DO NOT USE IN PRODUCTION JUST YET! ***
-
 ## Getting Started
 
 
@@ -158,7 +156,7 @@ There are 3 directives available to use:
 ### `s-css`
 
 **Example:** `<div s-css="background-color: backgroundColor, color: myColor">...</div>`
-
+<span style="color:red">Test</span>
 `s-css` Applies CSS style attribute on the element based on the result from expression. In the example above the css style attribute background-color will be set to the value of the `backgroundColor` variable, and the color attribute will be set to the value of the `myColor` variable.
 
 ---
