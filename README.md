@@ -77,7 +77,7 @@ As you have more variables to sense, it is better to declare all by declaring th
 The store object allows you to specify the persistence of the data, a way to prefix your storage variables, and declare
 the variables you will be using.
 
-The store object has to be declared this way:
+Optionally the store object has to be declared this way:
 ```
 <script>
     let store = {
@@ -118,7 +118,7 @@ When the tool initializes it will look for the store object, if none is found it
 
 ## Documentation
 
-There are 7 directives available to use:
+There are 10 directives available to use:
 
 | Directive | Description |
 | --- | --- |
