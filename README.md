@@ -58,7 +58,7 @@ To accomplish this you need to use the `s-css` directive.
     <label for="name">Name</>
     <input s-bind="name" id="name" type="text" placeholder="Name">
     <input s-bind="email" id="email" type="email" placeholder="Email address">
-    <button s-if="name.length > 0" s-css="backgroundColor: [[name.length >= 5 ? 'green' : 'white']]">Create record</button>
+    <button s-if="name.length > 0" s-css="backgroundColor: {name.length >= 5 ? 'green' : 'white'}">Create record</button>
 </form>
 ```
 In the example above, the background color of the button will change to green when the name variables is five or more characters long and white when is below five characters.
@@ -179,11 +179,11 @@ There are 10 directives available to use:
 
 ### `s-for`
 
-**Example:** `<ul><li s-for="product of product">[[product.name]]</li></ul>`
+**Example:** `<ul><li s-for="product of product">{product.name}</li></ul>`
 
-**Example:** `<div s-for="product of products">Product name: [[product.name]], cost: [[product.cost]]</div>`
+**Example:** `<div s-for="product of products">Product name: {product.name}, cost: {product.cost}</div>`
 
-`s-for` Duplicates the element based on the contents of an Object or an Array. You can enter code inside double square brackets `[[ ]]`. In the example above the result will be an unordered list of each product's name inside the products array. The code `[[product.name]]` will be replaced by the contents of `product.name`.
+`s-for` Duplicates the element based on the contents of an Object or an Array. You can enter code inside. In the example above the result will be an unordered list of each product's name inside the products array. The code `{product.name}` will be replaced by the contents of `product.name`.
 
 ---
 
