@@ -66,7 +66,7 @@ In the example above, the background color of the button will change to green wh
 There are two options for sensing variable changes, on keyup or on lost focus (blur). To specify which one you must
 add the `s-blur` directive, this directive does not require a value.
 ```
-    <input s-bind="name" **s-blur** id="name" type="text" placeholder="Name">
+    <input s-bind="name" s-blur id="name" type="text" placeholder="Name">
 ```
 In the example above the variable will be updated when the element looses it's focus.
 
