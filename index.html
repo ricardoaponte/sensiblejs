@@ -5,23 +5,15 @@
     <title>SensibleJS</title>
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
     <script src="sensible.js" defer></script>
+    <style>
+        .imageList {
+            width: 100px;
+            padding: 2px;
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <div class="px-8 py-12 max-w-6xl m-auto">
-        <div s-bind="currentMember" class="modal-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <img class="memberUrl" style="width:200px;height:200px" id="url" s-bind="currentMember.url">
-                </div>
-                <div class="col-md-6">
-                    <h1>[[ currentMember.first_name + ' ' + currentMember.last_name ]]</h1>
-                    <h3>[[ currentMember.atmid ]]</h3>
-                    <p>[[ currentMember.type.name ]]</p>
-                </div>
-            </div>
-
-        </div>
-
         <div class="relative bg-white ">
             <div class="absolute inset-0">
                 <div class="absolute inset-y-0 left-0 w-1/2 bg-gray-50"></div>
@@ -33,21 +25,21 @@
                     </h3>
                     <div class="mt-2 max-w-xl text-sm leading-5 text-gray-500">
                         <p>
-                            A super lightweight sensible tool (DO NOT USE IN PRODUCTION YET!)
+                            A super lightweight sensible tool
                         </p>
                     </div>
                 </div>
             </div>
             <div class="relative mx-auto max-w-7xl lg:grid lg:grid-cols-5">
                 <div class="px-4 py-16 bg-gray-50 sm:px-6 lg:col-span-2 lg:px-8 lg:py-4 xl:pr-12">
-                    <div class="max-w-lg mx-auto" s-data="{iAmOk = false}">
+                    <div class="max-w-lg mx-auto" s-data="{iAmOk: false}">
                         <div class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9">
                             <img s-bind="profileData.picture">
                         </div>
-                        <div s-css="background-color: [[myTitle.length >= 5 ? 'green' : 'red']]" s-bind="customTitle" value="test" s-callback="console.log('custom title');"></div>
+                        <div s-css="background-color: {myTitle.length >= 5 ? 'green' : 'red'}" s-data="{customTitle: 'My Custom Title'}" value="test" s-callback="console.log('custom title');"></div>
                         <div s-css="background-color: backgroundColor; color: titleColor" class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9" s-bind="myTitle"
                                 s-if="show">
-                            My Title is: [[ myTitle ]]
+                            My Title is: { myTitle }
                         </div>
                         <div>
                             <div class="mt-3 text-lg leading-6 text-gray-500">
@@ -63,7 +55,7 @@
                         </div>
                         <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="fullName.length > 0">
                             <p>Hello&nbsp;
-                            <h1 s-bind="fullName">[[ `${fullName}` ]]</h1></p>
+                            <h1 s-bind="fullName">{ fullName }</h1></p>
                         </div>
                         <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="email != ''">
                             <p>Your email is &nbsp;
@@ -93,7 +85,7 @@
                             <input id="checkbox" s-bind="show" type="checkbox"/><label class="px-4" for="checkbox">Show title</label>
                         </div>
                         <div class="mt-3 mb-4 text-lg leading-6 text-gray-500">
-                            Total: <span s-bind="total">[[total]]</span>
+                            Total: <span s-bind="total">{total}</span>
                         </div>
                         <div class="inline-flex justify-center mt-3 mb-4 text-lg leading-6 text-gray-500">
                             <button class="px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700"
@@ -107,11 +99,11 @@
                         </button>
                         <!-- s-bind example-->
                         <div s-bind="fullName"></div>
-                        <div s-bind="phone">Phone: [[phone]]</div>
-                        <p s-bind="gender">Gender: [[gender]]</p>
+                        <div s-bind="phone">Phone: {phone}</div>
+                        <p s-bind="gender">Gender: {gender}</p>
                         <!-- s-bind example -->
                         <div class="mt-3 text-lg leading-6 text-gray-500">
-                            <p s-bind="selectedOption">Selected option [[ parseInt(selectedOption) ]] </p>
+                            <p s-bind="selectedOption">Selected option { parseInt(selectedOption) } </p>
                         </div>
                         <div class="mt-3 text-lg leading-6 text-gray-500">
                             Open up the console and change the <tt>myTitle</tt>
@@ -121,13 +113,14 @@
                             Records:
                             <div class="container flex mx-auto w-full items-center justify-center">
                                 <ul s-if="results.length > 0" class="flex flex-col bg-gray-300 p-4 w-full" id="results_parent">
-                                    <li s-for="result of results" s-key="result.email" s-bind="results" class="border-gray-400 flex flex-row mb-2">
+                                    <li s-for="result of results" s-key="result.email" class="border-gray-400 flex flex-row mb-2">
                                         <div class="select-none cursor-pointer bg-gray-200 rounded-md flex flex-1 items-center p-4  transition duration-500 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
                                             <div class="flex-1 pl-1 mr-16">
-                                                <div class="font-medium">[[index + 1]] . [[ result.fullName]]</div>
-                                                <div class="text-gray-600 text-sm">[[ result.email]]</div>
+                                                <div class="font-medium">{index + 1} . { result.fullName}</div>
+                                                <div class="text-gray-600 text-sm">{ result.email}</div>
+                                                <div class="text-gray-600 text-sm"><img s-src="{result.image}"></div>
                                             </div>
-                                            <div class="text-gray-600 text-xs">[[result.phone]]</div>
+                                            <div class="text-gray-600 text-xs">{result.phone}</div>
                                             <div class="flex flex-col rounded-md w-5 h-5 bg-gray-300 justify-center items-center mr-1">
                                                 <a href="#" onclick="removeItem(this)">🗑</a></div>
                                         </div>
@@ -219,7 +212,7 @@
                             </div>
                             <div class="mt-3 text-lg leading-6 text-gray-500">
                                 <label for="options">Select option: </label>
-                                <select id="options" s-bind="selectedOption" s-data="availableOptions" class="form-select">
+                                <select id="options" s-bind="selectedOption" class="form-select">
                                     <option value="1">Option 1</option>
                                     <option value="2">Option 2</option>
                                     <option value="3">Option 3</option>
@@ -231,8 +224,37 @@
                 </div>
             </div>
         </div>
+        <div class="modal-body">
+            <div s-data="sourceData()"></div>
+            <div s-bind="gender">Abierto: {gender}</div>
+            <div class="row">
+                <div class="col-md-6">
+                    <img class="memberUrl" style="width:200px;height:200px" s-bind="currentMember.url">
+                </div>
+                <div s-bind="currentMember" class="col-md-6">
+                    <h1>{currentMember.first_name + ' ' + currentMember.last_name}</h1>
+                    <h3>{currentMember.atmid}</h3>
+                    <p>{currentMember.type.name}</p>
+                </div>
+            </div>
+        </div>
+        <h1>Image list</h1>
+        <div>
+            <div s-for="image of imageList">
+                <label>{image.name}</label><img s-src="{image.url}" class="imageList">
+            </div>
+        </div>
     </div>
     <script>
+
+        function sourceData() {
+            return {
+                abierto: {default: true},
+                cerrado: {default: false},
+                otro: 'Test'
+            }
+        }
+
         function increase() {
             total++;
         }
@@ -252,10 +274,19 @@
                     type: Array,
                     persist: true,
                 },
+                imageList: {
+                    type: Array,
+                    persist: false,
+                    default: [
+                        {url: 'https://picsum.photos/210', 'name': 'Image 01'},
+                        {url: 'https://picsum.photos/220', 'name': 'Image 02'},
+                        {url: 'https://picsum.photos/230', 'name': 'Image 03'}
+                    ]
+                },
                 currentMember: {
                     type: Object,
                     callBack: showMemberModal,
-                    default: {first_name: 'Ricardo', last_name: 'Aponte', atmid: '666', url: '', type: {name: '123'}}
+                    default: {first_name: 'Ricardo', last_name: 'Aponte', atmid: '666', url: 'https://picsum.photos/200', type: {name: '123'}}
                 },
                 availableOptions: {
                     type: Array,
@@ -326,7 +357,7 @@
         }
 
         function addRecord() {
-            results.push({fullName: fullName, email: email, phone: phone});
+            results.push({fullName: fullName, email: email, phone: phone, image: photo});
         }
 
         function showDialog() {

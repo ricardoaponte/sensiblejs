@@ -12,10 +12,12 @@
          * @returns {Promise<void>}
          */
         async function init(store) {
-            // New feature, needs documentation
+
             await domReady();
             // New feature, needs documentation
-            getVariables(store);
+            getData(store);
+            // New feature, needs documentation
+            processCallbacks(store);
 
             let initializing = true;
             Object.keys(store.data).forEach(function (variable) {
@@ -72,7 +74,7 @@
                 }
 
                 let internalValue;
-                if (dataSource === null || dataSource === "") {
+                if (dataSource === null || dataSource === 'undefined') {
                     internalValue = currentVariable.default;
                 } else {
                     internalValue = dataSource;
@@ -109,18 +111,7 @@
         }
 
         /**
-         * Execute store data field callback
-         * @param variable
-         */
-        function executeCallBack(variable) {
-            // Execute field callbacks if any
-            if (typeof store.data[variable] !== 'undefined' && store.data[variable].hasOwnProperty('callBack') && store.data[variable].callBack != '') {
-                store.data[variable].callBack.call(window[variable]);
-            }
-        }
-
-        /**
-         * Process all directives
+         * Define all directives
          */
         function updateAll() {
             elementBindings();
@@ -132,7 +123,7 @@
         }
 
         /**
-         * Process s-unclick directive
+         * Define s-unclick directive
          */
         function elementUnClick() {
             // Element CSS
@@ -142,7 +133,7 @@
         }
 
         /**
-         * Process s-click directive
+         * Define s-click directives
          */
         function elementClick() {
             // Element CSS
@@ -152,7 +143,7 @@
         }
 
         /**
-         * Process s-css directive
+         * Define s-css directives
          */
         function elementCss() {
             // Element CSS
@@ -162,7 +153,7 @@
         }
 
         /**
-         * Process s-for directive
+         * Define s-for directives
          */
         function elementFors() {
             // Element FOR
@@ -172,6 +163,7 @@
         }
 
         /**
+         * Define s-if directives
          * Evaluate each elements s-if. display or not
          */
         function elementIfs() {
@@ -182,6 +174,7 @@
         }
 
         /**
+         * Define s-bind directive
          * Initialize existing elements with store data directives
          */
         function elementBindings() {
@@ -256,6 +249,8 @@
                     element.value = exec(getCode(element.attributes['s-bind'].value));
                     break;
                 case undefined:
+                    // TODO: Find a better way for this
+                    // This is all variable -> element
                     switch (element.tagName) {
                         case "IMG":
                             let srcCode = element.attributes['s-bind'].value;
@@ -264,6 +259,9 @@
                                 if (image) {
                                     element.src = image;
                                     // The only way I could set this.
+                                    if (element.id === "") {
+                                        element.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
+                                    }
                                     document.getElementById(element.id).src = image;
                                 }
                                 return;
@@ -296,7 +294,7 @@
         }
 
         /**
-         * Process Elements by variable
+         * Process Elements directives
          * @param variable
          */
         function processElements(variable) {
@@ -441,6 +439,9 @@
                             if (innerHTML.indexOf('${') >= 0) {
                                 innerHTML = exec(innerHTML);
                             }
+                            if (innerHTML.indexOf('s-src') >= 0) {
+                                innerHTML = innerHTML.replace('s-src', 'src');
+                            }
                             // TODO: Evaluate other elements like OPTIONS or a different way to evaluate this
                             if (templateElement.tagName === 'OPTION') {
                                 let code = getCode(templateElement.value);
@@ -448,7 +449,33 @@
                                     value = getCode(templateElement.value);
                                 }
                             }
-                            let fn = `var index=0;var newElements=[];for(${forloop}) {let newElement=templateElement.cloneNode(true);newElement.removeAttribute('s-for');newElement.removeAttribute('s-key');let fn=new Function('index','"use strict";return' + innerHTML + ';');newElement.innerHTML=fn(index);if(value !== '' && value!==undefined && value!=='undefined' ) {let fn=new Function('index','"use strict";return' + value + ';'); newElement.value=fn(index);} let attribute=document.createAttribute("s-key-value");attribute.value=index;newElement.setAttributeNode(attribute);newElements.push(newElement);index++;}let child=parentElement.lastElementChild; while(child){parentElement.removeChild(child);child=parentElement.lastElementChild;}for(newElement of newElements){parentElement.appendChild(newElement);}`;
+                            let fn = `
+                                    var index = 0;
+                                    var newElements = [];
+                                    for (${forloop}) {
+                                        let newElement = templateElement.cloneNode(true);
+                                        newElement.removeAttribute('s-for');
+                                        newElement.removeAttribute('s-key');
+                                        let fn = new Function('index', '"use strict";return' + innerHTML + ';');
+                                        newElement.innerHTML = fn(index);
+                                        if (value !== '' && value !== undefined && value !== 'undefined') {
+                                            let fn = new Function('index', '"use strict";return' + value + ';');
+                                            newElement.value = fn(index);
+                                        }
+                                        let attribute = document.createAttribute("s-key-value");
+                                        attribute.value = index;
+                                        newElement.setAttributeNode(attribute);
+                                        newElements.push(newElement);
+                                        index++;
+                                    }
+                                    let child = parentElement.lastElementChild;
+                                    while (child) {
+                                        parentElement.removeChild(child);
+                                        child = parentElement.lastElementChild;
+                                    }
+                                    for (newElement of newElements) {
+                                        parentElement.appendChild(newElement);
+                                    }`;
                             let func = new Function('parentElement', 'templateElement', 'innerHTML', 'value', fn);
                             func(parentElement, templateElement, getCode("'" + innerHTML + "'"), value);
                         } catch (error) {
@@ -467,7 +494,7 @@
          * @returns {boolean}
          */
         function hasCode(value) {
-            return value.substr(value.indexOf('[[') + 2, value.indexOf(']]') - 2).length > 0
+            return value.substr(value.indexOf('{') + 2, value.indexOf('}') - 2).length > 0
         }
 
         /**
@@ -476,7 +503,7 @@
          * @returns {string}
          */
         function getCode(value) {
-            return value.replace(/\[\[/g, "' + ").replace(/\]\]/g, " + '").replace(/(\r\n|\n|\r)/gm, "");
+            return value.replace(/{/g, "' + ").replace(/}/g, " + '").replace(/(\r\n|\n|\r)/gm, "");
         }
 
         /**
@@ -612,6 +639,36 @@
             localPrefix: '__',
             data: {},
         };
+
+        /**
+         * Initiate s-data recognition and add it to store.
+         */
+        function getData(store) {
+            for (let variable of document.querySelectorAll('[s-data]')) {
+                const attribute = variable.getAttribute('s-data');
+                const data = attribute === '' ? {} : attribute;
+                try {
+
+                }
+                catch(error) {
+                    console.error(error)
+                }
+                const dataObjects = exec(`${data}`);
+                Object.assign(store.data, dataObjects);
+            }
+        }
+
+        /**
+         * Initiate callbacks recognition.
+         */
+        function processCallbacks(store) {
+            for (let variable of document.querySelectorAll('[s-bind]')) {
+                let variableName = variable.getAttribute('s-bind');
+                if (variable.getAttribute('s-callback') !== null) {
+                    store.data[variableName]['callBack'] = new Function('"use strict"; ' + variable.getAttribute('s-callback'));
+                }
+            }
+        }
 
         /**
          * Initiate existing id recognition.

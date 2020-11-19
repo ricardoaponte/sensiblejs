@@ -123,6 +123,7 @@ There are 7 directives available to use:
 | Directive | Description |
 | --- | --- |
 | [`s-bind`](#s-bind) | Adds "two-way data binding" to an element. |
+| [`s-data`](#s-data) | Adds data to store and defines variables. |
 | [`s-blur`](#s-blur) | Updates the variable value when the element looses it's focus rather than onkeyup which is the default. |
 | [`s-if`](#s-if) | Show or hide an element based on expression. |
 | [`s-css`](#s-css) | Binds element css to an expression. |
@@ -130,6 +131,7 @@ There are 7 directives available to use:
 | [`s-click`](#s-click) | Executes the expression when the element is clicked. |
 | [`s-unclick`](#s-unclick) | Executes the expression when there is a click away from the element. |
 | [`s-callback`](#s-callback) | Execute a function when the elements bind variable changes. |
+| [`s-src`](#s-src) | Sets the image source attribute to a variable. Useful in s-for directive. |
 
 ### Directives
 
@@ -140,6 +142,14 @@ There are 7 directives available to use:
 **Example:** `<div s-bind="name">...</div>`
 
 `s-bind` Makes a two way binding between the element and the variable (`name`).
+
+---
+
+### `s-data`
+
+**Example:** `<div s-data="{open: true}">...</div>`
+
+`s-data` Defines a variable and value.
 
 ---
 
@@ -177,17 +187,6 @@ There are 7 directives available to use:
 
 ---
 
-### `s-callback`
-
-**Example:** `<input type="checkbox" s-bind="show" s-callback="executeThis()"`
-
-
-`s-callback` Execute a function when the elements bind variable changes.
-
-Note: If the store data property specifies a callback function, then the store data takes precedence.
-
----
-
 ### `s-click`
 
 **Example:** `<input type="checkbox" s-click="show = true">`
@@ -202,6 +201,27 @@ Note: If the store data property specifies a callback function, then the store d
 
 `s-click` Execute the provided statement when a click is done away from the element.
 
+---
+
+### `s-callback`
+
+**Example:** `<input type="checkbox" s-bind="show" s-callback="executeThis()"`
+
+
+`s-callback` Execute a function when the elements bind variable changes.
+
+Note: If the store data property specifies a callback function, then the store data takes precedence.
+
+---
+
+### `s-src`
+
+**Example:** `<img s-src="imageUrl">`
+
+
+`s-src` Sets the image source attribute to the variable value. Useful for s-for directive.
+
+---
 
 ## HTML
 
