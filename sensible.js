@@ -111,7 +111,18 @@
         }
 
         /**
-         * Define all directives
+         * Execute store data field callback
+         * @param variable
+         */
+        function executeCallBack(variable) {
+            // Execute field callbacks if any
+            if (typeof store.data[variable] !== 'undefined' && store.data[variable].hasOwnProperty('callBack') && store.data[variable].callBack != '') {
+                store.data[variable].callBack.call(window[variable]);
+            }
+        }
+
+        /**
+         * Process all directives
          */
         function updateAll() {
             elementBindings();
@@ -449,34 +460,7 @@
                                     value = getCode(templateElement.value);
                                 }
                             }
-                            let fn = `
-                                    var index = 0;
-                                    var newElements = [];
-                                    for (${forloop}) {
-                                        let newElement = templateElement.cloneNode(true);
-                                        newElement.removeAttribute('s-for');
-                                        newElement.removeAttribute('s-key');
-                                        let fn = new Function('index', '"use strict";return' + innerHTML + ';');
-                                        newElement.innerHTML = fn(index);
-                                        if (value !== '' && value !== undefined && value !== 'undefined') {
-                                            let fn = new Function('index', '"use strict";return' + value + ';');
-                                            newElement.value = fn(index);
-                                        }
-                                        let attribute = document.createAttribute("s-key-value");
-                                        attribute.value = index;
-                                        newElement.setAttributeNode(attribute);
-                                        newElements.push(newElement);
-                                        index++;
-                                    }
-                                    let child = parentElement.lastElementChild;
-                                    while (child) {
-                                        parentElement.removeChild(child);
-                                        child = parentElement.lastElementChild;
-                                    }
-                                    for (newElement of newElements) {
-                                        parentElement.appendChild(newElement);
-                                    }`;
-                            let func = new Function('parentElement', 'templateElement', 'innerHTML', 'value', fn);
+                            let fn = `                                    var index = 0;                                    var newElements = [];                                    for (${forloop}) {                                        let newElement = templateElement.cloneNode(true);                                        newElement.removeAttribute('s-for');                                        newElement.removeAttribute('s-key');                                        let fn = new Function('index', '"use strict";return' + innerHTML + ';');                                        newElement.innerHTML = fn(index);                                        if (value !== '' && value !== undefined && value !== 'undefined') {                                            let fn = new Function('index', '"use strict";return' + value + ';');                                            newElement.value = fn(index);                                        }                                        let attribute = document.createAttribute("s-key-value");                                        attribute.value = index;                                        newElement.setAttributeNode(attribute);                                        newElements.push(newElement);                                        index++;                                    }                                    let child = parentElement.lastElementChild;                                    while (child) {                                        parentElement.removeChild(child);                                        child = parentElement.lastElementChild;                                    }                                    for (newElement of newElements) {                                        parentElement.appendChild(newElement);                                    }`;                            let func = new Function('parentElement', 'templateElement', 'innerHTML', 'value', fn);
                             func(parentElement, templateElement, getCode("'" + innerHTML + "'"), value);
                         } catch (error) {
                             console.error(error.message);
