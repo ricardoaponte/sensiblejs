@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test without store</title>
+  <link
+          href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css"
+          rel="stylesheet"
+  />
+  <script src="sensible.js" defer></script>
+  <script>
+    let store = {
+      persist: false,
+      localPrefix: '__',
+      // Data definitions.
+      data: {
+        photo: 'https://picsum.photos/200',
+        show: true,
+        hello: 'Hello World!',
+      }
+    };
+    function dropdown() {
+      return {
+        show: false,
+        hello: 'Hello World! 2',
+        open() { this.show = true },
+        close() { this.show = false },
+        isOpen() { return this.show === true },
+      }
+    }
+  </script>
+</head>
+<body>
+<div>
+  Message 1: { hello }
+  <div>
+    Message 2: { hello }
+  </div>
+  <div s-if="show">
+    Message 2: { hello }
+  </div>
+  { hello } again!
+  <div>
+    <div>
+      <div>Message 3: {hello}</div>
+    </div>
+  </div>
+
+  <img alt="photo" s-bind="photo">
+</div>
+<button class="m-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center" s-click="show = !show" s-unclick="show = true">Toggle</button>
+<div>This is div 2</div>
+</body>
+</html>

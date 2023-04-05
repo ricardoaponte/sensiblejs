@@ -14,14 +14,14 @@
         async function init(store) {
 
             await domReady();
-            // New feature, needs documentation
-            getData(store);
+
             // New feature, needs documentation
             processCallbacks(store);
 
             let initializing = true;
             Object.keys(store.data).forEach(function (variable) {
-                if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Array) {
+                let currentVariable = store.data[variable];
+                if (Array.isArray(currentVariable) || currentVariable.hasOwnProperty('type') && Array.isArray(currentVariable.type())) {
                     if (window[variable] === undefined) {
                         window[variable] = [];
                     }
@@ -44,15 +44,17 @@
                             processElements(variable);
                         }
                     })
-                    Object.keys(store.data[variable].default).forEach(function (property) {
-                        window[variable] = {};
-                        const observer = new Observer(window[variable], property, variable);
-                        observer.Observe(function (value) {
-                            if (!initializing) {
-                                processElements(variable);
-                            }
-                        })
-                    });
+                    if (currentVariable.hasOwnProperty('default')) {
+                        Object.keys(currentVariable.default).forEach(function (property) {
+                            window[variable] = {};
+                            const observer = new Observer(window[variable], property, variable);
+                            observer.Observe(function (value) {
+                                if (!initializing) {
+                                    processElements(variable);
+                                }
+                            })
+                        });
+                    }
                 } else {
                     const observer = new Observer(window, variable, false);
                     observer.Observe(function (value) {
@@ -61,7 +63,7 @@
                         }
                     })
                 }
-                let dataSource = null, currentVariable = store.data[variable];
+                let dataSource = null;
                 if (store.persist) {
                     if (store.data[variable].hasOwnProperty('persist') === false || store.data[variable].persist === true) {
                         //TODO: Find a way to identify if the data stored is an object.
@@ -75,7 +77,7 @@
 
                 let internalValue;
                 if (dataSource === null || dataSource === 'undefined') {
-                    internalValue = currentVariable.default;
+                    internalValue = currentVariable;
                 } else {
                     internalValue = dataSource;
                 }
@@ -97,7 +99,7 @@
                         }
                     } else if (currentVariable.type === Object) {
                         Object.keys(store.data[variable].default).forEach(function (property) {
-                            window[variable][property] = internalValue[property];
+                            window[variable][property] = internalValue.default[property];
                         });
                     } else {
                         window[variable] = internalValue;
@@ -106,8 +108,14 @@
                     window[variable] = internalValue;
                 }
             });
+
+            // New feature, needs documentation
+            processElementsData(store);
+
             updateAll();
             initializing = false;
+            // New feature, needs documentation
+            processVariables();
         }
 
         /**
@@ -125,12 +133,16 @@
          * Process all directives
          */
         function updateAll() {
-            elementBindings();
-            elementIfs();
-            elementFors();
-            elementCss();
-            elementClick()
-            elementUnClick()
+            try {
+                elementBindings();
+                elementIfs();
+                elementFors();
+                elementCss();
+                elementClick()
+                elementUnClick()
+            } catch (e) {
+                console.error(e)
+            }
         }
 
         /**
@@ -175,7 +187,7 @@
 
         /**
          * Define s-if directives
-         * Evaluate each elements s-if. display or not
+         * Evaluate each element's s-if. display or not
          */
         function elementIfs() {
             // Element display
@@ -286,22 +298,52 @@
                     if (element.originalInnerHTML !== '') {
                         if (hasCode(element.originalInnerHTML)) {
                             try {
-                                let codeResult = exec(getCode(`'${element.originalInnerHTML}'`));
-                                switch (element.tagName) {
-                                    default:
+                                let code = getCode(element.originalInnerHTML);
+                                if (code && code.length > 0) {
+                                    let codeResult = exec(code[1]);
+                                    element.innerHTML = element.originalInnerHTML.replaceAll(code[0], codeResult);
+                                } else {
+                                    let codeResult = exec(code);
+                                    if (codeResult) {
                                         element.innerHTML = codeResult;
-                                        break;
+                                    }
                                 }
-                                break;
-
                             } catch (error) {
                                 console.error(error.message);
                             }
                         }
                     }
-                    element.innerHTML = window[element.attributes['s-bind'].value];
-                    break;
             }
+        }
+
+        function processVariables() {
+            const root = document.body;
+            // Get all the elements in the document
+            //const elements = document.getElementsByTagName('*');
+            const elements = root.children;
+            // Loop through each element and change its background color to blue
+            for (let i = 0; i < elements.length; i++) {
+                console.log(elements[i].tagName);
+                if (["HTML", "HEAD", "SCRIPT", "STYLE", "META"].includes(elements[i].tagName)) {
+                    continue;
+                }
+                try {
+                    let code = getCode2(elements[i].innerHTML);
+                    processCode(elements[i], code);
+                    // if (code && code !== undefined && code.length > 0) {
+                    //     //let codeResult = exec(code[1]);
+                    //     elements[i].innerHTML = elements[i].innerHTML.replaceAll(code[0], codeResult);
+                    // } else {
+                    //     //let codeResult = exec(code);
+                    //     if (codeResult) {
+                    //         elements[i].innerHTML = codeResult;
+                    //     }
+                    // }
+                } catch (error) {
+                    console.error(error.message);
+                }
+            }
+
         }
 
         /**
@@ -361,8 +403,9 @@
                 const code = element.getAttribute('s-click');
                 document.addEventListener('click', function(event) {
                     var isClickInside = element.contains(event.target);
+                    var isClickOnElement = event.target === element;
 
-                    if (isClickInside) {
+                    if (isClickInside || isClickOnElement) {
                         exec(code);
                     }
                 });
@@ -396,14 +439,17 @@
                 element.getAttribute('s-css').split(';').forEach(function (style) {
                     //Object.assign(element.style, new Function(`return {"${style.split(':')[0].trim()}":${style.split(':')[1].trim()}}`)());
                     let cssAttribute = style.substring(0, style.indexOf(':')).trim()
-                    let code = exec("'" + getCode(style.substring(style.indexOf(':') + 1)) + "'").trim();
-                    if (code.indexOf('${') >= 0) {
-                        code = exec(code);
+                    let compiledCode = getCode(style.substring(style.indexOf(':') + 1).trim());
+                    if (compiledCode) {
+                        let code;
+                        if (Array.isArray(compiledCode)) {
+                            code = exec(compiledCode[1]);
+                        } else {
+                            code = exec(compiledCode);
+                        }
+                        Object.assign(element.style, exec(`{"${cssAttribute}":'${code}'}`));
                     }
-                    if (window[code] === undefined) {
-                        code = "'" + code + "'";
-                    }
-                    Object.assign(element.style, exec(`{"${cssAttribute}":${code}}`));
+
                 });
             } catch (error) {
                 console.error(error.message);
@@ -446,7 +492,15 @@
                     if (hasCode(templateElement.innerHTML)) {
                         try {
                             let value = '';
-                            let innerHTML = getCode(templateElement.innerHTML);
+                            let innerHTML = '';
+                            let code = getCode(templateElement.innerHTML);
+                            if (code) {
+                                if (code.length > 2) {
+                                    innerHTML = code[2];
+                                } else {
+                                    innerHTML = code[0];
+                                }
+                            }
                             if (innerHTML.indexOf('${') >= 0) {
                                 innerHTML = exec(innerHTML);
                             }
@@ -461,7 +515,7 @@
                                 }
                             }
                             let fn = `                                    var index = 0;                                    var newElements = [];                                    for (${forloop}) {                                        let newElement = templateElement.cloneNode(true);                                        newElement.removeAttribute('s-for');                                        newElement.removeAttribute('s-key');                                        let fn = new Function('index', '"use strict";return' + innerHTML + ';');                                        newElement.innerHTML = fn(index);                                        if (value !== '' && value !== undefined && value !== 'undefined') {                                            let fn = new Function('index', '"use strict";return' + value + ';');                                            newElement.value = fn(index);                                        }                                        let attribute = document.createAttribute("s-key-value");                                        attribute.value = index;                                        newElement.setAttributeNode(attribute);                                        newElements.push(newElement);                                        index++;                                    }                                    let child = parentElement.lastElementChild;                                    while (child) {                                        parentElement.removeChild(child);                                        child = parentElement.lastElementChild;                                    }                                    for (newElement of newElements) {                                        parentElement.appendChild(newElement);                                    }`;                            let func = new Function('parentElement', 'templateElement', 'innerHTML', 'value', fn);
-                            func(parentElement, templateElement, getCode("'" + innerHTML + "'"), value);
+                            func(parentElement, templateElement, "'" + innerHTML + "'", value);
                         } catch (error) {
                             console.error(error.message);
                         }
@@ -470,6 +524,20 @@
             } catch (error) {
                 console.error(error.message);
             }
+        }
+
+        function processCode(element, compiledCodeList) {
+            let codeResult;
+            try {
+                let code;
+                for (code of compiledCodeList) {
+                    const cleanCode = code.replaceAll('{', '').replaceAll('}', '');
+                    codeResult = exec(cleanCode);
+                    element.innerHTML = element.innerHTML.replaceAll(`${code}`, codeResult);
+                }
+            } catch (error) {
+            }
+            return codeResult;
         }
 
         /**
@@ -486,9 +554,29 @@
          * @param value
          * @returns {string}
          */
-        function getCode(value) {
+        function getCode1(value) {
             return value.replace(/{/g, "' + ").replace(/}/g, " + '").replace(/(\r\n|\n|\r)/gm, "");
         }
+
+        function getCode(value) {
+            const regex = /\{([^}]+)\}/g;
+            const code = regex.exec(`'${value}'`);
+            if (code) {
+                code.push(value.replace(/{/g, "' + ").replace(/}/g, " + '").replace(/(\r\n|\n|\r)/gm, ""));
+                return code;
+            }
+            return value;
+        }
+
+        function getCode2(value) {
+            const regex = /\{([^}]+)\}/g;
+            const code = `${value}`.match(regex);
+            if (code) {
+                return [...new Set(code)];
+            }
+            return value;
+        }
+
 
         /**
          * Execute code and return result
@@ -504,70 +592,89 @@
          * @param a
          * @constructor
          */
-        function ArrayObserver(a) {
-            let _this = this;
-            this.observers = [];
+        class ArrayObserver {
+            constructor(a) {
+                let _this = this;
+                this.observers = [];
 
-            this.Observe = function (notifyCallback) {
-                _this.observers.push(notifyCallback);
-            }
-            try {
-                a.push = function (obj) {
-                    let push = Array.prototype.push.apply(a, arguments);
-                    for (let i = 0; i < _this.observers.length; i++) _this.observers[i](obj, "push");
-                    return push;
+                this.Observe = function (notifyCallback) {
+                    _this.observers.push(notifyCallback);
+                };
+                try {
+                    a.push = function () {
+                        try {
+                            Array.prototype.push.apply(a, arguments);
+                        }
+                        catch (e) {
+                            console.log(e);
+                            return false;
+                        }
+                        for (let i = 0; i < _this.observers.length; i++)
+                            _this.observers[i](arguments, "push");
+                    };
+
+                    a.concat = function (obj) {
+                        let concat = Array.prototype.concat.apply(a, obj);
+                        for (let i = 0; i < _this.observers.length; i++)
+                            _this.observers[i](concat, "concat");
+                        return concat;
+                    };
+
+                    a.shift = function () {
+                        let shifted = Array.prototype.shift.apply(a, arguments);
+                        let success = false;
+                        for (let i = 0; i < _this.observers.length; i++)
+                            success = _this.observers[i](shifted, "shift");
+                        if (!success) {
+                            a.unshift(shifted);
+                            return null;
+                        }
+                        return shifted;
+                    };
+                    a.reverse = function () {
+                        let result = Array.prototype.reverse.apply(a, arguments);
+                        for (let i = 0; i < _this.observers.length; i++)
+                            _this.observers[i](result, "reverse");
+                        return result;
+                    };
+
+                    a.shift = function () {
+                        let deleted_item = Array.prototype.shift.apply(a, arguments);
+                        for (let i = 0; i < _this.observers.length; i++)
+                            _this.observers[i](deleted_item, "shift");
+                        return deleted_item;
+                    };
+
+                    a.sort = function () {
+                        let result = Array.prototype.sort.apply(a, arguments);
+                        for (let i = 0; i < _this.observers.length; i++)
+                            _this.observers[i](result, "sort");
+                        return result;
+                    };
+
+                    a.splice = function (i, length, itemsToInsert) {
+                        let returnObj;
+                        if (itemsToInsert) {
+                            Array.prototype.slice.call(arguments, 2);
+                            returnObj = itemsToInsert;
+                        } else {
+                            returnObj = Array.prototype.splice.apply(a, arguments);
+                        }
+                        for (let i = 0; i < _this.observers.length; i++)
+                            _this.observers[i](returnObj, "splice");
+                        return returnObj;
+                    };
+
+                    a.unshift = function () {
+                        let new_length = Array.prototype.unshift.apply(a, arguments);
+                        for (let i = 0; i < _this.observers.length; i++)
+                            _this.observers[i](new_length, "unshift");
+                        return arguments;
+                    };
+
+                } catch (error) {
+                    console.log(error);
                 }
-
-                a.concat = function (obj) {
-                    let concat = Array.prototype.concat.apply(a, obj);
-                    for (let i = 0; i < _this.observers.length; i++) _this.observers[i](concat, "concat");
-                    return concat;
-                }
-
-                a.pop = function () {
-                    let popped = Array.prototype.pop.apply(a, arguments);
-                    for (let i = 0; i < _this.observers.length; i++) _this.observers[i](popped, "pop");
-                    return popped;
-                }
-
-                a.reverse = function () {
-                    let result = Array.prototype.reverse.apply(a, arguments);
-                    for (let i = 0; i < _this.observers.length; i++) _this.observers[i](result, "reverse");
-                    return result;
-                };
-
-                a.shift = function () {
-                    let deleted_item = Array.prototype.shift.apply(a, arguments);
-                    for (let i = 0; i < _this.observers.length; i++) _this.observers[i](deleted_item, "shift");
-                    return deleted_item;
-                };
-
-                a.sort = function () {
-                    let result = Array.prototype.sort.apply(a, arguments);
-                    for (let i = 0; i < _this.observers.length; i++) _this.observers[i](result, "sort");
-                    return result;
-                };
-
-                a.splice = function (i, length, itemsToInsert) {
-                    let returnObj
-                    if (itemsToInsert) {
-                        Array.prototype.slice.call(arguments, 2);
-                        returnObj = itemsToInsert;
-                    } else {
-                        returnObj = Array.prototype.splice.apply(a, arguments);
-                    }
-                    for (let i = 0; i < _this.observers.length; i++) _this.observers[i](returnObj, "splice");
-                    return returnObj;
-                };
-
-                a.unshift = function () {
-                    let new_length = Array.prototype.unshift.apply(a, arguments);
-                    for (let i = 0; i < _this.observers.length; i++) _this.observers[i](new_length, "unshift");
-                    return arguments;
-                };
-
-            } catch (error) {
-                console.log(error);
             }
         }
 
@@ -577,44 +684,62 @@
          * @param property
          * @constructor
          */
-        function Observer(o, property, obj) {
-            let _this = this;
-            let _obj = obj;
-            this.observers = [];
+        class Observer {
+            constructor(o, property, obj) {
+                let _this = this;
+                let _obj = obj;
+                this.observers = [];
 
-            this.Observe = function (notifyCallback) {
-                _this.observers.push(notifyCallback);
-            }
+                this.Observe = function (notifyCallback) {
+                    _this.observers.push(notifyCallback);
+                };
 
-            Object.defineProperty(o, property, {
-                set: function (value) {
-                    _this.value = value;
-                    for (let i = 0; i < _this.observers.length; i++) _this.observers[i](value);
-                    let effective = _obj !== false ? _obj : property;
-                    if (store.persist) {
-                        if (!store.data[effective].hasOwnProperty('persist') || store.data[effective].persist === true) {
-                            if (typeof value == 'object') {
-                                localStorage.setItem(store.localPrefix + effective + '.' + property, JSON.stringify(value));
-                            } else {
-                                localStorage.setItem(store.localPrefix + property, value);
+                Object.defineProperty(o, property, {
+                    set: function (value) {
+                        _this.value = value;
+                        for (let i = 0; i < _this.observers.length; i++)
+                            _this.observers[i](value);
+                        let effective = _obj !== false ? _obj : property;
+                        if (store.persist) {
+                            if (!store.data[effective].hasOwnProperty('persist') || store.data[effective].persist === true) {
+                                if (typeof value == 'object') {
+                                    localStorage.setItem(store.localPrefix + effective + '.' + property, JSON.stringify(value));
+                                } else {
+                                    localStorage.setItem(store.localPrefix + property, value);
+                                }
                             }
                         }
+                    },
+                    get: function () {
+                        return _this.value;
                     }
-                },
-                get: function () {
-                    return _this.value;
-                }
-            });
+                });
+            }
         }
 
         // Taken from @stimulus:
         function domReady() {
-            return new Promise(resolve => {
-                if (document.readyState == "loading") {
-                    document.addEventListener("DOMContentLoaded", resolve);
-                } else {
-                    resolve();
+            return new Promise((resolve, reject) => {
+                const checkDOMReady = function() {
+                    if (document.readyState == "loading") {
+                        return;
+                    }
+                    document.removeEventListener("readystatechange", checkDOMReady);
+                    if (document.readyState == "interactive" || document.readyState == "complete") {
+                        resolve();
+                    } else {
+                        reject(new Error("Unexpected document.readyState: " + document.readyState));
+                    }
                 }
+                if (document.readyState == "complete") {
+                    resolve();
+                } else {
+                    document.addEventListener("readystatechange", checkDOMReady);
+                    checkDOMReady();
+                }
+            }).catch(error => {
+                console.error(error);
+                return Promise.reject(error);
             });
         }
 
@@ -627,18 +752,19 @@
         /**
          * Initiate s-data recognition and add it to store.
          */
-        function getData(store) {
-            for (let variable of document.querySelectorAll('[s-data]')) {
-                const attribute = variable.getAttribute('s-data');
+        function processElementsData(store) {
+            for (let element of document.querySelectorAll('[s-data]')) {
+                const attribute = element.getAttribute('s-data');
+                element.removeAttribute('s-data')
                 const data = attribute === '' ? {} : attribute;
                 try {
-
+                    const dataObjects = exec(`${data}`);
+                    Object.assign(store.data, dataObjects);
+                    Object.assign(window, dataObjects);
                 }
                 catch(error) {
                     console.error(error)
                 }
-                const dataObjects = exec(`${data}`);
-                Object.assign(store.data, dataObjects);
             }
         }
 
