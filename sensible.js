@@ -112,10 +112,13 @@
             // New feature, needs documentation
             processElementsData(store);
 
-            updateAll();
+            await updateAll();
             initializing = false;
+
             // New feature, needs documentation
-            processVariables();
+            processElementsCode();
+
+            // TODO: Check if s-bind is used on an element that is not an input
         }
 
         /**
@@ -132,23 +135,26 @@
         /**
          * Process all directives
          */
-        function updateAll() {
-            try {
-                elementBindings();
-                elementIfs();
-                elementFors();
-                elementCss();
-                elementClick()
-                elementUnClick()
-            } catch (e) {
-                console.error(e)
-            }
+        async function updateAll() {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    await elementBindings();
+                    await elementIfs();
+                    await elementFors();
+                    await elementCss();
+                    await elementClick()
+                    await elementUnClick()
+                    resolve();
+                } catch (e) {
+                    reject(e);
+                }
+            });
         }
 
         /**
          * Define s-unclick directive
          */
-        function elementUnClick() {
+        async function elementUnClick() {
             // Element CSS
             document.querySelectorAll("[s-unclick]").forEach((element) => {
                 unclickElement(element);
@@ -158,7 +164,7 @@
         /**
          * Define s-click directives
          */
-        function elementClick() {
+        async function elementClick() {
             // Element CSS
             document.querySelectorAll("[s-click]").forEach((element) => {
                 clickElement(element);
@@ -168,7 +174,7 @@
         /**
          * Define s-css directives
          */
-        function elementCss() {
+        async function elementCss() {
             // Element CSS
             document.querySelectorAll("[s-css]").forEach((element) => {
                 cssElement(element);
@@ -178,7 +184,7 @@
         /**
          * Define s-for directives
          */
-        function elementFors() {
+        async function elementFors() {
             // Element FOR
             document.querySelectorAll("[s-for]").forEach((element) => {
                 forElement(element);
@@ -189,7 +195,7 @@
          * Define s-if directives
          * Evaluate each element's s-if. display or not
          */
-        function elementIfs() {
+        async function elementIfs() {
             // Element display
             document.querySelectorAll("[s-if]").forEach((element) => {
                 ifElement(element);
@@ -200,7 +206,7 @@
          * Define s-bind directive
          * Initialize existing elements with store data directives
          */
-        function elementBindings() {
+        async function elementBindings() {
             // Element bindings
             document.querySelectorAll("[s-bind]").forEach((element) => {
                 setElement(element);
@@ -213,7 +219,10 @@
          * @param element
          */
         function setElement(element) {
-            switch (element.type) {
+            if (["HTML", "HEAD", "SCRIPT", "STYLE", "META", "BODY"].includes(element.tagName)) {
+                return;
+            }
+                switch (element.type) {
                 // TODO: multiple
                 case "select-one":
                     element.onchange = function (event) {
@@ -276,7 +285,7 @@
                     // This is all variable -> element
                     switch (element.tagName) {
                         case "IMG":
-                            let srcCode = element.attributes['s-bind'].value;
+                            let srcCode = element.attributes['s-bind']?.value;
                             try {
                                 let image = exec(srcCode);
                                 if (image) {
@@ -298,16 +307,8 @@
                     if (element.originalInnerHTML !== '') {
                         if (hasCode(element.originalInnerHTML)) {
                             try {
-                                let code = getCode(element.originalInnerHTML);
-                                if (code && code.length > 0) {
-                                    let codeResult = exec(code[1]);
-                                    element.innerHTML = element.originalInnerHTML.replaceAll(code[0], codeResult);
-                                } else {
-                                    let codeResult = exec(code);
-                                    if (codeResult) {
-                                        element.innerHTML = codeResult;
-                                    }
-                                }
+                                let code = getCode2(element.originalInnerHTML);
+                                processCode(element, code)
                             } catch (error) {
                                 console.error(error.message);
                             }
@@ -315,35 +316,39 @@
                     }
             }
         }
-
-        function processVariables() {
-            const root = document.body;
-            // Get all the elements in the document
-            //const elements = document.getElementsByTagName('*');
-            const elements = root.children;
-            // Loop through each element and change its background color to blue
-            for (let i = 0; i < elements.length; i++) {
-                console.log(elements[i].tagName);
-                if (["HTML", "HEAD", "SCRIPT", "STYLE", "META"].includes(elements[i].tagName)) {
-                    continue;
-                }
-                try {
-                    let code = getCode2(elements[i].innerHTML);
-                    processCode(elements[i], code);
-                    // if (code && code !== undefined && code.length > 0) {
-                    //     //let codeResult = exec(code[1]);
-                    //     elements[i].innerHTML = elements[i].innerHTML.replaceAll(code[0], codeResult);
-                    // } else {
-                    //     //let codeResult = exec(code);
-                    //     if (codeResult) {
-                    //         elements[i].innerHTML = codeResult;
-                    //     }
-                    // }
-                } catch (error) {
-                    console.error(error.message);
-                }
+        function findDeepestElement(element) {
+            if (element.childNodes.length === 0) {
+                return { element, depth: 0 };
             }
 
+            let deepestElement = null;
+            let maxDepth = -1;
+
+            for (let i = 0; i < element.childNodes.length; i++) {
+                const childNode = element.childNodes[i];
+                //if (childNode.nodeType === Node.ELEMENT_NODE || childNode.nodeType === Node.TEXT_NODE) {
+                    const candidate = findDeepestElement(childNode);
+                    const depth = candidate.depth;
+
+                    if (depth > maxDepth) {
+                        maxDepth = depth;
+                        deepestElement = candidate.element;
+                    }
+                //}
+            }
+
+            return { element: deepestElement, depth: maxDepth + 1 };
+        }
+
+        function processElementsCode() {
+            let currentElement = findDeepestElement(document.body).element;
+
+            while (currentElement) {
+                // Process the current element
+                setElement(currentElement);
+                // Move up the DOM tree to the parent element
+                currentElement = currentElement.parentElement;
+            }
         }
 
         /**
@@ -451,6 +456,7 @@
                     }
 
                 });
+                //element.removeAttribute('s-css')
             } catch (error) {
                 console.error(error.message);
             }
@@ -531,9 +537,12 @@
             try {
                 let code;
                 for (code of compiledCodeList) {
-                    const cleanCode = code.replaceAll('{', '').replaceAll('}', '');
+                    let cleanCode = code;
+                    if (code.indexOf('`') === -1) {
+                        cleanCode = code.replaceAll('{', '').replaceAll('}', '');
+                    }
                     codeResult = exec(cleanCode);
-                    element.innerHTML = element.innerHTML.replaceAll(`${code}`, codeResult);
+                    element.innerHTML = element.innerHTML.replaceAll(code, codeResult);
                 }
             } catch (error) {
             }
@@ -545,7 +554,7 @@
          * @param value
          * @returns {boolean}
          */
-        function hasCode(value) {
+        function hasCode(value = '') {
             return value.substr(value.indexOf('{') + 2, value.indexOf('}') - 2).length > 0
         }
 
@@ -569,7 +578,8 @@
         }
 
         function getCode2(value) {
-            const regex = /\{([^}]+)\}/g;
+            //const regex = /\{([^}]+)\}/g;
+            const regex = /(?:\{([^}]+)\})|(?:`([^`]+)`)/g;
             const code = `${value}`.match(regex);
             if (code) {
                 return [...new Set(code)];

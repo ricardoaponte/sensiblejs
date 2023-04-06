@@ -46,6 +46,7 @@
                     <div
                             s-css="background-color: backgroundColor; color: titleColor"
                             class="py-2 px-2 text-2xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-3xl sm:leading-9"
+                            s-bind="myTitle"
                             s-if="show">
                         My Title is: { myTitle }
                     </div>
@@ -63,15 +64,15 @@
                     </div>
                     <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="fullName.length > 0">
                         <p>Hello&nbsp;
-                        <h1>{ fullName }</h1></p>
+                        <h1 s-bind="fullName">{ fullName }</h1></p>
                     </div>
                     <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="email != ''">
                         <p>Your email is &nbsp;
-                        <h1>{ email }</h1></p>
+                        <h1 s-bind="email"> { email }</h1></p>
                     </div>
                     <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="birthDate != ''">
                         <p>Your birthday &nbsp;
-                        <h1>{birthDate}</h1></p>
+                        <h1 s-bind="birthDate">{birthDate}</h1></p>
                     </div>
                     <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="birthDateTime != ''">
                         <p>Your birthday time &nbsp;
@@ -79,21 +80,21 @@
                     </div>
                     <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="phone != ''">
                         <p>Your phone is &nbsp;
-                        <h1>{phone}</h1></p>
+                        <h1 s-bind="phone"></h1></p>
                     </div>
                     <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="gender != ''">
                         <p>Your are: &nbsp;
-                        <h1></h1></p>
+                        <h1 s-bind="gender"></h1></p>
                     </div>
                     <div class="shadow-md flex content-center px-5 py-3 bg-blue-100" s-if="message != ''">
                         <p>Your message: &nbsp;
-                        <h1>{message}</h1></p>
+                        <h1 s-bind="message"></h1></p>
                     </div>
                     <div class="mt-3 text-lg leading-6 text-gray-500">
                         <input id="checkbox" s-bind="show" type="checkbox"/><label class="px-4" for="checkbox">Show title</label>
                     </div>
                     <div class="mt-3 mb-4 text-lg leading-6 text-gray-500">
-                        Total: <span>{total}</span>
+                        Total: <span s-bind="total">{total}</span>
                     </div>
                     <div class="inline-flex justify-center mt-3 mb-4 text-lg leading-6 text-gray-500">
                         <button class="px-6 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700"
@@ -105,8 +106,13 @@
                             onclick="total--">
                         Decrease total
                     </button>
+                    <!-- s-bind example-->
+                    <div s-bind="fullName"></div>
+                    <div s-bind="phone">Phone: {phone}</div>
+                    <p s-bind="gender">Gender: {gender}</p>
+                    <!-- s-bind example -->
                     <div class="mt-3 text-lg leading-6 text-gray-500">
-                        <p>Selected option: { parseInt(selectedOption) } </p>
+                        <p s-bind="selectedOption">Selected option { parseInt(selectedOption) } </p>
                     </div>
                     <div class="mt-3 text-lg leading-6 text-gray-500">
                         Open up the console and change the <tt>myTitle</tt>
@@ -229,12 +235,12 @@
     </div>
     <div class="modal-body">
         <div s-data="sourceData()"></div>
-        <div>Abierto: {gender}</div>
+        <div s-bind="gender">Abierto: {gender}</div>
         <div class="row">
             <div class="col-md-6">
                 <img class="memberUrl" style="width:200px;height:200px" s-bind="currentMember.url">
             </div>
-            <div s-data="currentMember" class="col-md-6">
+            <div s-bind="currentMember" class="col-md-6">
                 <h1>{currentMember.first_name + ' ' + currentMember.last_name}</h1>
                 <h3>{currentMember.first_name + 1 }</h3>
                 <p>{currentMember.type.name}</p>
