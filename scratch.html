@@ -1,54 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Test without store</title>
-  <link
-          href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css"
-          rel="stylesheet"
-  />
-  <script src="sensible.js" defer></script>
-  <script>
-    let store = {
-      persist: false,
-      localPrefix: '__',
-      // Data definitions.
-      data: {
-        photo: 'https://picsum.photos/200',
-        show: true,
-        hello: 'Hello World!',
-      }
-    };
-    function dropdown() {
-      return {
-        show: false,
-        hello: 'Hello World! 2',
-        open() { this.show = true },
-        close() { this.show = false },
-        isOpen() { return this.show === true },
-      }
-    }
-  </script>
+    <meta charset="UTF-8">
+    <title>SensibleJS Tests</title>
+    <link
+            href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css"
+            rel="stylesheet"
+    />
+    <script src="sensible.js" defer></script>
+    <script>
+        // let store = {
+        //     persist: false,
+        //     localPrefix: '__',
+        //     // Data definitions.
+        //     data: {
+        //         photo: 'https://picsum.photos/200',
+        //         show: true,
+        //         message: 'Hello World!',
+        //         selectedOption: 0,
+        //         fullName: 'John Doe',
+        //     }
+        // };
+
+        function dropdown() {
+            return {
+                show: false,
+                message: 'Hello World! 2',
+                open() {
+                    this.show = true
+                },
+                close() {
+                    this.show = false
+                },
+                isOpen() {
+                    return this.show === true
+                },
+            }
+        }
+    </script>
 </head>
 <body>
-  <div>
-    Message 1: { hello }
-  <div>
-    Message 2: { hello }
-  </div>
-  <div s-if="show">
-    Message 2: { hello }
-  </div>
-  { hello } again!
-  <div>
-    <div>
-      <div>Message 3: {hello}</div>
+<div s-data="{
+    message: 'Default message',
+    selectedOption: 1,
+    photo: 'https://picsum.photos/200',
+    }" class="px-4 py-16 bg-white sm:px-6 lg:col-span-3 lg:py-4 lg:px-8 xl:pl-12 bg-gray-200">
+    <div class="max-w-lg mx-auto lg:max-w-none">
+        <form action="#" class="grid grid-cols-1 row-gap-6" method="POST">
+            <div>
+                <label class="sr-only" for="full_name">Full name</label>
+                <div class="relative rounded-md shadow-sm">
+                    <input class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input"
+                           id="full_name"
+                           placeholder="Message"
+                           s-bind="message" s-blur/>
+                </div>
+                <div class="mt-3 text-lg leading-6 text-gray-500">
+                    <label for="options">Select option: </label>
+                    <select id="options" s-bind="selectedOption" class="form-select">
+                        <option disabled selected value> -- select an option --</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                        <option value="3">Option 3</option>
+                        <option value="4">Option 4</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+        <div class="mt-3 text-lg leading-6 text-gray-500">
+            <p>Selected option: { parseInt(selectedOption) } </p>
+        </div>
     </div>
-  </div>
 
-  <img alt="photo" s-bind="photo">
+    <div s-bind="message">
+        Message 1: { message }
+        <div>
+            Message 2: { message }
+        </div>
+        <div>
+            Message 2: { message }
+        </div>
+        { message } again!
+        <div>
+            <div>
+                <div>Message 3: {message}</div>
+            </div>
+        </div>
+        <img alt="photo" s-bind="photo">
+    </div>
+
+    <button class="m-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
+        Toggle
+    </button>
+    <div>This is div 2</div>
 </div>
-<button class="m-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center" s-click="show = !show" s-unclick="show = true">Toggle</button>
-<div>This is div 2</div>
+<script>
+</script>
 </body>
 </html>

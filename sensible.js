@@ -6,6 +6,8 @@
     function () {
         'use strict';
 
+        const initializing = false;
+
         /**
          * Initialization function, executes automatically
          * @param store
@@ -15,110 +17,153 @@
 
             await domReady();
 
-            // New feature, needs documentation
-            processCallbacks(store);
-
             let initializing = true;
-            Object.keys(store.data).forEach(function (variable) {
-                let currentVariable = store.data[variable];
-                if (Array.isArray(currentVariable) || currentVariable.hasOwnProperty('type') && Array.isArray(currentVariable.type())) {
-                    if (window[variable] === undefined) {
-                        window[variable] = [];
-                    }
-                    let arrayObserver = new ArrayObserver(window[variable])
-                    arrayObserver.Observe(function (result, method) {
-                        if (store.persist) {
-                            if ((store.data[variable].hasOwnProperty('persist') && store.data[variable].persist !== false)) {
-                                localStorage.setItem(store.localPrefix + variable, JSON.stringify(window[variable]));
-                            }
-                        }
-                        if (!initializing) {
-                            processElements(variable);
-                        }
-                    });
-                } else if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Object) {
-                    window[variable] = {};
-                    const observer = new Observer(window, variable, variable);
-                    observer.Observe(function (value) {
-                        if (!initializing) {
-                            processElements(variable);
-                        }
-                    })
-                    if (currentVariable.hasOwnProperty('default')) {
-                        Object.keys(currentVariable.default).forEach(function (property) {
-                            window[variable] = {};
-                            const observer = new Observer(window[variable], property, variable);
-                            observer.Observe(function (value) {
-                                if (!initializing) {
-                                    processElements(variable);
-                                }
-                            })
-                        });
-                    }
-                } else {
-                    const observer = new Observer(window, variable, false);
-                    observer.Observe(function (value) {
-                        if (!initializing) {
-                            processElements(variable);
-                        }
-                    })
-                }
-                let dataSource = null;
-                if (store.persist) {
-                    if (store.data[variable].hasOwnProperty('persist') === false || store.data[variable].persist === true) {
-                        //TODO: Find a way to identify if the data stored is an object.
-                        dataSource = localStorage.getItem(store.localPrefix + variable);
-                        try {
-                            dataSource = JSON.parse(dataSource);
-                        } catch (error) {
-                        }
-                    }
-                }
 
-                let internalValue;
-                if (dataSource === null || dataSource === 'undefined') {
-                    internalValue = currentVariable;
-                } else {
-                    internalValue = dataSource;
-                }
-                if (currentVariable.hasOwnProperty('type')) {
-                    if (currentVariable.type === Array) {
-                        if (typeof internalValue !== 'undefined' && Array.isArray(internalValue)) {
-                            internalValue.forEach((value) => {
-                                if (window[variable] === undefined) {
-                                    window[variable] = [];
-                                }
-                                window[variable].push(value);
-                            });
-                        } else {
-                            if (store.data[variable].hasOwnProperty('default')) {
-                                store.data[variable].default.forEach((item) => {
-                                    window[variable].push(item);
-                                });
-                            }
-                        }
-                    } else if (currentVariable.type === Object) {
-                        Object.keys(store.data[variable].default).forEach(function (property) {
-                            window[variable][property] = internalValue.default[property];
-                        });
-                    } else {
-                        window[variable] = internalValue;
-                    }
-                } else {
-                    window[variable] = internalValue;
-                }
+            // TODO: Set all store data as objects or not, really, not!
+            Object.keys(store.data).forEach(function (variable) {
+                storeData(variable);
             });
 
             // New feature, needs documentation
             processElementsData(store);
 
+            // New feature, needs documentation
+            processCallbacks(store);
+
             await updateAll();
-            initializing = false;
 
             // New feature, needs documentation
-            processElementsCode();
+            //processElementsCode();
 
+            //traverseDOM(document.body);
             // TODO: Check if s-bind is used on an element that is not an input
+        }
+
+        const storeData = (dataItem, data = '') => {
+            let currentDataItem = store.data[dataItem];
+            if (typeof currentDataItem === 'undefined'){
+                currentDataItem = {default: data, callback: '', persist: store.persist, type: String};
+                store.data[dataItem] = data;
+            } else {
+                return;
+            }
+
+            if (Array.isArray(currentDataItem) || currentDataItem.hasOwnProperty('type') && Array.isArray(currentDataItem.type())) {
+                if (window[dataItem] === undefined) {
+                    window[dataItem] = [];
+                }
+                let arrayObserver = new ArrayObserver(window[dataItem])
+                arrayObserver.Observe(function (result, method) {
+                    if (store.persist) {
+                        if ((store.data[dataItem].hasOwnProperty('persist') && store.data[dataItem].persist !== false)) {
+                            localStorage.setItem(store.localPrefix + dataItem, JSON.stringify(window[dataItem]));
+                        }
+                    }
+                    if (!initializing) {
+                        processElements(dataItem);
+                    }
+                });
+            } else if (store.data[dataItem].hasOwnProperty('type') && store.data[dataItem].type === Object) {
+                window[dataItem] = {};
+                const observer = new Observer(window, dataItem, dataItem);
+                observer.Observe(function (value) {
+                    if (!initializing) {
+                        processElements(dataItem);
+                    }
+                })
+                if (currentDataItem.hasOwnProperty('default')) {
+                    Object.keys(currentDataItem.default).forEach(function (property) {
+                        window[dataItem] = {};
+                        const observer = new Observer(window[dataItem], property, dataItem);
+                        observer.Observe(function (value) {
+                            if (!initializing) {
+                                processElements(dataItem);
+                            }
+                        })
+                    });
+                }
+            } else {
+                const observer = new Observer(window, dataItem, false);
+                observer.Observe(function (value) {
+                    if (!initializing) {
+                        processElements(dataItem);
+                    }
+                })
+            }
+
+            let dataSource = null;
+            if (store.persist) {
+                if (store.data[dataItem].hasOwnProperty('persist') === false || store.data[dataItem].persist === true) {
+                    //TODO: Find a way to identify if the data stored is an object.
+                    dataSource = localStorage.getItem(store.localPrefix + dataItem);
+                    try {
+                        dataSource = JSON.parse(dataSource);
+                    } catch (error) {
+                    }
+                }
+            }
+
+            let internalValue;
+            if (dataSource === null || dataSource === 'undefined') {
+                internalValue = currentDataItem;
+            } else {
+                internalValue = dataSource;
+            }
+            if (currentDataItem.hasOwnProperty('type')) {
+                if (currentDataItem.type === Array) {
+                    if (typeof internalValue !== 'undefined' && Array.isArray(internalValue)) {
+                        internalValue.forEach((value) => {
+                            if (window[dataItem] === undefined) {
+                                window[dataItem] = [];
+                            }
+                            window[dataItem].push(value);
+                        });
+                    } else {
+                        if (store.data[dataItem].hasOwnProperty('default')) {
+                            store.data[dataItem].default.forEach((item) => {
+                                window[dataItem].push(item);
+                            });
+                        }
+                    }
+                } else if (currentDataItem.type === Object) {
+                    Object.keys(store.data[dataItem]).forEach(function (property) {
+                        window[dataItem][property] = internalValue[property];
+                    });
+                } else {
+                    window[dataItem] = internalValue.default;
+                }
+            } else {
+                window[dataItem] = internalValue;
+            }
+
+        }
+
+
+        // Define a recursive function to traverse the DOM and execute the strings
+        function traverseDOM(node) {
+            // Define a regular expression to match strings between { and } characters
+            //const regEx = /{([^{}]+)}/g;
+            const regEx = /(?:\{([^}]+)\})|(?:`([^`]+)`)/g;
+            // Skip script tags
+            if (node.tagName === 'SCRIPT') {
+                return;
+            }
+
+            // Check if the node has text content
+            if (node.nodeType === Node.TEXT_NODE && regEx.test(node.textContent)) {
+                // Replace the string with the result of the execution
+                node.textContent = node.textContent.replace(regEx, (match, p1) => {
+                    try {
+                        return processCode(node, [p1.trim()]);
+                    } catch (e) {
+                        console.error(`Error executing string "${p1.trim()}": ${e}`);
+                        return match;
+                    }
+                });
+            }
+
+            // Traverse the child nodes of the current node
+            node.childNodes.forEach(childNode => traverseDOM(childNode));
         }
 
         /**
@@ -209,6 +254,11 @@
         async function elementBindings() {
             // Element bindings
             document.querySelectorAll("[s-bind]").forEach((element) => {
+                // Save value to store if is not there
+                const variableName = element.attributes['s-bind'].value;
+                if (store.data[variableName] === undefined) {
+                    storeData(variableName);
+                }
                 setElement(element);
             });
         }
@@ -219,14 +269,24 @@
          * @param element
          */
         function setElement(element) {
+            // if (element.isSet) {
+            //     return;
+            // }
             if (["HTML", "HEAD", "SCRIPT", "STYLE", "META", "BODY"].includes(element.tagName)) {
                 return;
             }
+            if (!element.hasOwnProperty('originalInnerHTML')) {
+                if (element.innerHTML !== undefined) {
+                    element.originalInnerHTML = element.innerHTML;
+                }
+            }
                 switch (element.type) {
                 // TODO: multiple
-                case "select-one":
-                    element.onchange = function (event) {
-                        // If there is code found then process it!
+                    case "select-one":
+                        element.removeEventListener('change', function (event) {
+
+                        });
+                    element.addEventListener('change', function (event) {
                         if (hasCode(event.target.value)) {
                             try {
                                 let value = getCode(`'${event.target.value}'`);
@@ -236,9 +296,11 @@
                                 console.error(error.message);
                             }
                         } else {
+                            // Update variable
                             window[element.attributes['s-bind'].value] = exec(event.target.value.replace(/\+/g, ""));
+                            traverseDOM(document.body);
                         }
-                    }
+                    });
                     element.value = exec(getCode(element.attributes['s-bind'].value));
                     break;
                 case "radio":
@@ -290,19 +352,11 @@
                                 let image = exec(srcCode);
                                 if (image) {
                                     element.src = image;
-                                    // The only way I could set this.
-                                    if (element.id === "") {
-                                        element.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
-                                    }
-                                    document.getElementById(element.id).src = image;
                                 }
                                 return;
                             } catch (error) {
                                 return;
                             }
-                    }
-                    if (!element.hasOwnProperty('originalInnerHTML')) {
-                        element.originalInnerHTML = element.innerHTML;
                     }
                     if (element.originalInnerHTML !== '') {
                         if (hasCode(element.originalInnerHTML)) {
@@ -315,47 +369,11 @@
                         }
                     }
             }
-        }
-        function findDeepestElement(element) {
-            if (element.childNodes.length === 0) {
-                return { element, depth: 0 };
-            }
-
-            let deepestElement = null;
-            let maxDepth = -1;
-
-            for (let i = 0; i < element.childNodes.length; i++) {
-                const childNode = element.childNodes[i];
-                //if (childNode.nodeType === Node.ELEMENT_NODE || childNode.nodeType === Node.TEXT_NODE) {
-                    const candidate = findDeepestElement(childNode);
-                    const depth = candidate.depth;
-
-                    if (depth > maxDepth) {
-                        maxDepth = depth;
-                        deepestElement = candidate.element;
-                    }
-                //}
-            }
-
-            return { element: deepestElement, depth: maxDepth + 1 };
+            element.isSet = true;
         }
 
-        function processElementsCode() {
-            let currentElement = findDeepestElement(document.body).element;
-
-            while (currentElement) {
-                // Process the current element
-                setElement(currentElement);
-                // Move up the DOM tree to the parent element
-                currentElement = currentElement.parentElement;
-            }
-        }
-
-        /**
-         * Process Elements directives
-         * @param variable
-         */
         function processElements(variable) {
+            // Update elements with s-bind
             document.querySelectorAll("[s-bind]").forEach((element) => {
                 if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-bind').indexOf(variable) >= 0 || element.getAttribute('s-bind') === variable) {
                     setElement(element);
@@ -380,6 +398,7 @@
                 }
             });
             executeCallBack(variable);
+            //traverseDOM(document.body);
         }
 
         /**
@@ -536,13 +555,17 @@
             let codeResult;
             try {
                 let code;
+                let originalInnerHTML = element.originalInnerHTML;
                 for (code of compiledCodeList) {
-                    let cleanCode = code;
+                    let cleanCode = {};
+                    const dataObjects = exec(`${code}`);
+                    Object.assign(cleanCode, dataObjects);
                     if (code.indexOf('`') === -1) {
                         cleanCode = code.replaceAll('{', '').replaceAll('}', '');
                     }
                     codeResult = exec(cleanCode);
-                    element.innerHTML = element.innerHTML.replaceAll(code, codeResult);
+                    element.innerHTML = originalInnerHTML.replaceAll(code, codeResult);
+                    originalInnerHTML = element.innerHTML;
                 }
             } catch (error) {
             }
@@ -754,7 +777,7 @@
         }
 
         const storeTemplate = {
-            persist: true,
+            persist: false,
             localPrefix: '__',
             data: {},
         };
@@ -768,9 +791,10 @@
                 element.removeAttribute('s-data')
                 const data = attribute === '' ? {} : attribute;
                 try {
-                    const dataObjects = exec(`${data}`);
-                    Object.assign(store.data, dataObjects);
-                    Object.assign(window, dataObjects);
+                    const dataObject = exec(`${data}`);
+                    for (const [key, value] of Object.entries(dataObject)) {
+                        storeData(key, value);
+                    }
                 }
                 catch(error) {
                     console.error(error)
@@ -782,10 +806,13 @@
          * Initiate callbacks recognition.
          */
         function processCallbacks(store) {
-            for (let variable of document.querySelectorAll('[s-bind]')) {
-                let variableName = variable.getAttribute('s-bind');
-                if (variable.getAttribute('s-callback') !== null) {
-                    store.data[variableName]['callBack'] = new Function('"use strict"; ' + variable.getAttribute('s-callback'));
+            for (let elements of document.querySelectorAll('[s-bind]')) {
+                let bindVariable = elements.getAttribute('s-bind');
+                if (elements.getAttribute('s-callback') !== null) {
+                    // if (store.data[variableName]['s-callback'] === undefined) {
+                    //     store.data[variableName]['s-callback'] = {};
+                    // }
+                    store.data[bindVariable]['callBack'] = new Function('"use strict"; ' + elements.getAttribute('s-callback'));
                 }
             }
         }
@@ -820,7 +847,8 @@
                     store.data[variableName] = {};
                     store.data[variableName].type = String;
                     if (variable.hasOwnProperty('value')) {
-                        store.data[variableName].default = variable.value;
+                        // TODO: Check if it is an object
+                        store.data[variableName] = variable.value;
                     } else if (variable.getAttribute('value')) {
                         store.data[variableName].default = variable.getAttribute('value');
                     } else {
@@ -832,6 +860,101 @@
                 }
             }
         }
+
+        function extractScriptsFromElement(element, scripts) {
+            // Create a new Set for storing the scripts if none is provided
+            if (!scripts) {
+                scripts = new Set();
+            }
+
+            // Check if the element has any child nodes
+            if (element.childNodes.length > 0) {
+                // Loop through each child node
+                for (var i = 0; i < element.childNodes.length; i++) {
+                    var childNode = element.childNodes[i];
+
+                    // If the child node is an element and is not a script tag, recursively extract scripts from it
+                    if (childNode.nodeType === 1 && childNode.tagName !== 'SCRIPT') {
+                        // Check if the element has inline scripts in its attributes
+                        var inlineScripts = extractInlineScriptsFromAttributes(childNode);
+                        inlineScripts.forEach(scripts.add, scripts);
+
+                        // Check if the element has JavaScript code in its innerHTML
+                        var matches = childNode.innerHTML.match(/\{[\s\S]*?\}/g);
+                        if (matches) {
+                            for (var j = 0; j < matches.length; j++) {
+                                var script = matches[j].substring(1, matches[j].length - 1).trim();
+                                scripts.add(script);
+                            }
+                        }
+
+                        // Recursively extract scripts from child nodes
+                        extractScriptsFromElement(childNode, scripts);
+                    }
+                }
+            }
+
+            return scripts;
+        }
+
+        function extractInlineScriptsFromAttributes(element) {
+            var scripts = [];
+
+            // Loop through all attributes of the element
+            for (var i = 0; i < element.attributes.length; i++) {
+                var attribute = element.attributes[i];
+
+                // If the attribute contains JavaScript code, extract it
+                if (attribute.nodeName.startsWith('on') && attribute.nodeValue.trim().startsWith('javascript:')) {
+                    var script = attribute.nodeValue.trim().substring('javascript:'.length);
+                    scripts.push(script);
+                }
+            }
+
+            return scripts;
+        }
+
+        function findDeepestElement(element) {
+            if (element.childNodes.length === 0) {
+                return { element, depth: 0 };
+            }
+
+            let deepestElement = null;
+            let maxDepth = -1;
+
+            for (let i = 0; i < element.childNodes.length; i++) {
+                const childNode = element.childNodes[i];
+                //if (childNode.nodeType === Node.ELEMENT_NODE || childNode.nodeType === Node.TEXT_NODE) {
+                const candidate = findDeepestElement(childNode);
+                const depth = candidate.depth;
+
+                if (depth > maxDepth) {
+                    maxDepth = depth;
+                    deepestElement = candidate.element;
+                }
+                //}
+            }
+
+            return { element: deepestElement, depth: maxDepth + 1 };
+        }
+
+        // TODO: Revise this code
+        function processElementsCode() {
+            let currentElement = findDeepestElement(document.body).element;
+
+            while (currentElement) {
+                // Process the current element
+                setElement(currentElement);
+                // Move up the DOM tree to the parent element
+                currentElement = currentElement.parentElement;
+            }
+        }
+
+        /**
+         * Process Elements directives
+         * @param variable
+         */
+
 
         // Check if we are being run inside a browser.
         if (!(navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom"))) {
