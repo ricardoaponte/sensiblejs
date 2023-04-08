@@ -6,7 +6,7 @@
     function () {
         'use strict';
 
-        const initializing = false;
+        let initializing = false;
 
         /**
          * Initialization function, executes automatically
@@ -17,20 +17,20 @@
 
             await domReady();
 
-            let initializing = true;
+            initializing = true;
+
+            // New feature, needs documentation
+            await processElementsData(store);
 
             // TODO: Set all store data as objects or not, really, not!
-            Object.keys(store.data).forEach(function (variable) {
-                storeData(variable);
-            });
+            await processStoreData(store);
 
             // New feature, needs documentation
-            processElementsData(store);
-
-            // New feature, needs documentation
-            processCallbacks(store);
+            await processCallbacks(store);
 
             await updateAll();
+
+            initializing = false;
 
             // New feature, needs documentation
             //processElementsCode();
@@ -39,13 +39,31 @@
             // TODO: Check if s-bind is used on an element that is not an input
         }
 
+        const processStoreData = (store) => {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    Object.keys(store.data).forEach(function (variable) {
+                        storeData(variable, store.data[variable]);
+                    });
+                    resolve();
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
+
         const storeData = (dataItem, data = '') => {
             let currentDataItem = store.data[dataItem];
             if (typeof currentDataItem === 'undefined'){
                 currentDataItem = {default: data, callback: '', persist: store.persist, type: String};
                 store.data[dataItem] = data;
             } else {
-                return;
+                if (window[dataItem] !== undefined) {
+                    if (store.data[dataItem] !== data) {
+                        console.log('Values are different', store.data[dataItem], data);
+                    }
+                    return;
+                }
             }
 
             if (Array.isArray(currentDataItem) || currentDataItem.hasOwnProperty('type') && Array.isArray(currentDataItem.type())) {
@@ -287,6 +305,8 @@
 
                         });
                     element.addEventListener('change', function (event) {
+                        event.preventDefault();
+                        event.cancelBubble = true;
                         if (hasCode(event.target.value)) {
                             try {
                                 let value = getCode(`'${event.target.value}'`);
@@ -301,7 +321,10 @@
                             traverseDOM(document.body);
                         }
                     });
-                    element.value = exec(getCode(element.attributes['s-bind'].value));
+                    const newValue = exec(getCode(element.attributes['s-bind'].value));
+                    if (`${newValue}` !== element.value) {
+                        element.value = newValue;
+                    }
                     break;
                 case "radio":
                     element.onchange = function (event) {
@@ -359,14 +382,14 @@
                             }
                     }
                     if (element.originalInnerHTML !== '') {
-                        if (hasCode(element.originalInnerHTML)) {
+                        //if (hasCode(element.originalInnerHTML)) {
                             try {
                                 let code = getCode2(element.originalInnerHTML);
                                 processCode(element, code)
                             } catch (error) {
                                 console.error(error.message);
                             }
-                        }
+                        //}
                     }
             }
             element.isSet = true;
@@ -558,16 +581,18 @@
                 let originalInnerHTML = element.originalInnerHTML;
                 for (code of compiledCodeList) {
                     let cleanCode = {};
-                    const dataObjects = exec(`${code}`);
-                    Object.assign(cleanCode, dataObjects);
                     if (code.indexOf('`') === -1) {
                         cleanCode = code.replaceAll('{', '').replaceAll('}', '');
                     }
-                    codeResult = exec(cleanCode);
+                    codeResult = exec(`${cleanCode}`);
                     element.innerHTML = originalInnerHTML.replaceAll(code, codeResult);
                     originalInnerHTML = element.innerHTML;
                 }
             } catch (error) {
+                // TODO: Show error with error information.
+                //  Any errors here are related to the code entered by the developer. The error
+                //  should be shown to the developer.
+                console.error(error.message);
             }
             return codeResult;
         }
@@ -607,7 +632,7 @@
             if (code) {
                 return [...new Set(code)];
             }
-            return value;
+            return [value];
         }
 
 
@@ -728,7 +753,7 @@
                 };
 
                 Object.defineProperty(o, property, {
-                    set: function (value) {
+                    set: function (...value) {
                         _this.value = value;
                         for (let i = 0; i < _this.observers.length; i++)
                             _this.observers[i](value);
@@ -785,36 +810,51 @@
         /**
          * Initiate s-data recognition and add it to store.
          */
-        function processElementsData(store) {
-            for (let element of document.querySelectorAll('[s-data]')) {
-                const attribute = element.getAttribute('s-data');
-                element.removeAttribute('s-data')
-                const data = attribute === '' ? {} : attribute;
+        async function processElementsData(store) {
+            return new Promise(async (resolve, reject) => {
                 try {
-                    const dataObject = exec(`${data}`);
-                    for (const [key, value] of Object.entries(dataObject)) {
-                        storeData(key, value);
+                    for (let element of document.querySelectorAll('[s-data]')) {
+                        const attribute = element.getAttribute('s-data');
+                        element.removeAttribute('s-data')
+                        const data = attribute === '' ? {} : attribute;
+                        try {
+                            const dataObjects = exec(`${data}`);
+                            Object.assign(store.data, dataObjects);
+                            for (const [key, value] of Object.entries(dataObjects)) {
+                                storeData(key, value);
+                            }
+                        }
+                        catch(error) {
+                            console.error(error)
+                        }
                     }
+                    resolve();
+                } catch (e) {
+                    reject(e);
                 }
-                catch(error) {
-                    console.error(error)
-                }
-            }
+            });
         }
 
         /**
          * Initiate callbacks recognition.
          */
-        function processCallbacks(store) {
-            for (let elements of document.querySelectorAll('[s-bind]')) {
-                let bindVariable = elements.getAttribute('s-bind');
-                if (elements.getAttribute('s-callback') !== null) {
-                    // if (store.data[variableName]['s-callback'] === undefined) {
-                    //     store.data[variableName]['s-callback'] = {};
-                    // }
-                    store.data[bindVariable]['callBack'] = new Function('"use strict"; ' + elements.getAttribute('s-callback'));
+        async function processCallbacks(store) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    for (let elements of document.querySelectorAll('[s-bind]')) {
+                        let bindVariable = elements.getAttribute('s-bind');
+                        if (elements.getAttribute('s-callback') !== null) {
+                            // if (store.data[variableName]['s-callback'] === undefined) {
+                            //     store.data[variableName]['s-callback'] = {};
+                            // }
+                            store.data[bindVariable]['callBack'] = new Function('"use strict"; ' + elements.getAttribute('s-callback'));
+                        }
+                    }
+                    resolve();
+                } catch (e) {
+                    reject(e);
                 }
-            }
+            });
         }
 
         /**

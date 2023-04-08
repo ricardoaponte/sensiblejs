@@ -40,11 +40,7 @@
     </script>
 </head>
 <body>
-<div s-data="{
-    message: 'Default message',
-    selectedOption: 1,
-    photo: 'https://picsum.photos/200',
-    }" class="px-4 py-16 bg-white sm:px-6 lg:col-span-3 lg:py-4 lg:px-8 xl:pl-12 bg-gray-200">
+<div s-data="{message: 'Default message', selectedOption: 1,   photo: 'https://picsum.photos/200', availableOptions: [{1: 'Option 01'},{2: 'Option 02'}]}" class="px-4 py-16 bg-white sm:px-6 lg:col-span-3 lg:py-4 lg:px-8 xl:pl-12 bg-gray-200">
     <div class="max-w-lg mx-auto lg:max-w-none">
         <form action="#" class="grid grid-cols-1 row-gap-6" method="POST">
             <div>
@@ -68,7 +64,7 @@
             </div>
         </form>
         <div class="mt-3 text-lg leading-6 text-gray-500">
-            <p>Selected option: { parseInt(selectedOption) } </p>
+            <p s-bind="selectedOption" >Selected option:  {parseInt(selectedOption)} </p>
         </div>
     </div>
 
