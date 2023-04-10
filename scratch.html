@@ -40,11 +40,25 @@
     </script>
 </head>
 <body>
-<div s-data="{message: 'Default message', selectedOption: 1,   photo: 'https://picsum.photos/200', availableOptions: [{1: 'Option 01'},{2: 'Option 02'}]}" class="px-4 py-16 bg-white sm:px-6 lg:col-span-3 lg:py-4 lg:px-8 xl:pl-12 bg-gray-200">
+<div s-data="{ message: 'Default message',
+        selectedOption: 1,
+        photo: 'https://picsum.photos/200',
+        availableOptions: [
+            { id: 1, name: 'Option 1' },
+            { id: 2, name: 'Option 2' },
+            { id: 3, name: 'Option 3' },
+            { id: 4, name: 'Option 4' },],
+        imageList: [
+            {url: 'https://picsum.photos/210', 'name': 'Image 01'},
+            {url: 'https://picsum.photos/220', 'name': 'Image 02'},
+            {url: 'https://picsum.photos/230', 'name': 'Image 03'}
+        ],
+
+    }"
+     class="px-4 py-16 bg-white sm:px-6 lg:col-span-3 lg:py-4 lg:px-8 xl:pl-12 bg-gray-200">
     <div class="max-w-lg mx-auto lg:max-w-none">
         <form action="#" class="grid grid-cols-1 row-gap-6" method="POST">
             <div>
-                <label class="sr-only" for="full_name">Full name</label>
                 <div class="relative rounded-md shadow-sm">
                     <input class="block w-full px-4 py-3 placeholder-gray-500 transition duration-150 ease-in-out form-input"
                            id="full_name"
@@ -62,33 +76,26 @@
                     </select>
                 </div>
             </div>
-        </form>
-        <div class="mt-3 text-lg leading-6 text-gray-500">
-            <p s-bind="selectedOption" >Selected option:  {parseInt(selectedOption)} </p>
-        </div>
-    </div>
-
-    <div s-bind="message">
-        Message 1: { message }
-        <div>
-            Message 2: { message }
-        </div>
-        <div>
-            Message 2: { message }
-        </div>
-        { message } again!
-        <div>
-            <div>
-                <div>Message 3: {message}</div>
+            <div class="mt-3 text-lg leading-6 text-gray-500">
+                <p s-bind="selectedOption" >Selected option:  {parseInt(selectedOption)} </p>
             </div>
-        </div>
-        <img alt="photo" s-bind="photo">
+        </form>
     </div>
+    <div s-bind="message">
+        Message: { message }
+    </div>
+    <img s-if="open" alt="photo" s-bind="photo">
 
     <button class="m-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
         Toggle
     </button>
-    <div>This is div 2</div>
+
+    <h1>Image list</h1>
+    <div class="flex justify-between">
+        <div s-for="image of imageList">
+            <label>{image.name}</label><img s-src="{image.url}" class="imageList">
+        </div>
+    </div>
 </div>
 <script>
 </script>

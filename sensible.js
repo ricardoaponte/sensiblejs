@@ -293,102 +293,104 @@
             if (["HTML", "HEAD", "SCRIPT", "STYLE", "META", "BODY"].includes(element.tagName)) {
                 return;
             }
+            console.log(element.tagName);
             if (!element.hasOwnProperty('originalInnerHTML')) {
                 if (element.innerHTML !== undefined) {
                     element.originalInnerHTML = element.innerHTML;
                 }
             }
-                switch (element.type) {
-                // TODO: multiple
-                    case "select-one":
-                        element.removeEventListener('change', function (event) {
+            switch (element.tagName) {
+                case "INPUT":
+                case "SELECT":
+                    switch (element.type) {
+                        // TODO: multiple
+                        case "select-one":
+                            element.removeEventListener('change', function (event) {
 
-                        });
-                    element.addEventListener('change', function (event) {
-                        event.preventDefault();
-                        event.cancelBubble = true;
-                        if (hasCode(event.target.value)) {
-                            try {
-                                let value = getCode(`'${event.target.value}'`);
-                                window[element.attributes['s-bind'].value] = exec(value);
+                            });
+                            element.addEventListener('change', function (event) {
+                                event.preventDefault();
+                                event.cancelBubble = true;
+                                if (hasCode(event.target.value)) {
+                                    try {
+                                        let value = getCode(`'${event.target.value}'`);
+                                        window[element.attributes['s-bind'].value] = exec(value);
 
-                            } catch (error) {
-                                console.error(error.message);
-                            }
-                        } else {
-                            // Update variable
-                            window[element.attributes['s-bind'].value] = exec(event.target.value.replace(/\+/g, ""));
-                            traverseDOM(document.body);
-                        }
-                    });
-                    const newValue = exec(getCode(element.attributes['s-bind'].value));
-                    if (`${newValue}` !== element.value) {
-                        element.value = newValue;
-                    }
-                    break;
-                case "radio":
-                    element.onchange = function (event) {
-                        window[element.attributes['s-bind'].value] = event.target.value;
-                    }
-                    if (element.attributes['s-bind'].value === element.id) {
-                        element.value = exec(getCode(element.attributes['s-bind'].value));
-                    }
-                    element.checked = window[element.attributes['s-bind'].value] === element.value;
-                    break;
-                case "checkbox":
-                    element.onchange = function (event) {
-                        window[element.attributes['s-bind'].value] = event.target.checked;
-                    }
-                    element.checked = window[element.attributes['s-bind'].value];
-                    break;
-                case "text":
-                case "email":
-                case "textarea":
-                    let senser = 'onkeyup';
-                    if (element.attributes['s-blur'] && element.attributes['s-blur'].value === "") {
-                        senser = 'onblur';
-                    }
-                    element[senser] = function (event) {
-                        // If the data did not change, don't trigger
-                        if (event.target.value === window[element.attributes['s-bind'].value]) {
-                            return;
-                        }
-                        window[element.attributes['s-bind'].value] = event.target.value;
-                    };
-                    element.value = exec(getCode(element.attributes['s-bind'].value));
-                    break;
-                case "color":
-                case "date":
-                case "datetime-local":
-                    element.oninput = function (event) {
-                        window[element.attributes['s-bind'].value] = event.target.value;
-                    };
-                    element.value = exec(getCode(element.attributes['s-bind'].value));
-                    break;
-                case undefined:
-                    // TODO: Find a better way for this
-                    // This is all variable -> element
-                    switch (element.tagName) {
-                        case "IMG":
-                            let srcCode = element.attributes['s-bind']?.value;
-                            try {
-                                let image = exec(srcCode);
-                                if (image) {
-                                    element.src = image;
+                                    } catch (error) {
+                                        console.error(error.message);
+                                    }
+                                } else {
+                                    // Update variable
+                                    window[element.attributes['s-bind'].value] = exec(event.target.value.replace(/\+/g, ""));
+                                    traverseDOM(document.body);
                                 }
-                                return;
-                            } catch (error) {
-                                return;
+                            });
+                            const newValue = exec(getCode(element.attributes['s-bind'].value));
+                            if (`${newValue}` !== element.value) {
+                                element.value = newValue;
                             }
+                            break;
+                        case "radio":
+                            element.onchange = function (event) {
+                                window[element.attributes['s-bind'].value] = event.target.value;
+                            }
+                            if (element.attributes['s-bind'].value === element.id) {
+                                element.value = exec(getCode(element.attributes['s-bind'].value));
+                            }
+                            element.checked = window[element.attributes['s-bind'].value] === element.value;
+                            break;
+                        case "checkbox":
+                            element.onchange = function (event) {
+                                window[element.attributes['s-bind'].value] = event.target.checked;
+                            }
+                            element.checked = window[element.attributes['s-bind'].value];
+                            break;
+                        case "text":
+                        case "email":
+                        case "textarea":
+                            let senser = 'onkeyup';
+                            if (element.attributes['s-blur'] && element.attributes['s-blur'].value === "") {
+                                senser = 'onblur';
+                            }
+                            element[senser] = function (event) {
+                                // If the data did not change, don't trigger
+                                if (event.target.value === window[element.attributes['s-bind'].value]) {
+                                    return;
+                                }
+                                window[element.attributes['s-bind'].value] = event.target.value;
+                            };
+                            element.value = exec(getCode(element.attributes['s-bind'].value));
+                            break;
+                        case "color":
+                        case "date":
+                        case "datetime-local":
+                            element.oninput = function (event) {
+                                window[element.attributes['s-bind'].value] = event.target.value;
+                            };
+                            element.value = exec(getCode(element.attributes['s-bind'].value));
+                            break;
                     }
+                    break;
+                case "IMG":
+                    let srcCode = element.attributes['s-bind']?.value;
+                    try {
+                        let image = exec(srcCode);
+                        if (image) {
+                            element.src = image;
+                        }
+                        return;
+                    } catch (error) {
+                        return;
+                    }
+                default:
                     if (element.originalInnerHTML !== '') {
                         //if (hasCode(element.originalInnerHTML)) {
-                            try {
-                                let code = getCode2(element.originalInnerHTML);
-                                processCode(element, code)
-                            } catch (error) {
-                                console.error(error.message);
-                            }
+                        try {
+                            let code = getCode2(element.originalInnerHTML);
+                            processCode(element, code)
+                        } catch (error) {
+                            console.error(error.message);
+                        }
                         //}
                     }
             }
