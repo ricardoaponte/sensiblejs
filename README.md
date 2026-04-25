@@ -103,6 +103,7 @@ let store = {
 | `default` | Initial value |
 | `persist` | `true`/`false` — override the store-level persist setting for this variable |
 | `callBack` | Function called whenever the value changes. `this` is the new value. |
+| `computed` | Expression string — makes this a read-only computed variable (no `type` or `default` needed) |
 
 If no store is defined, SensibleJS creates one automatically and detects variables from `s-bind` attributes in the DOM.
 
@@ -204,6 +205,61 @@ Bind CSS properties to variables or expressions.
 </div>
 ```
 
+### `s-class` — Conditional CSS Classes
+
+Toggle CSS classes based on expressions. Uses semicolon-separated `class: expression` pairs.
+
+```html
+<!-- Toggle a single class -->
+<input s-class="valid-border: email.length > 5; invalid-border: email.length <= 5">
+
+<!-- Multiple classes on one element -->
+<div s-class="active: isActive; highlighted: score > 90; dimmed: !isVisible">
+    Content
+</div>
+```
+
+### `s-attr` — Dynamic HTML Attributes
+
+Set or remove HTML attributes based on expressions. If the expression evaluates to `false`, `null`, or `undefined`, the attribute is removed. `true` sets an empty attribute (e.g., `disabled`). Any other value sets the attribute to that value.
+
+```html
+<!-- Disable a button conditionally -->
+<button s-attr="disabled: !formValid">Submit</button>
+
+<!-- Dynamic href -->
+<a s-attr="href: linkUrl; target: openInNew ? '_blank' : '_self'">Link</a>
+
+<!-- Toggle aria attributes -->
+<div s-attr="aria-hidden: !isVisible; aria-expanded: isOpen">Panel</div>
+```
+
+### `s-on` — General Event Binding
+
+Bind any DOM event with optional modifiers. Format: `event.modifier: expression`. Multiple bindings separated by semicolons.
+
+**Modifiers:**
+| Modifier | Effect |
+| --- | --- |
+| `.prevent` | Calls `event.preventDefault()` |
+| `.stop` | Calls `event.stopPropagation()` |
+| `.enter` | Only fires on Enter key |
+| `.escape` | Only fires on Escape key |
+
+```html
+<!-- Keyboard events -->
+<input s-on="keydown.enter: submitForm()">
+<div s-on="keydown.escape: closeModal()">
+
+<!-- Prevent default form submission -->
+<form s-on="submit.prevent: handleSubmit()">
+
+<!-- Multiple events -->
+<div s-on="mouseenter: hover = true; mouseleave: hover = false">
+    Hover me
+</div>
+```
+
 ### `s-click` — Click Handler
 
 Execute an expression when the element is clicked.
@@ -245,6 +301,20 @@ Execute a function when a bound variable changes. Defined on the element, not in
 
 If both `s-callback` and a store-level `callBack` are defined, the store-level callback takes precedence.
 
+### `s-debounce` — Debounced Input
+
+Delay reactive updates on text inputs until the user stops typing. Useful for search fields, API calls, or expensive computations. Value is in milliseconds.
+
+```html
+<!-- Wait 300ms after the user stops typing before updating -->
+<input s-bind="search" s-debounce="300">
+
+<!-- Works with text, email, and textarea -->
+<textarea s-bind="notes" s-debounce="500"></textarea>
+```
+
+Without `s-debounce`, the bound variable updates on every keystroke. With it, the update is delayed until the specified pause — reducing unnecessary re-renders and making downstream effects (like filtering a list or calling a function) more efficient.
+
 ### `s-src` — Dynamic Image Source
 
 Set an image's `src` attribute from a variable. Particularly useful inside `s-for` loops.
@@ -252,6 +322,38 @@ Set an image's `src` attribute from a variable. Particularly useful inside `s-fo
 ```html
 <img s-src="{user.avatar}">
 ```
+
+## Computed Values
+
+Define variables whose values are derived from other variables. They update automatically whenever their dependencies change.
+
+```js
+let store = {
+    data: {
+        price:    { type: Number, default: 10 },
+        quantity: { type: Number, default: 1 },
+        subtotal: { computed: 'price * quantity' },
+        tax:      { computed: 'subtotal * 0.07' },
+        total:    { computed: 'subtotal + tax' }
+    }
+};
+```
+
+```html
+<p s-bind="total">Total: ${total.toFixed(2)}</p>
+```
+
+Computed values are read-only getters — you can't assign to them directly. They recalculate whenever any variable referenced in their expression changes.
+
+## Contenteditable Support
+
+Elements with `contenteditable="true"` can be bound with `s-bind` for inline rich text editing:
+
+```html
+<div contenteditable="true" s-bind="notes"></div>
+```
+
+The bound variable syncs with the element's `innerText` on every input event.
 
 ## Template Expressions
 

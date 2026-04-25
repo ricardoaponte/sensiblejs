@@ -232,6 +232,48 @@ test('exec allows JSON operations', function() {
     assert.strictEqual(sensible.exec('JSON.stringify({a:1})'), '{"a":1}');
 });
 
+// --- Debounce Tests ---
+
+console.log('\nDebounce Tests:');
+
+test('debounce is exported as a function', function() {
+    assert.strictEqual(typeof sensible.debounce, 'function');
+});
+
+test('debounce returns a function', function() {
+    var debounced = sensible.debounce(function() {}, 100);
+    assert.strictEqual(typeof debounced, 'function');
+});
+
+test('debounce delays execution', function(done) {
+    // Since we're using a simple sync test harness, we verify structure only
+    var callCount = 0;
+    var debounced = sensible.debounce(function() { callCount++; }, 50);
+    debounced();
+    debounced();
+    debounced();
+    // Immediately after calling, function should not have executed yet
+    assert.strictEqual(callCount, 0);
+});
+
+// --- Computed Value Tests ---
+
+console.log('\nComputed Value Tests:');
+
+test('exec evaluates arithmetic expressions', function() {
+    assert.strictEqual(sensible.exec('10 * 5'), 50);
+    assert.strictEqual(sensible.exec('100 + 50 * 0.07'), 103.5);
+});
+
+test('exec evaluates ternary expressions', function() {
+    assert.strictEqual(sensible.exec('true ? "yes" : "no"'), 'yes');
+    assert.strictEqual(sensible.exec('5 > 3 ? "big" : "small"'), 'big');
+});
+
+test('exec evaluates string concatenation', function() {
+    assert.strictEqual(sensible.exec('"hello" + " " + "world"'), 'hello world');
+});
+
 // --- Namespace Tests ---
 
 console.log('\nNamespace Tests:');
@@ -239,6 +281,17 @@ console.log('\nNamespace Tests:');
 test('_data namespace is exported', function() {
     assert.ok(sensible._data, '_data should be exported');
     assert.strictEqual(typeof sensible._data, 'object');
+});
+
+test('storeTemplate is exported with correct defaults', function() {
+    assert.ok(sensible.storeTemplate, 'storeTemplate should be exported');
+    assert.strictEqual(sensible.storeTemplate.persist, true);
+    assert.strictEqual(sensible.storeTemplate.localPrefix, '__');
+    assert.deepStrictEqual(sensible.storeTemplate.data, {});
+});
+
+test('init is exported as a function', function() {
+    assert.strictEqual(typeof sensible.init, 'function');
 });
 
 // --- Summary ---
