@@ -597,6 +597,45 @@ let store = {
     </details>
 </section>
 
+<!-- ===== DEMO: s-on ===== -->
+<section>
+    <div class="section-tag">General Events</div>
+    <div class="section-title">s-on</div>
+    <div class="section-desc">Bind any DOM event with modifiers. Supports .prevent, .stop, .enter, and .escape.</div>
+
+    <div class="demo">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">s-on</span>
+        </div>
+        <div class="demo-body">
+            <div class="input-row">
+                <label>Type and press Enter to log, Escape to clear</label>
+                <input type="text" s-bind="onDemoInput" s-on="keydown.enter: addLog(); keydown.escape: clearLog()" placeholder="Press Enter to log, Escape to clear">
+            </div>
+            <div class="live-output text-sm mono" s-bind="onDemoLog" style="min-height: 60px; white-space: pre-wrap;">{onDemoLog}</div>
+            <div class="mt-8 flex gap-8">
+                <button class="btn btn-sm" s-on="click: addLog()">Log it</button>
+                <button class="btn btn-sm btn-outline" s-on="click: clearLog()">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="comment">&lt;!-- Bind keyboard events with modifiers --&gt;</span>
+<span class="tag">&lt;input</span> <span class="attr">s&#45;bind</span>=<span class="val">"message"</span>
+       <span class="attr">s&#45;on</span>=<span class="val">"keydown.enter: addLog()"</span><span class="tag">&gt;</span>
+
+<span class="comment">&lt;!-- Multiple events on one element --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s&#45;on</span>=<span class="val">"mouseover: hovered = true; mouseout: hovered = false"</span><span class="tag">&gt;</span>
+
+<span class="comment">&lt;!-- Prevent default (e.g. form submit) --&gt;</span>
+<span class="tag">&lt;form</span> <span class="attr">s&#45;on</span>=<span class="val">"submit.prevent: handleSubmit()"</span><span class="tag">&gt;</span>
+
+<span class="comment">&lt;!-- Modifiers: .prevent, .stop, .enter, .escape --&gt;</span></div>
+    </details>
+</section>
+
 <!-- ===== DEMO: Images ===== -->
 <section>
     <div class="section-tag">Image Binding</div>
@@ -916,6 +955,16 @@ let store = {
         }
     }
 
+    function addLog() {
+        if (onDemoInput.trim() === '') return;
+        onDemoLog = (onDemoLog ? onDemoLog + '\n' : '') + '> ' + onDemoInput;
+        onDemoInput = '';
+    }
+
+    function clearLog() {
+        onDemoLog = '';
+    }
+
     function removeTask(btn) {
         event.preventDefault();
         let idx = btn.closest('[s-key-value]').getAttribute('s-key-value');
@@ -967,6 +1016,10 @@ let store = {
             classUser:   { type: String, default: '', persist: false },
             classEmail:  { type: String, default: '', persist: false },
             classFormOk: { computed: "classUser.length >= 3 && classEmail.indexOf('@') >= 0" },
+
+            // s-on demo
+            onDemoInput: { type: String, default: '', persist: false },
+            onDemoLog:   { type: String, default: '', persist: false },
 
             // s-click demo
             clickCount: { type: Number, default: 0 },

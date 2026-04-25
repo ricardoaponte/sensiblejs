@@ -149,6 +149,7 @@
             elementAttrs();
             elementClick()
             elementUnClick()
+            elementOns();
         }
 
         /**
@@ -505,6 +506,38 @@
             } catch (error) {
                 console.error(error.message);
             }
+        }
+
+        /**
+         * Define s-on directives
+         */
+        function elementOns() {
+            document.querySelectorAll("[s-on]").forEach((element) => {
+                onElement(element);
+            });
+        }
+
+        /**
+         * Bind general DOM events with modifiers
+         */
+        function onElement(element) {
+            if (element._sOnBound) return;
+            element._sOnBound = true;
+            element.getAttribute('s-on').split(';').forEach(function (binding) {
+                if (!(binding = binding.trim())) return;
+                var eventPart = binding.substring(0, binding.indexOf(':')).trim();
+                var expr = binding.substring(binding.indexOf(':') + 1).trim();
+                var parts = eventPart.split('.');
+                var eventName = parts[0];
+                var modifiers = parts.slice(1);
+                element.addEventListener(eventName, function (event) {
+                    if (modifiers.indexOf('prevent') >= 0) event.preventDefault();
+                    if (modifiers.indexOf('stop') >= 0) event.stopPropagation();
+                    if (modifiers.indexOf('enter') >= 0 && event.key !== 'Enter') return;
+                    if (modifiers.indexOf('escape') >= 0 && event.key !== 'Escape') return;
+                    try { exec(expr); } catch (e) { console.error(e.message); }
+                });
+            });
         }
 
         /**
