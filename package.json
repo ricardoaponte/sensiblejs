@@ -3,6 +3,12 @@
   "version": "1.4.0",
   "description": "A super lightweight sensible utility",
   "main": "sensible.js",
+  "files": [
+    "sensible.js",
+    "sensible.min.js",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "test": "node test/sensible.test.js",
     "build": "babel sensible.js --no-comments > sensible.min.js"
