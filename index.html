@@ -541,14 +541,14 @@ let store = {
 
 <!-- ===== DEMO: s-class ===== -->
 <section>
-    <div class="section-tag">Dynamic Classes</div>
-    <div class="section-title">s-class</div>
-    <div class="section-desc">Toggle CSS classes based on expressions. Syntax: <code style="color:var(--accent)">class: expression</code>, separated by semicolons.</div>
+    <div class="section-tag">Dynamic Classes &amp; Attributes</div>
+    <div class="section-title">s-class &amp; s-attr</div>
+    <div class="section-desc">Toggle CSS classes and HTML attributes based on expressions. Use s-attr to disable buttons, set aria labels, and more.</div>
 
     <div class="demo">
         <div class="demo-header">
             <span class="demo-label"><span class="live-dot"></span>Live</span>
-            <span class="demo-directive">s-class</span>
+            <span class="demo-directive">s-class &middot; s-attr</span>
         </div>
         <div class="demo-split">
             <div>
@@ -567,8 +567,7 @@ let store = {
                     <span s-bind="classFormOk" s-if="classFormOk" style="color: var(--green);" class="text-sm">Form is valid</span>
                     <span s-bind="classFormOk" s-if="!classFormOk" style="color: var(--red);" class="text-sm">Fill in both fields correctly</span>
                 </div>
-                <button class="btn" disabled s-if="!classFormOk">Submit</button>
-                <button class="btn" s-if="classFormOk">Submit</button>
+                <button class="btn" s-attr="disabled: !classFormOk">Submit</button>
             </div>
         </div>
     </div>
@@ -579,10 +578,11 @@ let store = {
   Form status
 <span class="tag">&lt;/div&gt;</span>
 
-<span class="comment">&lt;!-- Multiple classes on one element --&gt;</span>
-<span class="tag">&lt;span</span> <span class="attr">s&#45;class</span>=<span class="val">"text-green: score >= 50; text-red: score &lt; 50"</span><span class="tag">&gt;</span>
-  {score}%
-<span class="tag">&lt;/span&gt;</span>
+<span class="comment">&lt;!-- s-attr: disable button when invalid --&gt;</span>
+<span class="tag">&lt;button</span> <span class="attr">s&#45;attr</span>=<span class="val">"disabled: !formOk"</span><span class="tag">&gt;</span>Submit<span class="tag">&lt;/button&gt;</span>
+
+<span class="comment">&lt;!-- s-attr: dynamic href and aria --&gt;</span>
+<span class="tag">&lt;a</span> <span class="attr">s&#45;attr</span>=<span class="val">"href: profileUrl; title: userName"</span><span class="tag">&gt;</span>Profile<span class="tag">&lt;/a&gt;</span>
 
 <span class="comment">&lt;!-- Computed value drives the class --&gt;</span>
 <span class="tag">&lt;script&gt;</span>

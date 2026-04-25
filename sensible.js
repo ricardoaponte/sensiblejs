@@ -146,6 +146,7 @@
             elementFors();
             elementCss();
             elementClasses();
+            elementAttrs();
             elementClick()
             elementUnClick()
         }
@@ -186,6 +187,15 @@
         function elementClasses() {
             document.querySelectorAll("[s-class]").forEach((element) => {
                 classElement(element);
+            });
+        }
+
+        /**
+         * Define s-attr directives
+         */
+        function elementAttrs() {
+            document.querySelectorAll("[s-attr]").forEach((element) => {
+                attrElement(element);
             });
         }
 
@@ -379,6 +389,12 @@
                     classElement(element);
                 }
             });
+
+            document.querySelectorAll("[s-attr]").forEach((element) => {
+                if (matches(element.getAttribute('s-attr'))) {
+                    attrElement(element);
+                }
+            });
             executeCallBack(variable);
         }
 
@@ -462,6 +478,29 @@
                     var cls = pair.substring(0, pair.indexOf(':')).trim();
                     var expr = pair.substring(pair.indexOf(':') + 1).trim();
                     element.classList.toggle(cls, !!exec(expr));
+                });
+            } catch (error) {
+                console.error(error.message);
+            }
+        }
+
+        /**
+         * Set HTML attributes based on expressions
+         */
+        function attrElement(element) {
+            try {
+                element.getAttribute('s-attr').split(';').forEach(function (pair) {
+                    if (!(pair = pair.trim())) return;
+                    var attr = pair.substring(0, pair.indexOf(':')).trim();
+                    var expr = pair.substring(pair.indexOf(':') + 1).trim();
+                    var val = exec(expr);
+                    if (val === false || val === null || val === undefined) {
+                        element.removeAttribute(attr);
+                    } else if (val === true) {
+                        element.setAttribute(attr, '');
+                    } else {
+                        element.setAttribute(attr, val);
+                    }
                 });
             } catch (error) {
                 console.error(error.message);
