@@ -280,6 +280,16 @@ Execute an expression when a click occurs *outside* the element.
 </div>
 ```
 
+### `s-cloak` — Hide Until Ready
+
+Prevents the flash of raw template expressions (e.g., `{name}`) before SensibleJS initializes. The element stays hidden until all data is bound, then the attribute is automatically removed.
+
+```html
+<p s-cloak s-bind="name">Hello, {name}!</p>
+```
+
+No CSS needed — SensibleJS injects `[s-cloak] { display: none !important }` automatically.
+
 ### `s-data` — Inline Variable Definition
 
 Define variables directly in HTML without a store.

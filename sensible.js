@@ -14,6 +14,15 @@
         async function init(store) {
 
             await domReady();
+
+            // Inject s-cloak CSS to hide elements before initialization
+            if (!document.getElementById('s-cloak-style')) {
+                var style = document.createElement('style');
+                style.id = 's-cloak-style';
+                style.textContent = '[s-cloak]{display:none!important}';
+                document.head.appendChild(style);
+            }
+
             getData(store);
             processCallbacks(store);
 
@@ -124,6 +133,11 @@
             });
             updateAll();
             initializing = false;
+
+            // Remove s-cloak after initialization to reveal hidden elements
+            document.querySelectorAll('[s-cloak]').forEach(function(el) {
+                el.removeAttribute('s-cloak');
+            });
         }
 
         /**

@@ -152,7 +152,7 @@
                 <div class="stat-label">Dependencies</div>
             </div>
             <div class="stat">
-                <div class="stat-value">14</div>
+                <div class="stat-value">15</div>
                 <div class="stat-label">Directives</div>
             </div>
             <div class="stat">
@@ -826,6 +826,39 @@ let store = {
   }
 };
 <span class="tag">&lt;/script&gt;</span></div>
+    </details>
+</section>
+
+<!-- ===== DEMO: s-cloak ===== -->
+<section>
+    <div class="section-tag">Directive</div>
+    <div class="section-title">s-cloak — Hide Until Ready</div>
+    <div class="section-desc">Prevents the flash of raw template expressions (like <code>{name}</code>) before SensibleJS initializes. Elements with <code>s-cloak</code> stay hidden until all data is bound, then the attribute is automatically removed.</div>
+
+    <div class="demo">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">s-cloak</span>
+        </div>
+        <div class="demo-body">
+            <p class="text-sm text-muted">The greeting below uses <code>s-cloak</code> — it was hidden until SensibleJS finished loading, so you never saw the raw <code>{cardName}</code> template.</p>
+            <div class="live-output">
+                <span s-cloak s-bind="cardName" s-if="cardName != ''">Welcome, {cardName}!</span>
+                <span class="text-muted" s-if="cardName == ''">Enter a name in the mini-app below to see s-cloak in action.</span>
+            </div>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="comment">&lt;!-- Without s&#45;cloak: user briefly sees "{name}" --&gt;</span>
+<span class="tag">&lt;p</span> <span class="attr">s&#45;bind</span>=<span class="val">"name"</span><span class="tag">&gt;</span>Hello, {name}!<span class="tag">&lt;/p&gt;</span>
+
+<span class="comment">&lt;!-- With s&#45;cloak: element stays hidden until data is ready --&gt;</span>
+<span class="tag">&lt;p</span> <span class="attr">s&#45;cloak</span> <span class="attr">s&#45;bind</span>=<span class="val">"name"</span><span class="tag">&gt;</span>Hello, {name}!<span class="tag">&lt;/p&gt;</span>
+
+<span class="comment">&lt;!-- No CSS needed — SensibleJS injects the rule automatically:
+     [s&#45;cloak] { display: none !important }
+     The attribute is removed after initialization. --&gt;</span></div>
     </details>
 </section>
 
