@@ -274,17 +274,16 @@
                 case "text":
                 case "email":
                 case "textarea":
-                    let senser = 'onkeyup';
+                    var senser = 'onkeyup';
                     if (element.attributes['s-blur'] && element.attributes['s-blur'].value === "") {
                         senser = 'onblur';
                     }
-                    element[senser] = function (event) {
-                        // If the data did not change, don't trigger
-                        if (event.target.value === _data[element.attributes['s-bind'].value]) {
-                            return;
-                        }
+                    var handler = function (event) {
+                        if (event.target.value === _data[element.attributes['s-bind'].value]) return;
                         _data[element.attributes['s-bind'].value] = event.target.value;
                     };
+                    var debounceMs = element.getAttribute('s-debounce');
+                    element[senser] = debounceMs ? debounce(handler, parseInt(debounceMs, 10)) : handler;
                     element.value = exec(getCode(element.attributes['s-bind'].value));
                     break;
                 case "number":
@@ -823,6 +822,15 @@
             });
         }
 
+        function debounce(fn, delay) {
+            var timer;
+            return function() {
+                var args = arguments, ctx = this;
+                clearTimeout(timer);
+                timer = setTimeout(function() { fn.apply(ctx, args); }, delay);
+            };
+        }
+
         var _data = {};
 
         const storeTemplate = {
@@ -917,6 +925,7 @@
             Observer: Observer,
             ArrayObserver: ArrayObserver,
             storeTemplate: storeTemplate,
+            debounce: debounce,
             _data: _data
         };
     }

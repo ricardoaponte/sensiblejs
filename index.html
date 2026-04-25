@@ -545,24 +545,27 @@ let store = {
 
 <!-- ===== DEMO: s-class ===== -->
 <section>
-    <div class="section-tag">Dynamic Classes &amp; Attributes</div>
-    <div class="section-title">s-class &amp; s-attr</div>
-    <div class="section-desc">Toggle CSS classes and HTML attributes based on expressions. Use s-attr to disable buttons, set aria labels, and more.</div>
+    <div class="section-tag">Dynamic Classes, Attributes &amp; Debounce</div>
+    <div class="section-title">s-class, s-attr &amp; s-debounce</div>
+    <div class="section-desc">Toggle CSS classes and HTML attributes based on expressions. Add <code style="color:var(--accent)">s-debounce="ms"</code> to text inputs to delay updates until the user stops typing &mdash; useful for validation, search, or API calls where you don't want to react on every keystroke.</div>
 
     <div class="demo">
         <div class="demo-header">
             <span class="demo-label"><span class="live-dot"></span>Live</span>
-            <span class="demo-directive">s-class &middot; s-attr</span>
+            <span class="demo-directive">s-class &middot; s-attr &middot; s-debounce</span>
         </div>
         <div class="demo-split">
             <div>
                 <div class="input-row">
                     <label>Username (min 3 chars)</label>
-                    <input type="text" s-bind="classUser" placeholder="Type a username...">
+                    <input type="text" s-bind="classUser" s-debounce="300" placeholder="Type quickly — updates after 300ms pause">
                 </div>
                 <div class="input-row">
                     <label>Email (must contain @)</label>
-                    <input type="text" s-bind="classEmail" placeholder="you@example.com">
+                    <input type="text" s-bind="classEmail" s-debounce="300" placeholder="Type quickly — updates after 300ms pause">
+                </div>
+                <div class="mt-8 text-sm text-muted">
+                    Both inputs use <code class="mono" style="color:var(--accent);">s-debounce="300"</code> &mdash; the validation waits 300ms after you stop typing before updating. Try typing quickly vs. slowly to see the difference.
                 </div>
             </div>
             <div>
@@ -577,18 +580,21 @@ let store = {
     </div>
 
     <details class="code-toggle"><summary>View code</summary>
-    <div class="code-block"><span class="comment">&lt;!-- Toggle classes based on expressions --&gt;</span>
+    <div class="code-block"><span class="comment">&lt;!-- s-debounce: delay binding updates (in milliseconds) --&gt;</span>
+<span class="comment">&lt;!-- Without it, the variable updates on every keystroke. --&gt;</span>
+<span class="comment">&lt;!-- With it, updates wait until the user pauses typing. --&gt;</span>
+<span class="tag">&lt;input</span> <span class="attr">s&#45;bind</span>=<span class="val">"username"</span> <span class="attr">s&#45;debounce</span>=<span class="val">"300"</span><span class="tag">&gt;</span>
+
+<span class="comment">&lt;!-- s-class: toggle CSS classes based on expressions --&gt;</span>
 <span class="tag">&lt;div</span> <span class="attr">s&#45;class</span>=<span class="val">"valid-border: formOk; invalid-border: !formOk"</span><span class="tag">&gt;</span>
   Form status
 <span class="tag">&lt;/div&gt;</span>
 
-<span class="comment">&lt;!-- s-attr: disable button when invalid --&gt;</span>
+<span class="comment">&lt;!-- s-attr: set/remove HTML attributes dynamically --&gt;</span>
+<span class="comment">&lt;!-- false/null/undefined removes the attribute --&gt;</span>
 <span class="tag">&lt;button</span> <span class="attr">s&#45;attr</span>=<span class="val">"disabled: !formOk"</span><span class="tag">&gt;</span>Submit<span class="tag">&lt;/button&gt;</span>
 
-<span class="comment">&lt;!-- s-attr: dynamic href and aria --&gt;</span>
-<span class="tag">&lt;a</span> <span class="attr">s&#45;attr</span>=<span class="val">"href: profileUrl; title: userName"</span><span class="tag">&gt;</span>Profile<span class="tag">&lt;/a&gt;</span>
-
-<span class="comment">&lt;!-- Computed value drives the class --&gt;</span>
+<span class="comment">&lt;!-- Computed value: derived from other variables --&gt;</span>
 <span class="tag">&lt;script&gt;</span>
 let store = {
   data: {
