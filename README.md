@@ -1,251 +1,321 @@
 # SensibleJS
 
-Super lightweight Javascript sensible utilities
+Reactive UI in ~10KB. No build step. No virtual DOM. No dependencies. Just HTML attributes.
 
-## Getting Started
+```html
+<script src="sensible.min.js" defer></script>
 
+<input s-bind="name" placeholder="Your name">
+<p s-bind="name">Hello, {name}!</p>
+```
 
-### Installing
+That's a working two-way binding. Type in the input, the paragraph updates.
 
-```
-npm i sensibljs
-```
-Start by referencing the script at the end of the <head> tag. It will initialize automatically.
+## Install
 
+**CDN / direct download** (recommended for what this tool is designed for):
+```html
+<script src="sensible.min.js" defer></script>
 ```
-<script src="sensible.min.js" defer>
-```
-Then in your html document create the elements that you need. In this example we have a simple form to enter a name, and a submit button.
-```
-<form>
-    <label for="name">Name</>
-    <input id="name" type="text" placeholder="Name">
-    <input id="email" type="email" placeholder="Email address">
-    <button>Submit</button>
-</form>
-```
-Now configure the elements that will be sensed. This is done by using the `s-bind` directive.
-This is a basic two fields example that declares 2 variables.
-Sensiblejs will detect this and configure the variable and bind it to the element. 
-```
-<form>
-    <label for="name">Name</>
-    <input s-bind="name" id="name" type="text" placeholder="Name">
-    <input s-bind="email" id="email" type="email" placeholder="Email address">
-</form>
-```
-Now anything you type inside either element will automatically update the variable specified.
 
-You can also specify to show or hide an element based on an expression. 
-For this you need to use the `s-if` directive.
+**npm:**
 ```
-<form>
-    <label for="name">Name</>
-    <input s-bind="name" id="name" type="text" placeholder="Name">
-    <input s-bind="email" id="email" type="email" placeholder="Email address">
-    <button s-if="name.length > 0">Create record</button>
-</form>
+npm i sensiblejs
 ```
-In the example above we added the s-if directive with the expression
-`name.length > 0` meaning the button will be visible if the length of the variable name
-is larger than zero.
 
-Furthermore, you can dynamically specify css properties to sense variables value changes. Let's say that you want to make the background color of the name field to green once it reached at least five characters. 
+## Quick Start
 
-To accomplish this you need to use the `s-css` directive.
-```
-<form>
-    <label for="name">Name</>
-    <input s-bind="name" id="name" type="text" placeholder="Name">
-    <input s-bind="email" id="email" type="email" placeholder="Email address">
-    <button s-if="name.length > 0" s-css="backgroundColor: {name.length >= 5 ? 'green' : 'white'}">Create record</button>
-</form>
-```
-In the example above, the background color of the button will change to green when the name variables is five or more characters long and white when is below five characters.
+Define a store with your variables, then use directives in your HTML:
 
-There are two options for sensing variable changes, on keyup or on lost focus (blur). To specify which one you must
-add the `s-blur` directive, this directive does not require a value.
-```
-    <input s-bind="name" s-blur id="name" type="text" placeholder="Name">
-```
-In the example above the variable will be updated when the element looses it's focus.
+```html
+<script src="sensible.min.js" defer></script>
 
-That is all you need to start.
+<input s-bind="name" placeholder="Name">
+<p s-bind="name" s-if="name.length > 0">Hello, {name}!</p>
+<button s-click="count++">Clicked <span s-bind="count">{count}</span> times</button>
 
-As you have more variables to sense, it is better to declare all by declaring them in the store object.
-
-The store object allows you to specify the persistence of the data, a way to prefix your storage variables, and declare
-the variables you will be using.
-
-Optionally the store object has to be declared this way:
-```
 <script>
-    let store = {
-        persist: true,
-        localPrefix: '__',
-        data: {
-            results: {
-                type: Array, default: [
-                    {fullName: 'Fulano de Tal', email: 'fulano@detal.com', phone: '7871234567'},
-                    {fullName: 'Mengano de Tal', email: 'mengano@detal.com', phone: '7871234568'},
-                ]
-            },
-            show: {type: Boolean, default: true, callBack: function() {console.log(show)},
-        },
-    };
+let store = {
+    persist: true,
+    data: {
+        name:  { type: String, default: '' },
+        count: { type: Number, default: 0 }
+    }
+};
 </script>
 ```
-In the example above we are declaring that the **store** will persist the data in the browser's local storage engine,
-specified __ as the prefix of every persisted variable, and the **data** property which will have the variables and
-properties of these variables. The syntax for declaring a variable inside the data property is:
-```
-{variable_name: {
-    type: Array|Object|String|Number|etc..., 
-    default: 'a default value', 
-    callBack: a function that will be executed each time the variable changes.
-}
-```
- 
 
-When the tool initializes it will look for the store object, if none is found it will default to:
-```
-{
-    persist: true,
-    localPrefix: '__',
-    data: {},
+That's it. No initialization call needed — SensibleJS detects the store and starts automatically.
+
+## Store Configuration
+
+The store object controls persistence and declares your reactive variables:
+
+```js
+let store = {
+    persist: true,       // Save to localStorage (default: true)
+    localPrefix: '__',   // Prefix for stored keys (default: '__')
+    data: {
+        username: {
+            type: String,
+            default: 'guest',
+            persist: true,           // Per-variable persistence override
+            callBack: function() {   // Runs when the value changes
+                console.log('Username changed to:', this);
+            }
+        },
+        items: {
+            type: Array,
+            default: [{ id: 1, text: 'First item' }],
+            persist: false
+        },
+        settings: {
+            type: Object,
+            default: { theme: 'dark', lang: 'en' }
+        },
+        visible: {
+            type: Boolean,
+            default: true
+        },
+        count: {
+            type: Number,
+            default: 0
+        }
+    }
 };
 ```
 
-## Documentation
+### Variable Types
 
-There are 10 directives available to use:
-
-| Directive | Description |
+| Type | Description |
 | --- | --- |
-| [`s-bind`](#s-bind) | Adds "two-way data binding" to an element. |
-| [`s-data`](#s-data) | Adds data to store and defines variables. |
-| [`s-blur`](#s-blur) | Updates the variable value when the element looses it's focus rather than onkeyup which is the default. |
-| [`s-if`](#s-if) | Show or hide an element based on expression. |
-| [`s-css`](#s-css) | Binds element css to an expression. |
-| [`s-for`](#s-for) | Duplicates elements based on the contents of an array or object. |
-| [`s-click`](#s-click) | Executes the expression when the element is clicked. |
-| [`s-unclick`](#s-unclick) | Executes the expression when there is a click away from the element. |
-| [`s-callback`](#s-callback) | Execute a function when the elements bind variable changes. |
-| [`s-src`](#s-src) | Sets the image source attribute to a variable. Useful in s-for directive. |
+| `String` | Text values. Default input type. |
+| `Number` | Numeric values. Works with `number`, `range` inputs. |
+| `Boolean` | True/false. Works with `checkbox` inputs. |
+| `Array` | Lists. Used with `s-for`. Mutations (`push`, `pop`, `splice`, etc.) are observed. |
+| `Object` | Key-value pairs. Property changes are observed. |
 
-### Directives
+### Variable Options
 
----
+| Option | Description |
+| --- | --- |
+| `type` | JavaScript type constructor (`String`, `Number`, `Array`, etc.) |
+| `default` | Initial value |
+| `persist` | `true`/`false` — override the store-level persist setting for this variable |
+| `callBack` | Function called whenever the value changes. `this` is the new value. |
 
-### `s-bind`
+If no store is defined, SensibleJS creates one automatically and detects variables from `s-bind` attributes in the DOM.
 
-**Example:** `<div s-bind="name">...</div>`
+## Directives
 
-`s-bind` Makes a two way binding between the element and the variable (`name`).
+### `s-bind` — Two-Way Data Binding
 
----
+Connects an element to a variable. Works with inputs, textareas, selects, and display elements.
 
-### `s-data`
+```html
+<!-- Text input: updates on keyup -->
+<input type="text" s-bind="name">
 
-**Example:** `<div s-data="{open: true}">...</div>`
+<!-- Update on blur instead of keyup -->
+<input type="text" s-bind="name" s-blur>
 
-`s-data` Defines a variable and value.
+<!-- Display the value (with template expressions) -->
+<p s-bind="name">Hello, {name}!</p>
 
----
+<!-- Checkbox: binds to a Boolean -->
+<input type="checkbox" s-bind="isActive">
 
-### `s-blur`
+<!-- Radio buttons -->
+<input type="radio" s-bind="color" value="red" name="color"> Red
+<input type="radio" s-bind="color" value="blue" name="color"> Blue
 
-**Example:** `<input s-bind="name" s-blur>`
+<!-- Select -->
+<select s-bind="option">
+    <option value="a">Option A</option>
+    <option value="b">Option B</option>
+</select>
 
-`s-blur` Updates the variable when the element looses it's focus. If you do not specify this directive, the variable will be updated onkeyup.
+<!-- Color, date, number, range -->
+<input type="color" s-bind="themeColor">
+<input type="date" s-bind="startDate">
+<input type="number" s-bind="quantity">
+<input type="range" s-bind="volume" min="0" max="100">
 
----
+<!-- Image src binding -->
+<img s-bind="avatarUrl">
+```
 
-### `s-if`
+### `s-if` — Conditional Rendering
 
-**Example:** `<div s-if="name.length > 0">...</div>`
+Show or hide elements based on an expression. The element's original display style (flex, grid, inline, etc.) is preserved.
 
-`s-if` Shows or hides the element based on boolean result from expression.
+```html
+<div s-if="isLoggedIn">Welcome back!</div>
+<div s-if="!isLoggedIn">Please log in.</div>
 
----
+<!-- Works with any expression -->
+<button s-if="items.length > 0">Checkout</button>
+<p s-if="name != ''">Hello, {name}</p>
+```
 
-### `s-css`
+### `s-for` — List Rendering
 
-**Example:** `<div s-css="background-color: backgroundColor, color: myColor">...</div>`
-<span style="color:red">Test</span>
-`s-css` Applies CSS style attribute on the element based on the result from expression. In the example above the css style attribute background-color will be set to the value of the `backgroundColor` variable, and the color attribute will be set to the value of the `myColor` variable.
+Iterate over arrays. Uses keyed reconciliation — existing DOM elements are reused, not rebuilt.
 
----
+```html
+<ul>
+    <li s-for="item of items" s-key="item.id">
+        {item.name} - ${item.price}
+    </li>
+</ul>
 
-### `s-for`
+<!-- Access the index -->
+<div s-for="user of users" s-key="user.email">
+    {index + 1}. {user.name} ({user.email})
+</div>
 
-**Example:** `<ul><li s-for="product of product">{product.name}</li></ul>`
+<!-- Images inside loops -->
+<div s-for="photo of photos">
+    <img s-src="{photo.url}">
+    <span>{photo.caption}</span>
+</div>
+```
 
-**Example:** `<div s-for="product of products">Product name: {product.name}, cost: {product.cost}</div>`
+The `s-key` attribute tells SensibleJS how to identify each item (e.g., `s-key="item.id"`). When items change, only affected elements are updated. Without `s-key`, the index is used.
 
-`s-for` Duplicates the element based on the contents of an Object or an Array. You can enter code inside. In the example above the result will be an unordered list of each product's name inside the products array. The code `{product.name}` will be replaced by the contents of `product.name`.
+### `s-css` — Dynamic Styling
 
----
+Bind CSS properties to variables or expressions.
 
-### `s-click`
+```html
+<!-- Direct variable binding -->
+<div s-css="background-color: bgColor; color: textColor">
+    Styled content
+</div>
 
-**Example:** `<input type="checkbox" s-click="show = true">`
+<!-- Ternary expressions -->
+<div s-css="background-color: {score >= 50 ? 'green' : 'red'}">
+    {score}%
+</div>
 
-`s-click` Execute the provided statement when the element is clicked.
+<!-- Template expressions -->
+<div s-css="width: {percentage + '%'}; opacity: {opacity / 100}">
+    Progress bar
+</div>
+```
 
----
+### `s-click` — Click Handler
 
-### `s-unclick`
+Execute an expression when the element is clicked.
 
-**Example:** `<input type="checkbox" s-unclick="show = false">`
+```html
+<button s-click="count++">Increment</button>
+<button s-click="count = 0">Reset</button>
+<button s-click="items.push({id: Date.now(), text: 'New'})">Add Item</button>
+```
 
-`s-click` Execute the provided statement when a click is done away from the element.
+### `s-unclick` — Click Away Handler
 
----
+Execute an expression when a click occurs *outside* the element.
 
-### `s-callback`
+```html
+<div s-unclick="menuOpen = false">
+    <!-- Dropdown menu that closes when you click elsewhere -->
+</div>
+```
 
-**Example:** `<input type="checkbox" s-bind="show" s-callback="executeThis()"`
+### `s-data` — Inline Variable Definition
 
+Define variables directly in HTML without a store.
 
-`s-callback` Execute a function when the elements bind variable changes.
+```html
+<div s-data="{isOpen: false, message: 'Hello'}">
+    <button s-click="isOpen = !isOpen">Toggle</button>
+    <div s-if="isOpen" s-bind="message">{message}</div>
+</div>
+```
 
-Note: If the store data property specifies a callback function, then the store data takes precedence.
+### `s-callback` — Inline Change Callback
 
----
+Execute a function when a bound variable changes. Defined on the element, not in the store.
 
-### `s-src`
+```html
+<input s-bind="email" s-callback="validateEmail()">
+```
 
-**Example:** `<img s-src="imageUrl">`
+If both `s-callback` and a store-level `callBack` are defined, the store-level callback takes precedence.
 
+### `s-src` — Dynamic Image Source
 
-`s-src` Sets the image source attribute to the variable value. Useful for s-for directive.
+Set an image's `src` attribute from a variable. Particularly useful inside `s-for` loops.
 
----
+```html
+<img s-src="{user.avatar}">
+```
 
-## HTML
+## Template Expressions
 
-This tool will allow you to bind local varibles to DOM elements in an easy and light way.
+Use `{expression}` syntax inside element content to embed dynamic values:
 
-There is an example file (index.html) included in the package with a lot of examples.
+```html
+<p s-bind="name">Hello, {name}!</p>
+<span s-bind="count">{count} item(s)</span>
+<div s-bind="price">Total: ${price * 1.07}</div>
+```
+
+Expressions support standard JavaScript: ternaries, arithmetic, string concatenation, property access, and function calls like `parseInt()`, `Math.max()`, etc.
+
+## Security
+
+Expressions are evaluated in a sandboxed scope. Dangerous globals (`document`, `window`, `fetch`, `XMLHttpRequest`, `Function`, `setTimeout`, `setInterval`) are blocked inside all directive expressions. Safe globals like `Math`, `parseInt`, `JSON`, and `console` remain accessible.
+
+This means even if untrusted content is rendered into the DOM, expressions cannot:
+- Access or modify the document
+- Make network requests
+- Create new functions or use eval
+- Set timers
+
+## Persistence
+
+When `persist: true` (the default), variable values are saved to `localStorage` and restored on page load. This means user input, preferences, and state survive page refreshes with zero additional code.
+
+Control persistence per-variable:
+
+```js
+data: {
+    userPrefs: { type: Object, default: {}, persist: true },   // Saved
+    tempInput: { type: String, default: '', persist: false }    // Not saved
+}
+```
+
+Stored keys are prefixed with `localPrefix` (default `'__'`) to avoid collisions.
+
+## Supported Input Types
+
+| Input Type | Binding Behavior |
+| --- | --- |
+| `text`, `email`, `textarea` | Updates on `keyup` (or `blur` with `s-blur`) |
+| `checkbox` | Two-way boolean binding |
+| `radio` | Binds to the selected value |
+| `select` | Binds to the selected option value |
+| `number`, `range` | Updates on `input` event |
+| `color` | Updates on `input` event |
+| `date`, `datetime-local` | Updates on `input` event |
+| `img` | Sets the `src` attribute |
+
+## Browser Support
+
+SensibleJS uses `Object.defineProperty`, `Promise`, `Map`, `Set`, and arrow functions. It works in all modern browsers (Chrome, Firefox, Safari, Edge). No IE11 support.
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/ricardoaponte/12a8f11d720d1f904b17e48cbd2dd03e) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Authors
-
-* **Ricardo Aponte Yunqué** - *Initial work* - [ricardoaponte](https://github.com/ricardoaponte)
-
-See also the list of [contributors](https://github.com/ricardoaponte/contributors) who participated in this project.
+Pull requests are welcome. See [CONTRIBUTING.md](https://gist.github.com/ricardoaponte/12a8f11d720d1f904b17e48cbd2dd03e) for details.
 
 ## License
 
-Copyright © 2020 Ricardo Aponte Yunqué and contributors
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+MIT License - Copyright (c) 2026 Ricardo Aponte Yunqué
 
 ## Acknowledgments
-Thanks to  Blaize Stewart for Observables logic
-Thanks to @stimulus for domReady function
 
-* Inspired by pure necessity
+- Blaize Stewart for the Observables logic
+- @stimulus for the domReady function

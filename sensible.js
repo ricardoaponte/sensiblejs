@@ -14,22 +14,20 @@
         async function init(store) {
 
             await domReady();
-            // New feature, needs documentation
             getData(store);
-            // New feature, needs documentation
             processCallbacks(store);
 
             let initializing = true;
             Object.keys(store.data).forEach(function (variable) {
                 if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Array) {
-                    if (window[variable] === undefined) {
-                        window[variable] = [];
+                    if (_data[variable] === undefined) {
+                        _data[variable] = [];
                     }
-                    let arrayObserver = new ArrayObserver(window[variable])
+                    let arrayObserver = new ArrayObserver(_data[variable])
                     arrayObserver.Observe(function (result, method) {
                         if (store.persist) {
                             if ((store.data[variable].hasOwnProperty('persist') && store.data[variable].persist !== false)) {
-                                localStorage.setItem(store.localPrefix + variable, JSON.stringify(window[variable]));
+                                localStorage.setItem(store.localPrefix + variable, JSON.stringify(_data[variable]));
                             }
                         }
                         if (!initializing) {
@@ -37,16 +35,15 @@
                         }
                     });
                 } else if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Object) {
-                    window[variable] = {};
-                    const observer = new Observer(window, variable, variable);
+                    const observer = new Observer(_data, variable, variable);
                     observer.Observe(function (value) {
                         if (!initializing) {
                             processElements(variable);
                         }
                     })
+                    _data[variable] = {};
                     Object.keys(store.data[variable].default).forEach(function (property) {
-                        window[variable] = {};
-                        const observer = new Observer(window[variable], property, variable);
+                        const observer = new Observer(_data[variable], property, variable);
                         observer.Observe(function (value) {
                             if (!initializing) {
                                 processElements(variable);
@@ -54,21 +51,29 @@
                         })
                     });
                 } else {
-                    const observer = new Observer(window, variable, false);
+                    const observer = new Observer(_data, variable, false);
                     observer.Observe(function (value) {
                         if (!initializing) {
                             processElements(variable);
                         }
                     })
                 }
+
+                // Window pass-through for backward compatibility
+                Object.defineProperty(window, variable, {
+                    get: function() { return _data[variable]; },
+                    set: function(v) { _data[variable] = v; },
+                    configurable: true
+                });
+
                 let dataSource = null, currentVariable = store.data[variable];
                 if (store.persist) {
                     if (store.data[variable].hasOwnProperty('persist') === false || store.data[variable].persist === true) {
-                        //TODO: Find a way to identify if the data stored is an object.
                         dataSource = localStorage.getItem(store.localPrefix + variable);
                         try {
                             dataSource = JSON.parse(dataSource);
                         } catch (error) {
+                            // Plain strings are stored without JSON encoding — parse failure is expected
                         }
                     }
                 }
@@ -83,27 +88,27 @@
                     if (currentVariable.type === Array) {
                         if (typeof internalValue !== 'undefined' && Array.isArray(internalValue)) {
                             internalValue.forEach((value) => {
-                                if (window[variable] === undefined) {
-                                    window[variable] = [];
+                                if (_data[variable] === undefined) {
+                                    _data[variable] = [];
                                 }
-                                window[variable].push(value);
+                                _data[variable].push(value);
                             });
                         } else {
                             if (store.data[variable].hasOwnProperty('default')) {
                                 store.data[variable].default.forEach((item) => {
-                                    window[variable].push(item);
+                                    _data[variable].push(item);
                                 });
                             }
                         }
                     } else if (currentVariable.type === Object) {
                         Object.keys(store.data[variable].default).forEach(function (property) {
-                            window[variable][property] = internalValue[property];
+                            _data[variable][property] = internalValue[property];
                         });
                     } else {
-                        window[variable] = internalValue;
+                        _data[variable] = internalValue;
                     }
                 } else {
-                    window[variable] = internalValue;
+                    _data[variable] = internalValue;
                 }
             });
             updateAll();
@@ -117,7 +122,7 @@
         function executeCallBack(variable) {
             // Execute field callbacks if any
             if (typeof store.data[variable] !== 'undefined' && store.data[variable].hasOwnProperty('callBack') && store.data[variable].callBack != '') {
-                store.data[variable].callBack.call(window[variable]);
+                store.data[variable].callBack.call(_data[variable]);
             }
         }
 
@@ -202,38 +207,37 @@
          */
         function setElement(element) {
             switch (element.type) {
-                // TODO: multiple
                 case "select-one":
                     element.onchange = function (event) {
                         // If there is code found then process it!
                         if (hasCode(event.target.value)) {
                             try {
                                 let value = getCode(`'${event.target.value}'`);
-                                window[element.attributes['s-bind'].value] = exec(value);
+                                _data[element.attributes['s-bind'].value] = exec(value);
 
                             } catch (error) {
                                 console.error(error.message);
                             }
                         } else {
-                            window[element.attributes['s-bind'].value] = exec(event.target.value.replace(/\+/g, ""));
+                            _data[element.attributes['s-bind'].value] = exec(event.target.value.replace(/\+/g, ""));
                         }
                     }
                     element.value = exec(getCode(element.attributes['s-bind'].value));
                     break;
                 case "radio":
                     element.onchange = function (event) {
-                        window[element.attributes['s-bind'].value] = event.target.value;
+                        _data[element.attributes['s-bind'].value] = event.target.value;
                     }
                     if (element.attributes['s-bind'].value === element.id) {
                         element.value = exec(getCode(element.attributes['s-bind'].value));
                     }
-                    element.checked = window[element.attributes['s-bind'].value] === element.value;
+                    element.checked = _data[element.attributes['s-bind'].value] === element.value;
                     break;
                 case "checkbox":
                     element.onchange = function (event) {
-                        window[element.attributes['s-bind'].value] = event.target.checked;
+                        _data[element.attributes['s-bind'].value] = event.target.checked;
                     }
-                    element.checked = window[element.attributes['s-bind'].value];
+                    element.checked = _data[element.attributes['s-bind'].value];
                     break;
                 case "text":
                 case "email":
@@ -244,24 +248,24 @@
                     }
                     element[senser] = function (event) {
                         // If the data did not change, don't trigger
-                        if (event.target.value === window[element.attributes['s-bind'].value]) {
+                        if (event.target.value === _data[element.attributes['s-bind'].value]) {
                             return;
                         }
-                        window[element.attributes['s-bind'].value] = event.target.value;
+                        _data[element.attributes['s-bind'].value] = event.target.value;
                     };
                     element.value = exec(getCode(element.attributes['s-bind'].value));
                     break;
+                case "number":
+                case "range":
                 case "color":
                 case "date":
                 case "datetime-local":
                     element.oninput = function (event) {
-                        window[element.attributes['s-bind'].value] = event.target.value;
+                        _data[element.attributes['s-bind'].value] = event.target.value;
                     };
                     element.value = exec(getCode(element.attributes['s-bind'].value));
                     break;
                 case undefined:
-                    // TODO: Find a better way for this
-                    // This is all variable -> element
                     switch (element.tagName) {
                         case "IMG":
                             let srcCode = element.attributes['s-bind'].value;
@@ -299,7 +303,7 @@
                             }
                         }
                     }
-                    element.innerHTML = window[element.attributes['s-bind'].value];
+                    element.innerHTML = _data[element.attributes['s-bind'].value];
                     break;
             }
         }
@@ -338,37 +342,33 @@
         /**
          * Set elements click away behavior
          */
-        function unclickElement(element) {
-            try {
-                const code = element.getAttribute('s-unclick');
-                document.addEventListener('click', function(event) {
-                    var isClickInside = element.contains(event.target);
-
-                    if (!isClickInside) {
-                        exec(code);
+        const _unclickElements = new Set();
+        let _unclickListenerSet = false;
+        function _ensureUnclickListener() {
+            if (_unclickListenerSet) return;
+            _unclickListenerSet = true;
+            document.addEventListener('click', function(event) {
+                _unclickElements.forEach(function(el) {
+                    if (!el.contains(event.target)) {
+                        try { exec(el.getAttribute('s-unclick')); } catch (e) { console.error(e.message); }
                     }
                 });
-            } catch (error) {
-                console.error(error.message);
-            }
+            });
+        }
+        function unclickElement(element) {
+            _ensureUnclickListener();
+            _unclickElements.add(element);
         }
 
         /**
          * Set elements click behavior
          */
         function clickElement(element) {
-            try {
-                const code = element.getAttribute('s-click');
-                document.addEventListener('click', function(event) {
-                    var isClickInside = element.contains(event.target);
-
-                    if (isClickInside) {
-                        exec(code);
-                    }
-                });
-            } catch (error) {
-                console.error(error.message);
-            }
+            if (element._sClickBound) return;
+            element._sClickBound = true;
+            element.addEventListener('click', function() {
+                try { exec(element.getAttribute('s-click')); } catch (e) { console.error(e.message); }
+            });
         }
 
         /**
@@ -381,8 +381,7 @@
                     // Preserve original display
                     element.originalDisplay = element.style.display;
                 }
-                //TODO: Evaluate how this impacts other display settings
-                element.style.display = display ? 'block' : 'none';
+                element.style.display = display ? (element.originalDisplay || '') : 'none';
             } catch (error) {
                 console.error(error.message);
             }
@@ -400,7 +399,7 @@
                     if (code.indexOf('${') >= 0) {
                         code = exec(code);
                     }
-                    if (window[code] === undefined) {
+                    if (_data[code] === undefined) {
                         code = "'" + code + "'";
                     }
                     Object.assign(element.style, exec(`{"${cssAttribute}":${code}}`));
@@ -411,62 +410,126 @@
         }
 
         /**
-         * Process s-for directive
+         * Evaluate a template expression with a loop item in scope
+         */
+        function execForItem(expression, itemVar, item, index) {
+            var keys = Object.keys(store.data);
+            var paramNames = keys.concat([itemVar, 'index']);
+            var paramVals = keys.map(function(k) { return _data[k]; }).concat([item, index]);
+            var fn = new Function(paramNames.join(','), '"use strict";' + _blocked + 'return ' + expression + ';');
+            return fn.apply(null, paramVals);
+        }
+
+        /**
+         * Process s-for directive with keyed reconciliation
          */
         function forElement(element) {
             try {
                 let templateElement;
                 let parentElement;
-                // Check if this element has already been processed by checking if it already
-                // has the template element property set.
+
                 if (element.hasOwnProperty('templateElement')) {
-                    // The element has been processed before. Set the template element to the one saved within.
-                    templateElement = element.templateElement.cloneNode(true);
-                    // Save the element's parent element for later usage.
+                    templateElement = element.templateElement;
                     parentElement = element;
                 } else if (element.parentElement && !element.parentElement.hasOwnProperty('originalNode')) {
-                    // Save the element's parent element for later usage.
                     parentElement = element.parentElement;
-                    // Save the original element and directive attributes inside it's parent element
                     parentElement.templateElement = element.cloneNode(true);
                     parentElement.setAttribute('s-for', element.getAttribute('s-for'));
                     parentElement.setAttribute('s-key', element.getAttribute('s-key'));
-
-                    // Set the template element to the parents element template element
                     templateElement = parentElement.templateElement;
+                    element.parentElement.removeChild(element);
                 } else {
-                    console.log('Unexpected route...');
                     return;
                 }
-                let forloop = templateElement.getAttribute('s-for');
-                // Will we need a key?
-                // let key = templateElement.getAttribute('s-key');
-                if (templateElement.innerHTML !== '') {
-                    // If there is code found then process it!
-                    if (hasCode(templateElement.innerHTML)) {
-                        try {
-                            let value = '';
-                            let innerHTML = getCode(templateElement.innerHTML);
-                            if (innerHTML.indexOf('${') >= 0) {
-                                innerHTML = exec(innerHTML);
-                            }
-                            if (innerHTML.indexOf('s-src') >= 0) {
-                                innerHTML = innerHTML.replace('s-src', 'src');
-                            }
-                            // TODO: Evaluate other elements like OPTIONS or a different way to evaluate this
-                            if (templateElement.tagName === 'OPTION') {
-                                let code = getCode(templateElement.value);
-                                if (code && code.length > 1) {
-                                    value = getCode(templateElement.value);
-                                }
-                            }
-                            let fn = `                                    var index = 0;                                    var newElements = [];                                    for (${forloop}) {                                        let newElement = templateElement.cloneNode(true);                                        newElement.removeAttribute('s-for');                                        newElement.removeAttribute('s-key');                                        let fn = new Function('index', '"use strict";return' + innerHTML + ';');                                        newElement.innerHTML = fn(index);                                        if (value !== '' && value !== undefined && value !== 'undefined') {                                            let fn = new Function('index', '"use strict";return' + value + ';');                                            newElement.value = fn(index);                                        }                                        let attribute = document.createAttribute("s-key-value");                                        attribute.value = index;                                        newElement.setAttributeNode(attribute);                                        newElements.push(newElement);                                        index++;                                    }                                    let child = parentElement.lastElementChild;                                    while (child) {                                        parentElement.removeChild(child);                                        child = parentElement.lastElementChild;                                    }                                    for (newElement of newElements) {                                        parentElement.appendChild(newElement);                                    }`;                            let func = new Function('parentElement', 'templateElement', 'innerHTML', 'value', fn);
-                            func(parentElement, templateElement, getCode("'" + innerHTML + "'"), value);
-                        } catch (error) {
-                            console.error(error.message);
-                        }
+
+                let forAttr = templateElement.getAttribute('s-for');
+                let keyAttr = templateElement.getAttribute('s-key');
+                if (templateElement.innerHTML === '' || !hasCode(templateElement.innerHTML)) return;
+
+                // Parse "item of collection"
+                let parts = forAttr.split(/\s+of\s+/);
+                let itemVar = parts[0].trim();
+                let collectionName = parts[1].trim();
+                let collection = _data[collectionName];
+                if (!collection || !Array.isArray(collection)) return;
+
+                // Prepare template expression
+                let innerHTML = getCode(templateElement.innerHTML);
+                if (innerHTML.indexOf('s-src') >= 0) {
+                    innerHTML = innerHTML.replace('s-src', 'src');
+                }
+                let contentExpr = getCode("'" + innerHTML + "'");
+
+                // Prepare value expression for OPTION tags
+                let valueExpr = null;
+                if (templateElement.tagName === 'OPTION') {
+                    let code = getCode(templateElement.value);
+                    if (code && code.length > 1) {
+                        valueExpr = getCode("'" + getCode(templateElement.value) + "'");
                     }
                 }
+
+                // Key function: use s-key attribute or fall back to index
+                function getKey(item, index) {
+                    if (!keyAttr) return String(index);
+                    let prop = keyAttr.replace(itemVar + '.', '');
+                    return String(item[prop]);
+                }
+
+                // Map existing children by key
+                let existingByKey = new Map();
+                Array.from(parentElement.children).forEach(function(child) {
+                    let key = child.getAttribute('s-key-value');
+                    if (key !== null) existingByKey.set(key, child);
+                });
+
+                // Build new children list with reconciliation
+                let newChildren = [];
+                let usedKeys = new Set();
+                collection.forEach(function(item, index) {
+                    let key = getKey(item, index);
+                    usedKeys.add(key);
+                    let el = existingByKey.get(key);
+
+                    // Evaluate content for this item
+                    let content;
+                    try {
+                        content = execForItem(contentExpr, itemVar, item, index);
+                    } catch (e) {
+                        console.error(e.message);
+                        return;
+                    }
+
+                    if (el) {
+                        // Reuse existing element, update content
+                        el.innerHTML = content;
+                        el.setAttribute('s-key-value', key);
+                    } else {
+                        // Create new element from template
+                        el = templateElement.cloneNode(true);
+                        el.removeAttribute('s-for');
+                        el.removeAttribute('s-key');
+                        el.innerHTML = content;
+                        el.setAttribute('s-key-value', key);
+                    }
+
+                    if (valueExpr) {
+                        try { el.value = execForItem(valueExpr, itemVar, item, index); } catch(e) {}
+                    }
+
+                    newChildren.push(el);
+                });
+
+                // Remove elements whose keys are no longer present
+                existingByKey.forEach(function(el, key) {
+                    if (!usedKeys.has(key)) parentElement.removeChild(el);
+                });
+
+                // Append in correct order (appendChild moves existing nodes)
+                newChildren.forEach(function(child) {
+                    parentElement.appendChild(child);
+                });
+
             } catch (error) {
                 console.error(error.message);
             }
@@ -478,7 +541,7 @@
          * @returns {boolean}
          */
         function hasCode(value) {
-            return value.substr(value.indexOf('{') + 2, value.indexOf('}') - 2).length > 0
+            return value.indexOf('{') !== -1 && value.indexOf('}') !== -1;
         }
 
         /**
@@ -492,11 +555,15 @@
 
         /**
          * Execute code and return result
+         * Dangerous globals are shadowed to prevent XSS via injected expressions
          * @param value
          * @returns {*}
          */
+        var _blocked = 'var document=void 0,window=void 0,self=void 0,globalThis=void 0,' +
+            'fetch=void 0,XMLHttpRequest=void 0,Function=void 0,' +
+            'importScripts=void 0,setTimeout=void 0,setInterval=void 0;';
         function exec(value) {
-            return new Function('"use strict";return ' + value + ';')();
+            return new Function('"use strict";' + _blocked + 'return ' + value + ';')();
         }
 
         /**
@@ -548,14 +615,8 @@
                     return result;
                 };
 
-                a.splice = function (i, length, itemsToInsert) {
-                    let returnObj
-                    if (itemsToInsert) {
-                        Array.prototype.slice.call(arguments, 2);
-                        returnObj = itemsToInsert;
-                    } else {
-                        returnObj = Array.prototype.splice.apply(a, arguments);
-                    }
+                a.splice = function (i, length, ...items) {
+                    let returnObj = Array.prototype.splice.apply(a, [i, length, ...items]);
                     for (let i = 0; i < _this.observers.length; i++) _this.observers[i](returnObj, "splice");
                     return returnObj;
                 };
@@ -618,6 +679,8 @@
             });
         }
 
+        var _data = {};
+
         const storeTemplate = {
             persist: true,
             localPrefix: '__',
@@ -631,12 +694,6 @@
             for (let variable of document.querySelectorAll('[s-data]')) {
                 const attribute = variable.getAttribute('s-data');
                 const data = attribute === '' ? {} : attribute;
-                try {
-
-                }
-                catch(error) {
-                    console.error(error)
-                }
                 const dataObjects = exec(`${data}`);
                 Object.assign(store.data, dataObjects);
             }
@@ -649,7 +706,7 @@
             for (let variable of document.querySelectorAll('[s-bind]')) {
                 let variableName = variable.getAttribute('s-bind');
                 if (variable.getAttribute('s-callback') !== null) {
-                    store.data[variableName]['callBack'] = new Function('"use strict"; ' + variable.getAttribute('s-callback'));
+                    store.data[variableName]['callBack'] = new Function('"use strict";' + _blocked + variable.getAttribute('s-callback'));
                 }
             }
         }
@@ -663,9 +720,9 @@
                 if (variable.type === 'select-one') {
                     let dataSource = variable.getAttribute('s-data');
                     if (dataSource !== null) {
-                        window[dataSource] = [];
+                        _data[dataSource] = [];
                         Array.from(variable.options).forEach(function(option) {
-                            window[dataSource].push({id: option.value, value: option.text})
+                            _data[dataSource].push({id: option.value, value: option.text})
                         });
                     }
                     store.data[variableName] = {};
@@ -692,13 +749,13 @@
                     }
                 }
                 if (variable.getAttribute('s-callback') !== null) {
-                    store.data[variableName].callBack = new Function('"use strict"; ' + variable.getAttribute('s-callback'));
+                    store.data[variableName].callBack = new Function('"use strict";' + _blocked + variable.getAttribute('s-callback'));
                 }
             }
         }
 
         // Check if we are being run inside a browser.
-        if (!(navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom"))) {
+        if (typeof navigator !== 'undefined' && !(navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom"))) {
             if (typeof store === 'undefined') {
                 window.store = storeTemplate;
                 console.log('Store not defined.')
@@ -706,5 +763,17 @@
             }
             return init(store);
         }
+
+        // Export internals for testing
+        return {
+            init: init,
+            exec: exec,
+            hasCode: hasCode,
+            getCode: getCode,
+            Observer: Observer,
+            ArrayObserver: ArrayObserver,
+            storeTemplate: storeTemplate,
+            _data: _data
+        };
     }
 )));
