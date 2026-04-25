@@ -229,6 +229,10 @@ let store = {
                     <label>Adjust size</label>
                     <input type="range" s-bind="demoSize" min="20" max="200">
                 </div>
+                <div class="input-row">
+                    <label>Editable content <span class="text-muted" style="font-weight:normal;">— any element becomes an input</span></label>
+                    <div contenteditable="true" s-bind="demoName" class="live-output" style="min-height: 32px; cursor: text; outline: none;" s-css="color: {demoColor}"></div>
+                </div>
             </div>
             <div>
                 <label>Output</label>

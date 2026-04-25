@@ -298,6 +298,19 @@
                     element.value = exec(getCode(element.attributes['s-bind'].value));
                     break;
                 case undefined:
+                    if (element.getAttribute('contenteditable') === 'true') {
+                        if (!element._sContentEditableBound) {
+                            element._sContentEditableBound = true;
+                            element.addEventListener('input', function() {
+                                _data[element.attributes['s-bind'].value] = element.innerText;
+                            });
+                        }
+                        var ceVal = _data[element.attributes['s-bind'].value];
+                        if (ceVal !== undefined && element.innerText !== ceVal + '') {
+                            element.innerText = ceVal;
+                        }
+                        break;
+                    }
                     switch (element.tagName) {
                         case "IMG":
                             let srcCode = element.attributes['s-bind'].value;
