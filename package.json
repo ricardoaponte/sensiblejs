@@ -1,10 +1,10 @@
 {
-  "name": "sensibljs",
-  "version": "1.2.9",
+  "name": "sensiblejs",
+  "version": "1.4.0",
   "description": "A super lightweight sensible utility",
   "main": "sensible.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node test/sensible.test.js",
     "build": "babel sensible.js --no-comments > sensible.min.js"
   },
   "repository": {
@@ -20,6 +20,7 @@
   "devDependencies": {
     "@babel/cli": "^7.12.1",
     "@babel/core": "^7.12.3",
-    "babel-preset-minify": "^0.5.1"
+    "babel-preset-minify": "^0.5.1",
+    "jsdom": "^29.0.2"
   }
 }
