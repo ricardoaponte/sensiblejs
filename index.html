@@ -6,6 +6,7 @@
     <title>SensibleJS - Reactive UI in ~10KB</title>
     <script src="sensible.min.js" defer></script>
     <style>
+        [s-cloak] { display: none !important; }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
             --bg: #0a0a0a; --surface: #141414; --surface-2: #1e1e1e;
@@ -135,11 +136,11 @@
         .mono { font-family: var(--font); }
     </style>
 </head>
-<body>
+<body s-cloak>
 
 <!-- ===== HERO ===== -->
 <div class="hero">
-    <div class="container">
+    <div class="container" >
         <h1><span>Sensible</span>JS</h1>
         <p>Add reactivity to HTML with simple attributes. No build step. No virtual DOM. No dependencies. Just drop it in.</p>
         <div class="stats">
@@ -196,9 +197,10 @@ let store = {
             <div class="step-num">3</div>
             <div class="step-content">
                 <p>Use directives in your HTML</p>
-                <div class="code-block"><span class="tag">&lt;input</span> <span class="attr">s-bind</span>=<span class="val">"name"</span><span class="tag">&gt;</span>
-<span class="tag">&lt;p</span> <span class="attr">s-bind</span>=<span class="val">"name"</span><span class="tag">&gt;</span>Hello, {name}!<span class="tag">&lt;/p&gt;</span>
-<span class="tag">&lt;button</span> <span class="attr">s-click</span>=<span class="val">"count++"</span><span class="tag">&gt;</span>Clicked {count} times<span class="tag">&lt;/button&gt;</span></div>
+                <div class="code-block">
+                    <span class="tag">&lt;input</span> <span class="attr">s-bind</span>=<span class="val">"name"</span><span class="tag">&gt;</span>
+                    <span class="tag">&lt;p><span class="attr">s-bind</span>=<span class="val">"name"</span>Hello1, {name}!<span class="tag">&lt;/p&gt;
+                    <span class="tag">&lt;button</span> <span class="attr">s-click</span>=<span class="val">"count++"</span><span class="tag">&gt;</span>Clicked {count} times<span class="tag">&lt;/button&gt;</span></div>
             </div>
         </div>
     </div>
@@ -843,7 +845,7 @@ let store = {
         <div class="demo-body">
             <p class="text-sm text-muted">The greeting below uses <code>s-cloak</code> — it was hidden until SensibleJS finished loading, so you never saw the raw <code>{cardName}</code> template.</p>
             <div class="live-output">
-                <span s-cloak s-bind="cardName" s-if="cardName != ''">Welcome, {cardName}!</span>
+                <span s-bind="cardName" s-if="cardName != ''">Welcome, {cardName}!</span>
                 <span class="text-muted" s-if="cardName == ''">Enter a name in the mini-app below to see s-cloak in action.</span>
             </div>
         </div>
