@@ -83,6 +83,11 @@
         .btn-outline:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
         .btn-red { background: var(--red); }
         .btn-red:hover { background: #dc2626; }
+        button[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+        /* Dynamic class demo */
+        .valid-border { border-color: var(--green) !important; }
+        .invalid-border { border-color: var(--red) !important; }
 
         /* Live output */
         .live-output { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; min-height: 40px; font-size: 0.95rem; }
@@ -461,6 +466,137 @@ function removeTask(btn) {
     </details>
 </section>
 
+<!-- ===== DEMO: Computed Values ===== -->
+<section>
+    <div class="section-tag">Derived State</div>
+    <div class="section-title">Computed Values</div>
+    <div class="section-desc">Define variables that automatically recalculate when their dependencies change. No manual wiring needed.</div>
+
+    <div class="demo">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">computed</span>
+        </div>
+        <div class="demo-split">
+            <div>
+                <div class="input-row">
+                    <label>Price ($)</label>
+                    <input type="number" s-bind="compPrice">
+                </div>
+                <div class="input-row">
+                    <label>Quantity</label>
+                    <input type="range" s-bind="compQty" min="1" max="20">
+                </div>
+                <div class="input-row">
+                    <label>Tax rate (%)</label>
+                    <input type="range" s-bind="compTaxRate" min="0" max="25">
+                </div>
+            </div>
+            <div>
+                <label>Invoice</label>
+                <div class="live-output">
+                    <div style="margin-bottom: 8px;">
+                        <span s-bind="compQty">{compQty}</span> &times; $<span s-bind="compPrice">{compPrice}</span>
+                    </div>
+                    <div class="text-sm text-muted" style="margin-bottom: 4px;">
+                        Subtotal: $<span s-bind="compSubtotal">{compSubtotal}</span>
+                    </div>
+                    <div class="text-sm text-muted" style="margin-bottom: 4px;">
+                        Tax (<span s-bind="compTaxRate">{compTaxRate}</span>%): $<span s-bind="compTax">{compTax}</span>
+                    </div>
+                    <div style="font-weight: 600; font-size: 1.1rem; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 8px;">
+                        Total: $<span s-bind="compTotal">{compTotal}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="comment">&lt;!-- Computed values update automatically --&gt;</span>
+<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="val">"number"</span> <span class="attr">s&#45;bind</span>=<span class="val">"compPrice"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="val">"range"</span> <span class="attr">s&#45;bind</span>=<span class="val">"compQty"</span><span class="tag">&gt;</span>
+
+<span class="comment">&lt;!-- These update reactively --&gt;</span>
+<span class="tag">&lt;span</span> <span class="attr">s&#45;bind</span>=<span class="val">"compSubtotal"</span><span class="tag">&gt;</span>{compSubtotal}<span class="tag">&lt;/span&gt;</span>
+<span class="tag">&lt;span</span> <span class="attr">s&#45;bind</span>=<span class="val">"compTotal"</span><span class="tag">&gt;</span>{compTotal}<span class="tag">&lt;/span&gt;</span>
+
+<span class="comment">&lt;!-- Store: use computed instead of type/default --&gt;</span>
+<span class="tag">&lt;script&gt;</span>
+let store = {
+  data: {
+    compPrice:   { type: Number, default: <span class="val">25</span> },
+    compQty:     { type: Number, default: <span class="val">3</span> },
+    compTaxRate: { type: Number, default: <span class="val">7</span> },
+
+    <span class="comment">// Computed: expression string, re-evaluated on access</span>
+    compSubtotal: { computed: <span class="val">'compPrice * compQty'</span> },
+    compTax:      { computed: <span class="val">'Math.round(compPrice * compQty * compTaxRate) / 100'</span> },
+    compTotal:    { computed: <span class="val">'compSubtotal + compTax'</span> }
+  }
+};
+<span class="tag">&lt;/script&gt;</span></div>
+    </details>
+</section>
+
+<!-- ===== DEMO: s-class ===== -->
+<section>
+    <div class="section-tag">Dynamic Classes</div>
+    <div class="section-title">s-class</div>
+    <div class="section-desc">Toggle CSS classes based on expressions. Syntax: <code style="color:var(--accent)">class: expression</code>, separated by semicolons.</div>
+
+    <div class="demo">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">s-class</span>
+        </div>
+        <div class="demo-split">
+            <div>
+                <div class="input-row">
+                    <label>Username (min 3 chars)</label>
+                    <input type="text" s-bind="classUser" placeholder="Type a username...">
+                </div>
+                <div class="input-row">
+                    <label>Email (must contain @)</label>
+                    <input type="text" s-bind="classEmail" placeholder="you@example.com">
+                </div>
+            </div>
+            <div>
+                <label>Result</label>
+                <div class="live-output" s-class="valid-border: classFormOk; invalid-border: !classFormOk" style="margin-bottom: 12px;">
+                    <span s-bind="classFormOk" s-if="classFormOk" style="color: var(--green);" class="text-sm">Form is valid</span>
+                    <span s-bind="classFormOk" s-if="!classFormOk" style="color: var(--red);" class="text-sm">Fill in both fields correctly</span>
+                </div>
+                <button class="btn" disabled s-if="!classFormOk">Submit</button>
+                <button class="btn" s-if="classFormOk">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="comment">&lt;!-- Toggle classes based on expressions --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s&#45;class</span>=<span class="val">"valid-border: formOk; invalid-border: !formOk"</span><span class="tag">&gt;</span>
+  Form status
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Multiple classes on one element --&gt;</span>
+<span class="tag">&lt;span</span> <span class="attr">s&#45;class</span>=<span class="val">"text-green: score >= 50; text-red: score &lt; 50"</span><span class="tag">&gt;</span>
+  {score}%
+<span class="tag">&lt;/span&gt;</span>
+
+<span class="comment">&lt;!-- Computed value drives the class --&gt;</span>
+<span class="tag">&lt;script&gt;</span>
+let store = {
+  data: {
+    username:  { type: String, default: <span class="val">''</span> },
+    email:     { type: String, default: <span class="val">''</span> },
+    formOk:    { computed: <span class="val">"username.length >= 3 &amp;&amp; email.indexOf('@') >= 0"</span> }
+  }
+};
+<span class="tag">&lt;/script&gt;</span></div>
+    </details>
+</section>
+
 <!-- ===== DEMO: Images ===== -->
 <section>
     <div class="section-tag">Image Binding</div>
@@ -818,6 +954,19 @@ let store = {
             avatarUrl:    { type: String, default: 'https://picsum.photos/id/64/200' },
             avatarBorder: { type: String, default: '#6366f1' },
             photos:       { type: Array, default: [{ id: 1, url: 'https://picsum.photos/id/10/200' }, { id: 2, url: 'https://picsum.photos/id/20/200' }, { id: 3, url: 'https://picsum.photos/id/30/200' }, { id: 4, url: 'https://picsum.photos/id/40/200' }, { id: 5, url: 'https://picsum.photos/id/50/200' }, { id: 6, url: 'https://picsum.photos/id/60/200' }], persist: false },
+
+            // Computed demo
+            compPrice:    { type: Number, default: 25 },
+            compQty:      { type: Number, default: 3 },
+            compTaxRate:  { type: Number, default: 7 },
+            compSubtotal: { computed: 'compPrice * compQty' },
+            compTax:      { computed: 'Math.round(compPrice * compQty * compTaxRate) / 100' },
+            compTotal:    { computed: 'compSubtotal + compTax' },
+
+            // s-class demo
+            classUser:   { type: String, default: '', persist: false },
+            classEmail:  { type: String, default: '', persist: false },
+            classFormOk: { computed: "classUser.length >= 3 && classEmail.indexOf('@') >= 0" },
 
             // s-click demo
             clickCount: { type: Number, default: 0 },

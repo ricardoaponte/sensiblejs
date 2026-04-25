@@ -17,8 +17,19 @@
             getData(store);
             processCallbacks(store);
 
-            let initializing = true;
+            var initializing = true;
             Object.keys(store.data).forEach(function (variable) {
+                if (store.data[variable].hasOwnProperty('computed')) {
+                    Object.defineProperty(_data, variable, {
+                        get: function() { return exec(store.data[variable].computed); },
+                        configurable: true
+                    });
+                    Object.defineProperty(window, variable, {
+                        get: function() { return _data[variable]; },
+                        configurable: true
+                    });
+                    return;
+                }
                 if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Array) {
                     if (_data[variable] === undefined) {
                         _data[variable] = [];
@@ -134,6 +145,7 @@
             elementIfs();
             elementFors();
             elementCss();
+            elementClasses();
             elementClick()
             elementUnClick()
         }
@@ -165,6 +177,15 @@
             // Element CSS
             document.querySelectorAll("[s-css]").forEach((element) => {
                 cssElement(element);
+            });
+        }
+
+        /**
+         * Define s-class directives
+         */
+        function elementClasses() {
+            document.querySelectorAll("[s-class]").forEach((element) => {
+                classElement(element);
             });
         }
 
@@ -313,27 +334,49 @@
          * @param variable
          */
         function processElements(variable) {
+            // Find computed properties that depend on the changed variable
+            var varsToCheck = [variable];
+            Object.keys(store.data).forEach(function(key) {
+                if (store.data[key].hasOwnProperty('computed') && store.data[key].computed.indexOf(variable) >= 0) {
+                    varsToCheck.push(key);
+                }
+            });
+
+            function matches(attrValue, innerHTML) {
+                for (var i = 0; i < varsToCheck.length; i++) {
+                    if (attrValue.indexOf(varsToCheck[i]) >= 0) return true;
+                    if (innerHTML && innerHTML.indexOf(varsToCheck[i]) >= 0) return true;
+                }
+                return false;
+            }
+
             document.querySelectorAll("[s-bind]").forEach((element) => {
-                if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-bind').indexOf(variable) >= 0 || element.getAttribute('s-bind') === variable) {
+                if (matches(element.getAttribute('s-bind'), element.innerHTML)) {
                     setElement(element);
                 }
             });
 
             document.querySelectorAll("[s-for]").forEach((element) => {
-                if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-for').indexOf(variable) >= 0 || element.getAttribute('s-for') === variable) {
+                if (matches(element.getAttribute('s-for'), element.innerHTML)) {
                     forElement(element);
                 }
             });
 
             document.querySelectorAll("[s-if]").forEach((element) => {
-                if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-if').indexOf(variable) >= 0 || element.getAttribute('s-if') === variable) {
+                if (matches(element.getAttribute('s-if'), element.innerHTML)) {
                     ifElement(element);
                 }
             });
 
             document.querySelectorAll("[s-css]").forEach((element) => {
-                if (element.innerHTML.indexOf(variable) >= 0 || element.getAttribute('s-css').indexOf(variable) >= 0 || element.getAttribute('s-css') === variable) {
+                if (matches(element.getAttribute('s-css'), element.innerHTML)) {
                     cssElement(element);
+                }
+            });
+
+            document.querySelectorAll("[s-class]").forEach((element) => {
+                if (matches(element.getAttribute('s-class'))) {
+                    classElement(element);
                 }
             });
             executeCallBack(variable);
@@ -403,6 +446,22 @@
                         code = "'" + code + "'";
                     }
                     Object.assign(element.style, exec(`{"${cssAttribute}":${code}}`));
+                });
+            } catch (error) {
+                console.error(error.message);
+            }
+        }
+
+        /**
+         * Toggle CSS classes based on expressions
+         */
+        function classElement(element) {
+            try {
+                element.getAttribute('s-class').split(';').forEach(function (pair) {
+                    if (!(pair = pair.trim())) return;
+                    var cls = pair.substring(0, pair.indexOf(':')).trim();
+                    var expr = pair.substring(pair.indexOf(':') + 1).trim();
+                    element.classList.toggle(cls, !!exec(expr));
                 });
             } catch (error) {
                 console.error(error.message);
