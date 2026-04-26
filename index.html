@@ -165,7 +165,7 @@
                 <div class="stat-label">Dependencies</div>
             </div>
             <div class="stat">
-                <div class="stat-value">17</div>
+                <div class="stat-value">19</div>
                 <div class="stat-label">Directives</div>
             </div>
             <div class="stat">
@@ -748,6 +748,51 @@ let store = {
     </details>
 </section>
 
+<!-- ===== DEMO: s-text / s-html ===== -->
+<section>
+    <div class="section-tag">Content Binding</div>
+    <div class="section-title">s-text &amp; s-html</div>
+    <div class="section-desc">Set element content directly from an expression. <code>s-text</code> sets safe text content, <code>s-html</code> sets raw HTML. Simpler than <code>s-bind</code> for display-only elements.</div>
+
+    <div class="demo">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">s-text &middot; s-html</span>
+        </div>
+        <div class="demo-body">
+            <div class="input-row">
+                <label>Type something</label>
+                <input type="text" s-bind="textHtmlDemo" placeholder="Try typing HTML tags like <b>bold</b>">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                    <label>s-text (safe, escaped)</label>
+                    <div class="live-output" s-text="textHtmlDemo"></div>
+                </div>
+                <div>
+                    <label>s-html (renders HTML)</label>
+                    <div class="live-output" s-html="textHtmlDemo"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="comment">&lt;!-- s&#45;text: sets textContent (HTML tags are escaped) --&gt;</span>
+<span class="tag">&lt;p</span> <span class="attr">s&#45;text</span>=<span class="val">"username"</span><span class="tag">&gt;&lt;/p&gt;</span>
+
+<span class="comment">&lt;!-- s&#45;html: sets innerHTML (renders HTML) --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s&#45;html</span>=<span class="val">"richContent"</span><span class="tag">&gt;&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Expressions work too --&gt;</span>
+<span class="tag">&lt;span</span> <span class="attr">s&#45;text</span>=<span class="val">"'Hello, ' + name"</span><span class="tag">&gt;&lt;/span&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s&#45;html</span>=<span class="val">"'&lt;strong&gt;' + title + '&lt;/strong&gt;'"</span><span class="tag">&gt;&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Use s&#45;text for user input (XSS safe)
+     Use s&#45;html only for trusted content --&gt;</span></div>
+    </details>
+</section>
+
 <!-- ===== DEMO: Images ===== -->
 <section>
     <div class="section-tag">Image Binding</div>
@@ -1172,6 +1217,9 @@ let store = {
 
             // s-ref demo
             refDemo: { type: String, default: '', persist: false },
+
+            // s-text / s-html demo
+            textHtmlDemo: { type: String, default: '', persist: false },
 
             // s-click demo
             clickCount: { type: Number, default: 0 },

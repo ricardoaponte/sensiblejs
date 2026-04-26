@@ -153,6 +153,8 @@
          */
         function updateAll() {
             elementBindings();
+            elementTexts();
+            elementHtmls();
             elementIfs();
             elementFors();
             elementCss();
@@ -240,6 +242,32 @@
             // Element bindings
             document.querySelectorAll("[s-bind]").forEach((element) => {
                 setElement(element);
+            });
+        }
+
+        /**
+         * Define s-text directives — sets textContent from an expression
+         */
+        function elementTexts() {
+            document.querySelectorAll("[s-text]").forEach(function(element) {
+                try {
+                    element.textContent = exec(element.getAttribute('s-text'));
+                } catch (error) {
+                    console.error(error.message);
+                }
+            });
+        }
+
+        /**
+         * Define s-html directives — sets innerHTML from an expression
+         */
+        function elementHtmls() {
+            document.querySelectorAll("[s-html]").forEach(function(element) {
+                try {
+                    element.innerHTML = exec(element.getAttribute('s-html'));
+                } catch (error) {
+                    console.error(error.message);
+                }
             });
         }
 
@@ -419,6 +447,19 @@
                     attrElement(element);
                 }
             });
+
+            document.querySelectorAll("[s-text]").forEach((element) => {
+                if (matches(element.getAttribute('s-text'))) {
+                    try { element.textContent = exec(element.getAttribute('s-text')); } catch (e) { console.error(e.message); }
+                }
+            });
+
+            document.querySelectorAll("[s-html]").forEach((element) => {
+                if (matches(element.getAttribute('s-html'))) {
+                    try { element.innerHTML = exec(element.getAttribute('s-html')); } catch (e) { console.error(e.message); }
+                }
+            });
+
             executeCallBack(variable);
         }
 
