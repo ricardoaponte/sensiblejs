@@ -165,7 +165,7 @@
                 <div class="stat-label">Dependencies</div>
             </div>
             <div class="stat">
-                <div class="stat-value">16</div>
+                <div class="stat-value">17</div>
                 <div class="stat-label">Directives</div>
             </div>
             <div class="stat">
@@ -714,6 +714,40 @@ let store = {
     </details>
 </section>
 
+<!-- ===== DEMO: s-ref ===== -->
+<section>
+    <div class="section-tag">Element References</div>
+    <div class="section-title">s-ref</div>
+    <div class="section-desc">Name elements with <code>s-ref</code> and access them in expressions via <code>$refs.name</code>. Useful for focusing inputs, reading dimensions, or calling DOM methods.</div>
+
+    <div class="demo">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">s-ref</span>
+        </div>
+        <div class="demo-body">
+            <div class="input-row">
+                <label>Click the button to focus this input</label>
+                <input type="text" s-ref="refInput" s-bind="refDemo" placeholder="I get focused by the button below">
+            </div>
+            <button class="btn btn-sm" s-click="$refs.refInput.focus()">Focus input</button>
+            <button class="btn btn-sm btn-outline" s-click="$refs.refInput.value = ''; refDemo = ''" style="margin-left: 8px;">Clear &amp; focus</button>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="comment">&lt;!-- Name an element with s&#45;ref --&gt;</span>
+<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="val">"text"</span> <span class="attr">s&#45;ref</span>=<span class="val">"myInput"</span><span class="tag">&gt;</span>
+
+<span class="comment">&lt;!-- Access it via $refs in any expression --&gt;</span>
+<span class="tag">&lt;button</span> <span class="attr">s&#45;click</span>=<span class="val">"$refs.myInput.focus()"</span><span class="tag">&gt;</span>Focus<span class="tag">&lt;/button&gt;</span>
+<span class="tag">&lt;button</span> <span class="attr">s&#45;click</span>=<span class="val">"$refs.myInput.value = ''"</span><span class="tag">&gt;</span>Clear<span class="tag">&lt;/button&gt;</span>
+
+<span class="comment">&lt;!-- Works in any directive expression --&gt;</span>
+<span class="tag">&lt;p</span> <span class="attr">s&#45;if</span>=<span class="val">"$refs.panel.scrollHeight > 200"</span><span class="tag">&gt;</span>Content is scrollable<span class="tag">&lt;/p&gt;</span></div>
+    </details>
+</section>
+
 <!-- ===== DEMO: Images ===== -->
 <section>
     <div class="section-tag">Image Binding</div>
@@ -1135,6 +1169,9 @@ let store = {
             // s-on demo
             onDemoInput: { type: String, default: '', persist: false },
             onDemoLog:   { type: String, default: '', persist: false },
+
+            // s-ref demo
+            refDemo: { type: String, default: '', persist: false },
 
             // s-click demo
             clickCount: { type: Number, default: 0 },

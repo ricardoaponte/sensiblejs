@@ -123,6 +123,11 @@
                     _data[variable] = internalValue;
                 }
             });
+            // Collect s-ref elements
+            document.querySelectorAll('[s-ref]').forEach(function(el) {
+                $refs[el.getAttribute('s-ref')] = el;
+            });
+
             updateAll();
             initializing = false;
 
@@ -747,7 +752,7 @@
             'fetch=void 0,XMLHttpRequest=void 0,Function=void 0,' +
             'importScripts=void 0,setTimeout=void 0,setInterval=void 0;';
         function exec(value) {
-            return new Function('"use strict";' + _blocked + 'return ' + value + ';')();
+            return new Function('$refs', '"use strict";' + _blocked + 'return ' + value + ';')($refs);
         }
 
         /**
@@ -873,6 +878,7 @@
         }
 
         var _data = {};
+        var $refs = {};
 
         const storeTemplate = {
             persist: true,
