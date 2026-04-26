@@ -1089,62 +1089,166 @@ let store = {
     </details>
 </section>
 
-<!-- ===== DEMO: Combined ===== -->
+<!-- ===== DEMO: s-unclick ===== -->
 <section>
-    <div class="section-tag">Putting It Together</div>
-    <div class="section-title">A Complete Mini-App</div>
-    <div class="section-desc">All directives working together in a contact card builder. This entire page is built with SensibleJS.</div>
+    <div class="section-tag">Click Away</div>
+    <div class="section-title">s-unclick</div>
+    <div class="section-desc">Execute an expression when a click occurs <em>outside</em> the element. Perfect for closing dropdowns, modals, and popovers.</div>
+
+    <div class="demo" style="overflow: visible;">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">s-unclick</span>
+        </div>
+        <div class="demo-body" style="overflow: visible; padding-bottom: 0;">
+            <div style="position: relative; display: inline-block; margin-bottom: 140px;" s-unclick="dropdownOpen = false">
+                <button class="btn btn-sm" s-click="dropdownOpen = !dropdownOpen">Toggle Dropdown</button>
+                <div s-if="dropdownOpen"
+                     style="position: absolute; top: 100%; left: 0; margin-top: 6px; min-width: 180px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 0; z-index: 10; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+                    <div style="padding: 8px 14px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">Edit profile</div>
+                    <div style="padding: 8px 14px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">Settings</div>
+                    <div style="height: 1px; background: var(--border); margin: 4px 0;"></div>
+                    <div style="padding: 8px 14px; font-size: 0.85rem; cursor: pointer; color: var(--red); transition: background 0.15s;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">Sign out</div>
+                </div>
+            </div>
+            <span class="text-sm text-muted" style="margin-left: 12px;">Click the button, then click anywhere outside the dropdown to close it.</span>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="comment">&lt;!-- Wrap button + dropdown so clicks inside don't close it --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s&#45;unclick</span>=<span class="val">"menuOpen = false"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;button</span> <span class="attr">s&#45;click</span>=<span class="val">"menuOpen = !menuOpen"</span><span class="tag">&gt;</span>Menu<span class="tag">&lt;/button&gt;</span>
+
+  <span class="comment">&lt;!-- Dropdown closes when you click outside the wrapper --&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">s&#45;if</span>=<span class="val">"menuOpen"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div&gt;</span>Edit<span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;div&gt;</span>Settings<span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;div&gt;</span>Sign out<span class="tag">&lt;/div&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+</div>
+    </details>
+</section>
+
+<!-- ===== DEMO: s-data ===== -->
+<section>
+    <div class="section-tag">Inline Variables</div>
+    <div class="section-title">s-data</div>
+    <div class="section-desc">Define variables directly in HTML without a store. Useful for quick prototypes or self-contained widgets.</div>
 
     <div class="demo">
         <div class="demo-header">
             <span class="demo-label"><span class="live-dot"></span>Live</span>
-            <span class="demo-directive">s-bind + s-if + s-css + s-src</span>
+            <span class="demo-directive">s-data</span>
+        </div>
+        <div class="demo-body" s-data="{inlineCount: 0, inlineMsg: 'Defined inline!'}">
+            <div class="live-output" style="margin-bottom: 12px;">
+                <span s-text="inlineMsg"></span> Counter: <span s-bind="inlineCount">{inlineCount}</span>
+            </div>
+            <div class="flex gap-8">
+                <button class="btn btn-sm" s-click="inlineCount++">Increment</button>
+                <button class="btn btn-sm btn-outline" s-click="inlineCount = 0">Reset</button>
+            </div>
+            <p class="text-sm text-muted mt-8">No <code>&lt;script&gt;</code> store needed &mdash; variables are defined right in the HTML with <code>s-data</code>.</p>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="comment">&lt;!-- Define variables directly in HTML --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s&#45;data</span>=<span class="val">"{count: 0, message: 'Hello!'}"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;span</span> <span class="attr">s&#45;text</span>=<span class="val">"message"</span><span class="tag">&gt;&lt;/span&gt;</span>
+  <span class="tag">&lt;span</span> <span class="attr">s&#45;bind</span>=<span class="val">"count"</span><span class="tag">&gt;</span>{count}<span class="tag">&lt;/span&gt;</span>
+  <span class="tag">&lt;button</span> <span class="attr">s&#45;click</span>=<span class="val">"count++"</span><span class="tag">&gt;</span>Increment<span class="tag">&lt;/button&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- No store needed — great for quick prototypes --&gt;</span>
+</div>
+    </details>
+</section>
+
+<!-- ===== DEMO: Combined ===== -->
+<section>
+    <div class="section-tag">Putting It Together</div>
+    <div class="section-title">A Complete Mini-App</div>
+    <div class="section-desc">All directives working together in a profile card builder.</div>
+
+    <div class="demo">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">all directives</span>
         </div>
         <div class="demo-split">
             <div>
                 <div class="input-row">
-                    <label>Name</label>
-                    <input type="text" s-bind="cardName" placeholder="Your name">
+                    <label>Name <span class="text-muted" style="font-weight:normal;">(s-bind, s-debounce, s-class)</span></label>
+                    <input type="text" s-bind="cardName" s-debounce="200" s-class="valid-border: cardName.length >= 2; invalid-border: cardName.length > 0 && cardName.length < 2" placeholder="Your name" s-ref="cardNameInput">
                 </div>
                 <div class="input-row">
-                    <label>Role</label>
+                    <label>Role <span class="text-muted" style="font-weight:normal;">(s-bind)</span></label>
                     <input type="text" s-bind="cardRole" placeholder="Your role">
                 </div>
                 <div class="input-row">
-                    <label>Avatar URL</label>
+                    <label>Bio <span class="text-muted" style="font-weight:normal;">(s-bind &mdash; rendered as HTML in preview)</span></label>
+                    <input type="text" s-bind="cardBio" placeholder="Supports <b>HTML</b> tags">
+                </div>
+                <div class="input-row">
+                    <label>Avatar URL <span class="text-muted" style="font-weight:normal;">(s-blur)</span></label>
                     <input type="text" s-bind="cardAvatar" placeholder="https://..." s-blur>
                 </div>
                 <div class="input-row">
-                    <label>Card accent</label>
+                    <label>Card accent <span class="text-muted" style="font-weight:normal;">(s-bind color)</span></label>
                     <input type="color" s-bind="cardAccent">
                 </div>
                 <div class="flex items-center gap-8">
                     <label class="flex items-center gap-8" style="margin-bottom: 0; cursor: pointer;">
-                        <input type="checkbox" s-bind="cardShowEmail"> Show email
+                        <input type="checkbox" s-bind="cardShowEmail"> Show email <span class="text-muted text-sm">(s-if, s-transition)</span>
                     </label>
                 </div>
-                <div class="input-row mt-8" s-if="cardShowEmail">
+                <div class="input-row mt-8" s-if="cardShowEmail" s-transition="slide">
                     <label>Email</label>
                     <input type="email" s-bind="cardEmail" placeholder="you@example.com">
                 </div>
+                <div class="input-row mt-8">
+                    <label>Add skills <span class="text-muted" style="font-weight:normal;">(s-on keydown.enter, s-for)</span></label>
+                    <div class="flex gap-8">
+                        <input type="text" s-bind="cardNewSkill" s-on="keydown.enter: addCardSkill()" placeholder="Type a skill + Enter" style="flex:1" s-ref="skillInput">
+                        <button class="btn btn-sm" s-click="addCardSkill()">Add</button>
+                    </div>
+                </div>
+                <div s-if="cardSkills.length > 0" style="margin-top: 8px;">
+                    <div s-for="skill of cardSkills" s-key="skill.id" style="display: inline-block; margin: 0 6px 6px 0;">
+                        <span style="display: inline-flex; align-items: center; gap: 4px; background: var(--surface-2); border: 1px solid var(--border); padding: 3px 10px; border-radius: 16px; font-size: 0.8rem;">
+                            {skill.name}
+                            <button onclick="removeCardSkill(this)" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; padding: 0 2px; line-height: 1;">&times;</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="mt-8 flex gap-8">
+                    <button class="btn btn-sm btn-outline" s-click="$refs.cardNameInput.focus()">Focus name (s-ref)</button>
+                    <button class="btn btn-sm btn-red" s-click="resetCard()" s-attr="disabled: cardName == 'Jane Developer' && cardRole == 'Frontend Engineer'">Reset card (s-attr)</button>
+                </div>
             </div>
             <div>
-                <label>Card Preview</label>
+                <label>Card Preview <span class="text-muted text-sm">(s-css, s-text, s-html, s-bind img, computed)</span></label>
                 <div style="padding: 20px; border-radius: 8px; border: 1px solid var(--border);"
                      s-css="border-left: 4px solid {cardAccent}">
                     <div class="flex items-center gap-12" style="margin-bottom: 12px;">
                         <img s-bind="cardAvatar" s-if="cardAvatar != ''" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" s-css="border: 2px solid {cardAccent}" alt="Avatar">
                         <div>
-                            <div style="font-size: 1.2rem; font-weight: 600;" s-bind="cardName" s-if="cardName != ''">
-                                {cardName}
-                            </div>
-                            <div class="text-muted text-sm" s-bind="cardRole" s-if="cardRole != ''">
-                                {cardRole}
-                            </div>
+                            <div style="font-size: 1.2rem; font-weight: 600;" s-text="cardName" s-if="cardName != ''"></div>
+                            <div class="text-muted text-sm" s-text="cardRole" s-if="cardRole != ''"></div>
                         </div>
                     </div>
-                    <div class="text-sm" s-if="cardShowEmail" s-css="color: {cardAccent}">
+                    <div class="text-sm" s-if="cardBio != ''" s-html="cardBio" style="margin-bottom: 8px; color: var(--text-muted);"></div>
+                    <div class="text-sm" s-if="cardShowEmail" s-transition="fade" s-css="color: {cardAccent}">
                         <span s-bind="cardEmail" s-if="cardEmail != ''">{cardEmail}</span>
+                    </div>
+                    <div s-if="cardSkills.length > 0" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 4px;">
+                        <span s-for="skill of cardSkills" s-key="skill.id" style="font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: var(--accent); color: white;">{skill.name}</span>
+                    </div>
+                    <div class="text-sm text-muted" s-if="cardSkills.length > 0" style="margin-top: 8px;">
+                        <span s-bind="cardSkillCount">{cardSkillCount}</span> skill(s)
                     </div>
                     <div class="text-muted text-sm" s-if="cardName == '' && cardRole == '' && cardAvatar == ''">
                         Fill in the fields to see your card.
@@ -1155,41 +1259,40 @@ let store = {
     </div>
 
     <details class="code-toggle"><summary>View code</summary>
-    <div class="code-block"><span class="comment">&lt;!-- Inputs --&gt;</span>
-<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="val">"text"</span> <span class="attr">s-bind</span>=<span class="val">"cardName"</span><span class="tag">&gt;</span>
-<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="val">"text"</span> <span class="attr">s-bind</span>=<span class="val">"cardRole"</span><span class="tag">&gt;</span>
-<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="val">"text"</span> <span class="attr">s-bind</span>=<span class="val">"cardAvatar"</span> <span class="attr">s-blur</span><span class="tag">&gt;</span>  <span class="comment">&lt;!-- updates on blur --&gt;</span>
-<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="val">"color"</span> <span class="attr">s-bind</span>=<span class="val">"cardAccent"</span><span class="tag">&gt;</span>
-<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="val">"checkbox"</span> <span class="attr">s-bind</span>=<span class="val">"cardShowEmail"</span><span class="tag">&gt;</span>
+    <div class="code-block"><span class="comment">&lt;!-- This mini-app uses every SensibleJS directive --&gt;</span>
 
-<span class="comment">&lt;!-- Card preview --&gt;</span>
-<span class="tag">&lt;div</span> <span class="attr">s-css</span>=<span class="val">"border-left: 4px solid {cardAccent}"</span><span class="tag">&gt;</span>
+<span class="comment">&lt;!-- s&#45;bind, s&#45;debounce, s&#45;class: validated name input --&gt;</span>
+<span class="tag">&lt;input</span> <span class="attr">s&#45;bind</span>=<span class="val">"cardName"</span> <span class="attr">s&#45;debounce</span>=<span class="val">"200"</span>
+       <span class="attr">s&#45;class</span>=<span class="val">"valid: cardName.length >= 2"</span> <span class="attr">s&#45;ref</span>=<span class="val">"nameInput"</span><span class="tag">&gt;</span>
 
-  <span class="comment">&lt;!-- Avatar: s-bind on img sets the src --&gt;</span>
-  <span class="tag">&lt;img</span> <span class="attr">s-bind</span>=<span class="val">"cardAvatar"</span>
-       <span class="attr">s-if</span>=<span class="val">"cardAvatar != ''"</span>
-       <span class="attr">s-css</span>=<span class="val">"border: 2px solid {cardAccent}"</span><span class="tag">&gt;</span>
+<span class="comment">&lt;!-- s&#45;blur: avatar updates on blur, not keyup --&gt;</span>
+<span class="tag">&lt;input</span> <span class="attr">s&#45;bind</span>=<span class="val">"cardAvatar"</span> <span class="attr">s&#45;blur</span><span class="tag">&gt;</span>
 
-  <span class="tag">&lt;div</span> <span class="attr">s-bind</span>=<span class="val">"cardName"</span> <span class="attr">s-if</span>=<span class="val">"cardName != ''"</span><span class="tag">&gt;</span>{cardName}<span class="tag">&lt;/div&gt;</span>
-  <span class="tag">&lt;div</span> <span class="attr">s-bind</span>=<span class="val">"cardRole"</span> <span class="attr">s-if</span>=<span class="val">"cardRole != ''"</span><span class="tag">&gt;</span>{cardRole}<span class="tag">&lt;/div&gt;</span>
-  <span class="tag">&lt;div</span> <span class="attr">s-if</span>=<span class="val">"cardShowEmail"</span> <span class="attr">s-css</span>=<span class="val">"color: {cardAccent}"</span><span class="tag">&gt;</span>
-    <span class="tag">&lt;span</span> <span class="attr">s-bind</span>=<span class="val">"cardEmail"</span><span class="tag">&gt;</span>{cardEmail}<span class="tag">&lt;/span&gt;</span>
-  <span class="tag">&lt;/div&gt;</span>
-<span class="tag">&lt;/div&gt;</span>
+<span class="comment">&lt;!-- s&#45;if + s&#45;transition: animated email reveal --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s&#45;if</span>=<span class="val">"showEmail"</span> <span class="attr">s&#45;transition</span>=<span class="val">"slide"</span><span class="tag">&gt;</span>...<span class="tag">&lt;/div&gt;</span>
 
-<span class="comment">&lt;!-- Store --&gt;</span>
-<span class="tag">&lt;script&gt;</span>
-let store = {
-  data: {
-    cardName:      { type: String,  default: <span class="val">'Jane Developer'</span> },
-    cardRole:      { type: String,  default: <span class="val">'Frontend Engineer'</span> },
-    cardAvatar:    { type: String,  default: <span class="val">'https://picsum.photos/id/64/200'</span> },
-    cardAccent:    { type: String,  default: <span class="val">'#6366f1'</span> },
-    cardShowEmail: { type: Boolean, default: <span class="val">true</span> },
-    cardEmail:     { type: String,  default: <span class="val">'jane@example.com'</span> }
-  }
-};
-<span class="tag">&lt;/script&gt;</span></div>
+<span class="comment">&lt;!-- s&#45;on: add skill on Enter key --&gt;</span>
+<span class="tag">&lt;input</span> <span class="attr">s&#45;on</span>=<span class="val">"keydown.enter: addSkill()"</span><span class="tag">&gt;</span>
+
+<span class="comment">&lt;!-- s&#45;for + s&#45;key: render skill tags --&gt;</span>
+<span class="tag">&lt;span</span> <span class="attr">s&#45;for</span>=<span class="val">"skill of skills"</span> <span class="attr">s&#45;key</span>=<span class="val">"skill.id"</span><span class="tag">&gt;</span>{skill.name}<span class="tag">&lt;/span&gt;</span>
+
+<span class="comment">&lt;!-- s&#45;click: add skill --&gt;</span>
+<span class="tag">&lt;button</span> <span class="attr">s&#45;click</span>=<span class="val">"addSkill()"</span><span class="tag">&gt;</span>Add<span class="tag">&lt;/button&gt;</span>
+
+<span class="comment">&lt;!-- s&#45;ref: focus name input from button --&gt;</span>
+<span class="tag">&lt;button</span> <span class="attr">s&#45;click</span>=<span class="val">"$refs.nameInput.focus()"</span><span class="tag">&gt;</span>Focus<span class="tag">&lt;/button&gt;</span>
+
+<span class="comment">&lt;!-- s&#45;attr: disable button when form is default --&gt;</span>
+<span class="tag">&lt;button</span> <span class="attr">s&#45;attr</span>=<span class="val">"disabled: !changed"</span><span class="tag">&gt;</span>Reset<span class="tag">&lt;/button&gt;</span>
+
+<span class="comment">&lt;!-- Card preview: s&#45;css, s&#45;text, s&#45;html, s&#45;src --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s&#45;css</span>=<span class="val">"border-color: {accent}"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;img</span> <span class="attr">s&#45;src</span>=<span class="val">"{avatar}"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">s&#45;text</span>=<span class="val">"name"</span><span class="tag">&gt;&lt;/div&gt;</span>           <span class="comment">&lt;!-- safe text --&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">s&#45;html</span>=<span class="val">"bio"</span><span class="tag">&gt;&lt;/div&gt;</span>            <span class="comment">&lt;!-- renders HTML --&gt;</span>
+  <span class="tag">&lt;span</span> <span class="attr">s&#45;bind</span>=<span class="val">"skillCount"</span><span class="tag">&gt;</span>{skillCount} skill(s)<span class="tag">&lt;/span&gt;</span>  <span class="comment">&lt;!-- computed --&gt;</span>
+<span class="tag">&lt;/div&gt;</span></div>
     </details>
 </section>
 
@@ -1197,7 +1300,7 @@ let store = {
 
 <footer>
     <div class="container">
-        <p>SensibleJS v1.4.0 &middot; <a href="https://github.com/ricardoaponte/sensiblejs">GitHub</a> &middot; MIT License</p>
+        <p>SensibleJS v1.5.0 &middot; <a href="https://github.com/ricardoaponte/sensiblejs">GitHub</a> &middot; MIT License</p>
         <p style="margin-top: 8px;">Built by Ricardo Aponte</p>
     </div>
 </footer>
@@ -1233,6 +1336,30 @@ let store = {
 
     function clearLog() {
         onDemoLog = '';
+    }
+
+    function addCardSkill() {
+        if (cardNewSkill.trim() === '') return;
+        cardSkills.push({ id: Date.now(), name: cardNewSkill.trim() });
+        cardNewSkill = '';
+    }
+
+    function removeCardSkill(btn) {
+        let key = btn.closest('[s-key-value]').getAttribute('s-key-value');
+        for (let i = 0; i < cardSkills.length; i++) {
+            if (String(cardSkills[i].id) === key) { cardSkills.splice(i, 1); return; }
+        }
+    }
+
+    function resetCard() {
+        cardName = 'Jane Developer';
+        cardRole = 'Frontend Engineer';
+        cardBio = 'Loves <b>clean code</b> and <em>good coffee</em>.';
+        cardAccent = '#6366f1';
+        cardEmail = 'jane@example.com';
+        cardShowEmail = true;
+        cardSkills.splice(0, cardSkills.length);
+        cardSkills.push({ id: 1, name: 'JavaScript' }, { id: 2, name: 'CSS' }, { id: 3, name: 'HTML' });
     }
 
     function removeTask(btn) {
@@ -1316,13 +1443,20 @@ let store = {
             // Persistence demo
             persistDemo: { type: String, default: '' },
 
+            // s-unclick demo
+            dropdownOpen: { type: Boolean, default: false, persist: false },
+
             // Combined demo
             cardName:      { type: String, default: 'Jane Developer' },
             cardRole:      { type: String, default: 'Frontend Engineer' },
+            cardBio:       { type: String, default: 'Loves <b>clean code</b> and <em>good coffee</em>.', persist: false },
             cardAvatar:    { type: String, default: 'https://picsum.photos/id/64/200' },
             cardAccent:    { type: String, default: '#6366f1' },
             cardShowEmail: { type: Boolean, default: true },
             cardEmail:     { type: String, default: 'jane@example.com' },
+            cardSkills:    { type: Array, default: [{ id: 1, name: 'JavaScript' }, { id: 2, name: 'CSS' }, { id: 3, name: 'HTML' }], persist: false },
+            cardNewSkill:  { type: String, default: '', persist: false },
+            cardSkillCount: { computed: 'cardSkills.length' },
 
             // onInit demo
             initMessage: { type: String, default: '', persist: false },

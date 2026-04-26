@@ -232,6 +232,92 @@ test('exec allows JSON operations', function() {
     assert.strictEqual(sensible.exec('JSON.stringify({a:1})'), '{"a":1}');
 });
 
+// --- Sandbox Escape Tests ---
+
+console.log('\nSandbox Escape Tests:');
+
+test('exec blocks constructor chain via number literal', function() {
+    assert.throws(function() {
+        sensible.exec('(0).constructor.constructor("return this")()');
+    });
+});
+
+test('exec blocks constructor chain via string literal', function() {
+    assert.throws(function() {
+        sensible.exec('("").constructor.constructor("return this")()');
+    });
+});
+
+test('exec blocks constructor chain via object literal', function() {
+    assert.throws(function() {
+        sensible.exec('({}).constructor.constructor("return this")()');
+    });
+});
+
+test('exec blocks constructor via bracket notation with string concat', function() {
+    assert.throws(function() {
+        sensible.exec('(0)["con"+"structor"]["con"+"structor"]("return this")()');
+    });
+});
+
+test('exec blocks constructor via String.fromCharCode', function() {
+    assert.throws(function() {
+        sensible.exec('(0)[String.fromCharCode(99,111,110,115,116,114,117,99,116,111,114)]');
+    });
+});
+
+test('exec blocks constructor via atob', function() {
+    assert.throws(function() {
+        sensible.exec('(0)[atob("Y29uc3RydWN0b3I=")]');
+    });
+});
+
+test('exec blocks __proto__ access', function() {
+    assert.throws(function() {
+        sensible.exec('({}).__proto__');
+    });
+});
+
+test('exec blocks prototype access', function() {
+    assert.throws(function() {
+        sensible.exec('Object.prototype');
+    });
+});
+
+test('exec blocks eval', function() {
+    assert.throws(function() {
+        sensible.exec('eval("1+1")');
+    });
+});
+
+test('exec blocks indirect eval', function() {
+    assert.throws(function() {
+        sensible.exec('(1,eval)("1")');
+    });
+});
+
+test('exec blocks Proxy', function() {
+    assert.strictEqual(sensible.exec('Proxy'), undefined);
+});
+
+test('exec blocks Reflect', function() {
+    assert.strictEqual(sensible.exec('Reflect'), undefined);
+});
+
+test('exec allows safe array index access', function() {
+    assert.strictEqual(sensible.exec('[10,20,30][0]'), 10);
+    assert.strictEqual(sensible.exec('[10,20,30][2]'), 30);
+});
+
+test('exec allows safe string index access', function() {
+    assert.strictEqual(sensible.exec('"hello"[0]'), 'h');
+});
+
+test('exec allows safe method calls on primitives', function() {
+    assert.strictEqual(sensible.exec('"test".toUpperCase()'), 'TEST');
+    assert.strictEqual(sensible.exec('[1,2,3].length'), 3);
+});
+
 // --- Debounce Tests ---
 
 console.log('\nDebounce Tests:');

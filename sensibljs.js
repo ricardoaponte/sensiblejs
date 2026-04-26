@@ -491,11 +491,13 @@
             if (_unclickListenerSet) return;
             _unclickListenerSet = true;
             document.addEventListener('click', function(event) {
-                _unclickElements.forEach(function(el) {
-                    if (!el.contains(event.target)) {
-                        try { exec(el.getAttribute('s-unclick')); } catch (e) { console.error(e.message); }
-                    }
-                });
+                setTimeout(function() {
+                    _unclickElements.forEach(function(el) {
+                        if (!el.contains(event.target)) {
+                            try { exec(el.getAttribute('s-unclick')); } catch (e) { console.error(e.message); }
+                        }
+                    });
+                }, 0);
             });
         }
         function unclickElement(element) {
@@ -611,6 +613,7 @@
                 element.getAttribute('s-attr').split(';').forEach(function (pair) {
                     if (!(pair = pair.trim())) return;
                     var attr = pair.substring(0, pair.indexOf(':')).trim();
+                    if (/^on/i.test(attr)) return; // Block event handler attributes
                     var expr = pair.substring(pair.indexOf(':') + 1).trim();
                     var val = exec(expr);
                     if (val === false || val === null || val === undefined) {
@@ -662,6 +665,8 @@
          * Evaluate a template expression with a loop item in scope
          */
         function execForItem(expression, itemVar, item, index) {
+            if (_dangerous.test(expression)) throw new Error('Blocked: unsafe expression');
+            _validateBrackets(expression);
             var keys = Object.keys(store.data);
             var paramNames = keys.concat([itemVar, 'index']);
             var paramVals = keys.map(function(k) { return _data[k]; }).concat([item, index]);
@@ -810,8 +815,29 @@
          */
         var _blocked = 'var document=void 0,window=void 0,self=void 0,globalThis=void 0,' +
             'fetch=void 0,XMLHttpRequest=void 0,Function=void 0,' +
-            'importScripts=void 0,setTimeout=void 0,setInterval=void 0;';
+            'importScripts=void 0,setTimeout=void 0,setInterval=void 0,' +
+            'Proxy=void 0,Reflect=void 0;';
+        var _dangerous = /(\bconstructor\b|__proto__|getOwnPropertyDescriptor|defineProperty|getPrototypeOf|\beval\b|\bprototype\b)/;
+        /**
+         * Validate bracket notation used as property access (not array literals).
+         * Blocks computed property access like obj["con"+"structor"], obj[atob(...)], etc.
+         * Allows: arr[0], obj['key'], obj[variable], and array literals like [1,2,3].
+         */
+        function _validateBrackets(value) {
+            // Match bracket access preceded by an identifier, closing paren, closing bracket, or quote
+            // This distinguishes property access from array literals
+            var bracketAccessRe = /(?:[\w$\)\]'"])\s*\[([^\[\]]*)\]/g;
+            var match;
+            while ((match = bracketAccessRe.exec(value)) !== null) {
+                var inner = match[1].trim();
+                // Allow: numbers, simple quoted strings, simple identifiers, identifier.property
+                if (/^(\d+|'[^']*'|"[^"]*"|[a-zA-Z_$][\w$]*(\.[a-zA-Z_$][\w$]*)*)$/.test(inner)) continue;
+                throw new Error('Blocked: unsafe bracket expression');
+            }
+        }
         function exec(value) {
+            if (_dangerous.test(value)) throw new Error('Blocked: unsafe expression');
+            _validateBrackets(value);
             return new Function('$refs', '"use strict";' + _blocked + 'return ' + value + ';')($refs);
         }
 
@@ -954,7 +980,15 @@
                 const attribute = variable.getAttribute('s-data');
                 const data = attribute === '' ? {} : attribute;
                 const dataObjects = exec(`${data}`);
-                Object.assign(store.data, dataObjects);
+                Object.keys(dataObjects).forEach(function(key) {
+                    var val = dataObjects[key];
+                    var type = Array.isArray(val) ? Array
+                        : val !== null && typeof val === 'object' ? Object
+                        : typeof val === 'boolean' ? Boolean
+                        : typeof val === 'number' ? Number
+                        : String;
+                    store.data[key] = { type: type, default: val };
+                });
             }
         }
 
