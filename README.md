@@ -20,7 +20,7 @@ That's a working two-way binding. Type in the input, the paragraph updates.
 
 **npm:**
 ```
-npm i sensiblejs
+npm i sensibljs
 ```
 
 ## Quick Start
