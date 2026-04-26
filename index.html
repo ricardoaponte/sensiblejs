@@ -1018,6 +1018,45 @@ let store = {
     </details>
 </section>
 
+<!-- ===== DEMO: onInit ===== -->
+<section>
+    <div class="section-tag">Store Feature</div>
+    <div class="section-title">onInit Lifecycle Hook</div>
+    <div class="section-desc">Run setup code after SensibleJS finishes initializing. The <code>onInit</code> function receives the data object, so you can set initial values, fetch data, or trigger side effects.</div>
+
+    <div class="demo">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">onInit</span>
+        </div>
+        <div class="demo-body">
+            <div class="live-output">
+                <span s-bind="initMessage">{initMessage}</span>
+            </div>
+            <p class="text-sm text-muted" style="margin-top: 8px;">This message was set by <code>onInit</code> when the page loaded.</p>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="tag">&lt;script&gt;</span>
+let store = {
+  data: {
+    message: { type: String, default: <span class="val">''</span> }
+  },
+  onInit: <span class="val">function(data)</span> {
+    <span class="comment">// Runs after all data is bound and DOM is ready</span>
+    data.message = <span class="val">'Initialized at ' + new Date().toLocaleTimeString()</span>;
+
+    <span class="comment">// Common uses:</span>
+    <span class="comment">// - Set values based on URL params</span>
+    <span class="comment">// - Fetch initial data from an API</span>
+    <span class="comment">// - Run one-time setup logic</span>
+  }
+};
+<span class="tag">&lt;/script&gt;</span></div>
+    </details>
+</section>
+
 <!-- ===== DEMO: s-cloak ===== -->
 <section>
     <div class="section-tag">Directive</div>
@@ -1285,6 +1324,12 @@ let store = {
             cardAccent:    { type: String, default: '#6366f1' },
             cardShowEmail: { type: Boolean, default: true },
             cardEmail:     { type: String, default: 'jane@example.com' },
+
+            // onInit demo
+            initMessage: { type: String, default: '', persist: false },
+        },
+        onInit: function(data) {
+            data.initMessage = 'SensibleJS initialized at ' + new Date().toLocaleTimeString();
         }
     };
 </script>

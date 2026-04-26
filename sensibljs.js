@@ -144,6 +144,11 @@
             document.querySelectorAll('[s-cloak]').forEach(function(el) {
                 el.removeAttribute('s-cloak');
             });
+
+            // Execute lifecycle hook
+            if (typeof store.onInit === 'function') {
+                store.onInit(_data);
+            }
         }
 
         /**
