@@ -60,8 +60,8 @@ let store = {
             type: String,
             default: 'guest',
             persist: true,           // Per-variable persistence override
-            callBack: function() {   // Runs when the value changes
-                console.log('Username changed to:', this);
+            watch: function(newVal, oldVal) {   // Runs when the value changes
+                console.log('Changed from', oldVal, 'to', newVal);
             }
         },
         items: {
@@ -102,9 +102,8 @@ let store = {
 | `type` | JavaScript type constructor (`String`, `Number`, `Array`, etc.) |
 | `default` | Initial value |
 | `persist` | `true`/`false` — override the store-level persist setting for this variable |
-| `callBack` | Function called whenever the value changes. `this` is the new value. |
 | `computed` | Expression string — makes this a read-only computed variable (no `type` or `default` needed) |
-| `watch` | Function called with `(newValue, oldValue)` on every change — more flexible than `callBack` |
+| `watch` | Function called with `(newValue, oldValue)` on every change |
 
 If no store is defined, SensibleJS creates one automatically and detects variables from `s-bind` attributes in the DOM.
 
@@ -353,16 +352,6 @@ Define variables directly in HTML without a store.
 </div>
 ```
 
-### `s-callback` — Inline Change Callback
-
-Execute a function when a bound variable changes. Defined on the element, not in the store.
-
-```html
-<input s-bind="email" s-callback="validateEmail()">
-```
-
-If both `s-callback` and a store-level `callBack` are defined, the store-level callback takes precedence.
-
 ### `s-debounce` — Debounced Input
 
 Delay reactive updates on text inputs until the user stops typing. Useful for search fields, API calls, or expensive computations. Value is in milliseconds.
@@ -425,7 +414,7 @@ let store = {
 };
 ```
 
-`watch` is more flexible than `callBack` — it receives `(newValue, oldValue)` as arguments, while `callBack` only provides the new value via `this`.
+The `watch` function receives `(newValue, oldValue)` as arguments, making it easy to compare values or trigger side effects based on what changed.
 
 ## Lifecycle Hook: onInit
 

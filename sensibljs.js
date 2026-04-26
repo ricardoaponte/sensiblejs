@@ -16,7 +16,6 @@
             await domReady();
 
             getData(store);
-            processCallbacks(store);
 
             var initializing = true;
             Object.keys(store.data).forEach(function (variable) {
@@ -152,23 +151,17 @@
         }
 
         /**
-         * Execute store data field callback and watchers
+         * Execute watchers for a variable
          * @param variable
          */
         var _previousValues = {};
-        function executeCallBack(variable) {
+        function executeWatcher(variable) {
             if (typeof store.data[variable] === 'undefined') return;
-            // Execute field callbacks if any
-            if (store.data[variable].hasOwnProperty('callBack') && store.data[variable].callBack != '') {
-                store.data[variable].callBack.call(_data[variable]);
-            }
-            // Execute watcher with (newValue, oldValue)
             if (store.data[variable].hasOwnProperty('watch') && typeof store.data[variable].watch === 'function') {
                 var newVal = _data[variable];
                 var oldVal = _previousValues[variable];
                 store.data[variable].watch(newVal, oldVal);
             }
-            // Store current value for next comparison
             _previousValues[variable] = typeof _data[variable] === 'object'
                 ? JSON.parse(JSON.stringify(_data[variable]))
                 : _data[variable];
@@ -486,7 +479,7 @@
                 }
             });
 
-            executeCallBack(variable);
+            executeWatcher(variable);
         }
 
         /**
@@ -968,15 +961,6 @@
         /**
          * Initiate callbacks recognition.
          */
-        function processCallbacks(store) {
-            for (let variable of document.querySelectorAll('[s-bind]')) {
-                let variableName = variable.getAttribute('s-bind');
-                if (variable.getAttribute('s-callback') !== null) {
-                    store.data[variableName]['callBack'] = new Function('"use strict";' + _blocked + variable.getAttribute('s-callback'));
-                }
-            }
-        }
-
         /**
          * Initiate existing id recognition.
          */
@@ -1013,9 +997,6 @@
                     } else {
                         store.data[variableName].default = '';
                     }
-                }
-                if (variable.getAttribute('s-callback') !== null) {
-                    store.data[variableName].callBack = new Function('"use strict";' + _blocked + variable.getAttribute('s-callback'));
                 }
             }
         }

@@ -165,7 +165,7 @@
                 <div class="stat-label">Dependencies</div>
             </div>
             <div class="stat">
-                <div class="stat-value">19</div>
+                <div class="stat-value">18</div>
                 <div class="stat-label">Directives</div>
             </div>
             <div class="stat">
@@ -980,7 +980,7 @@ let store = {
 <section>
     <div class="section-tag">Store Feature</div>
     <div class="section-title">Watchers</div>
-    <div class="section-desc">Add a <code>watch</code> function to any store variable. It receives <code>(newValue, oldValue)</code> on every change — more flexible than <code>callBack</code> for side effects, validation, or derived updates.</div>
+    <div class="section-desc">Add a <code>watch</code> function to any store variable. It receives <code>(newValue, oldValue)</code> on every change — useful for side effects, validation, or derived updates.</div>
 
     <div class="demo">
         <div class="demo-header">
@@ -1012,9 +1012,8 @@ let store = {
 };
 <span class="tag">&lt;/script&gt;</span>
 
-<span class="comment">&lt;!-- watch vs callBack:
-  - callBack: called with `this` = new value, no old value
-  - watch: called with (newValue, oldValue) — better for comparisons --&gt;</span></div>
+<span class="comment">&lt;!-- watch receives (newValue, oldValue) — useful for
+  comparisons, validation, or triggering side effects --&gt;</span></div>
     </details>
 </section>
 
