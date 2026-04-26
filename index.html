@@ -976,6 +976,48 @@ let store = {
     </details>
 </section>
 
+<!-- ===== DEMO: Watchers ===== -->
+<section>
+    <div class="section-tag">Store Feature</div>
+    <div class="section-title">Watchers</div>
+    <div class="section-desc">Add a <code>watch</code> function to any store variable. It receives <code>(newValue, oldValue)</code> on every change — more flexible than <code>callBack</code> for side effects, validation, or derived updates.</div>
+
+    <div class="demo">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">watch</span>
+        </div>
+        <div class="demo-body">
+            <div class="input-row">
+                <label>Type to see the watcher track changes</label>
+                <input type="text" s-bind="watchDemo" placeholder="Type here...">
+            </div>
+            <div class="live-output text-sm mono" s-bind="watchLog" style="min-height: 60px; white-space: pre-wrap;">{watchLog}</div>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="comment">&lt;!-- Watchers are defined in the store --&gt;</span>
+<span class="tag">&lt;script&gt;</span>
+let store = {
+  data: {
+    username: {
+      type: String,
+      default: <span class="val">''</span>,
+      watch: <span class="val">function(newVal, oldVal)</span> {
+        console.log(<span class="val">'Changed from'</span>, oldVal, <span class="val">'to'</span>, newVal);
+      }
+    }
+  }
+};
+<span class="tag">&lt;/script&gt;</span>
+
+<span class="comment">&lt;!-- watch vs callBack:
+  - callBack: called with `this` = new value, no old value
+  - watch: called with (newValue, oldValue) — better for comparisons --&gt;</span></div>
+    </details>
+</section>
+
 <!-- ===== DEMO: s-cloak ===== -->
 <section>
     <div class="section-tag">Directive</div>
@@ -1223,6 +1265,15 @@ let store = {
 
             // s-click demo
             clickCount: { type: Number, default: 0 },
+
+            // Watcher demo
+            watchDemo: { type: String, default: '', persist: false,
+                watch: function(newVal, oldVal) {
+                    var line = '"' + (oldVal || '') + '" → "' + newVal + '" (length: ' + newVal.length + ')';
+                    watchLog = (watchLog ? watchLog + '\n' : '') + line;
+                }
+            },
+            watchLog: { type: String, default: '', persist: false },
 
             // Persistence demo
             persistDemo: { type: String, default: '' },

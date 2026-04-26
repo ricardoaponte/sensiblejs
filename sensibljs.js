@@ -131,6 +131,15 @@
             updateAll();
             initializing = false;
 
+            // Seed previous values for watchers
+            Object.keys(store.data).forEach(function(key) {
+                if (store.data[key].hasOwnProperty('watch')) {
+                    _previousValues[key] = typeof _data[key] === 'object'
+                        ? JSON.parse(JSON.stringify(_data[key]))
+                        : _data[key];
+                }
+            });
+
             // Remove s-cloak after initialization to reveal hidden elements
             document.querySelectorAll('[s-cloak]').forEach(function(el) {
                 el.removeAttribute('s-cloak');
@@ -138,14 +147,26 @@
         }
 
         /**
-         * Execute store data field callback
+         * Execute store data field callback and watchers
          * @param variable
          */
+        var _previousValues = {};
         function executeCallBack(variable) {
+            if (typeof store.data[variable] === 'undefined') return;
             // Execute field callbacks if any
-            if (typeof store.data[variable] !== 'undefined' && store.data[variable].hasOwnProperty('callBack') && store.data[variable].callBack != '') {
+            if (store.data[variable].hasOwnProperty('callBack') && store.data[variable].callBack != '') {
                 store.data[variable].callBack.call(_data[variable]);
             }
+            // Execute watcher with (newValue, oldValue)
+            if (store.data[variable].hasOwnProperty('watch') && typeof store.data[variable].watch === 'function') {
+                var newVal = _data[variable];
+                var oldVal = _previousValues[variable];
+                store.data[variable].watch(newVal, oldVal);
+            }
+            // Store current value for next comparison
+            _previousValues[variable] = typeof _data[variable] === 'object'
+                ? JSON.parse(JSON.stringify(_data[variable]))
+                : _data[variable];
         }
 
         /**
