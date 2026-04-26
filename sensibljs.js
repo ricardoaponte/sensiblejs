@@ -65,7 +65,7 @@
                     const observer = new Observer(_data, variable, variable);
                     observer.Observe(function (value) {
                         if (!initializing) {
-                            processElements(variable);
+                            scheduleUpdate(variable);
                         }
                     })
                     _data[variable] = {};
@@ -73,7 +73,7 @@
                         const observer = new Observer(_data[variable], property, variable);
                         observer.Observe(function (value) {
                             if (!initializing) {
-                                processElements(variable);
+                                scheduleUpdate(variable);
                             }
                         })
                     });
@@ -81,7 +81,7 @@
                     const observer = new Observer(_data, variable, false);
                     observer.Observe(function (value) {
                         if (!initializing) {
-                            processElements(variable);
+                            scheduleUpdate(variable);
                         }
                     })
                 }
@@ -944,25 +944,32 @@
          */
         function Observer(o, property, obj) {
             let _this = this;
-            let _obj = obj;
             this.observers = [];
 
             this.Observe = function (notifyCallback) {
                 _this.observers.push(notifyCallback);
             }
 
+            // Pre-compute persist decision at creation time (not on every set)
+            let _effective = obj !== false ? obj : property;
+            let _shouldPersist = false;
+            let _persistKey, _persistObjPrefix;
+            if (store.persist && store.data[_effective] &&
+                (!store.data[_effective].hasOwnProperty('persist') || store.data[_effective].persist === true)) {
+                _shouldPersist = true;
+                _persistKey = store.localPrefix + property;
+                _persistObjPrefix = store.localPrefix + _effective + '.' + property;
+            }
+
             Object.defineProperty(o, property, {
                 set: function (value) {
                     _this.value = value;
                     for (let i = 0; i < _this.observers.length; i++) _this.observers[i](value);
-                    let effective = _obj !== false ? _obj : property;
-                    if (store.persist) {
-                        if (!store.data[effective].hasOwnProperty('persist') || store.data[effective].persist === true) {
-                            if (typeof value == 'object') {
-                                localStorage.setItem(store.localPrefix + effective + '.' + property, JSON.stringify(value));
-                            } else {
-                                localStorage.setItem(store.localPrefix + property, value);
-                            }
+                    if (_shouldPersist) {
+                        if (typeof value == 'object') {
+                            localStorage.setItem(_persistObjPrefix, JSON.stringify(value));
+                        } else {
+                            localStorage.setItem(_persistKey, value);
                         }
                     }
                 },
