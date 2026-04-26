@@ -18,6 +18,22 @@
             getData(store);
 
             var initializing = true;
+            var _pendingUpdates = {};
+            var _rafScheduled = false;
+            function scheduleUpdate(variable) {
+                _pendingUpdates[variable] = true;
+                if (!_rafScheduled) {
+                    _rafScheduled = true;
+                    requestAnimationFrame(function() {
+                        _rafScheduled = false;
+                        var vars = Object.keys(_pendingUpdates);
+                        _pendingUpdates = {};
+                        for (var i = 0; i < vars.length; i++) {
+                            processElements(vars[i]);
+                        }
+                    });
+                }
+            }
             Object.keys(store.data).forEach(function (variable) {
                 if (store.data[variable].hasOwnProperty('computed')) {
                     Object.defineProperty(_data, variable, {
@@ -42,7 +58,7 @@
                             }
                         }
                         if (!initializing) {
-                            processElements(variable);
+                            scheduleUpdate(variable);
                         }
                     });
                 } else if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Object) {
@@ -664,13 +680,20 @@
         /**
          * Evaluate a template expression with a loop item in scope
          */
+        var _forFnCache = {};
         function execForItem(expression, itemVar, item, index) {
             if (_dangerous.test(expression)) throw new Error('Blocked: unsafe expression');
             _validateBrackets(expression);
+            var cacheKey = expression + '|' + itemVar;
+            var fn = _forFnCache[cacheKey];
+            if (!fn) {
+                var keys = Object.keys(store.data);
+                var paramNames = keys.concat([itemVar, 'index']);
+                fn = new Function(paramNames.join(','), '"use strict";' + _blocked + 'return ' + expression + ';');
+                _forFnCache[cacheKey] = fn;
+            }
             var keys = Object.keys(store.data);
-            var paramNames = keys.concat([itemVar, 'index']);
             var paramVals = keys.map(function(k) { return _data[k]; }).concat([item, index]);
-            var fn = new Function(paramNames.join(','), '"use strict";' + _blocked + 'return ' + expression + ';');
             return fn.apply(null, paramVals);
         }
 
@@ -835,10 +858,16 @@
                 throw new Error('Blocked: unsafe bracket expression');
             }
         }
+        var _fnCache = {};
         function exec(value) {
             if (_dangerous.test(value)) throw new Error('Blocked: unsafe expression');
             _validateBrackets(value);
-            return new Function('$refs', '"use strict";' + _blocked + 'return ' + value + ';')($refs);
+            var fn = _fnCache[value];
+            if (!fn) {
+                fn = new Function('$refs', '"use strict";' + _blocked + 'return ' + value + ';');
+                _fnCache[value] = fn;
+            }
+            return fn($refs);
         }
 
         /**
