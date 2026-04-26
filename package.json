@@ -1,7 +1,22 @@
 {
   "name": "sensibljs",
-  "version": "1.5.0",
-  "description": "A super lightweight sensible utility",
+  "version": "1.5.1",
+  "description": "Reactive UI in ~10KB. No build step. No virtual DOM. No dependencies. Just HTML attributes.",
+  "keywords": [
+    "reactive",
+    "ui",
+    "data-binding",
+    "lightweight",
+    "no-build",
+    "html-attributes",
+    "two-way-binding",
+    "directives",
+    "frontend",
+    "vanilla-js",
+    "no-dependencies",
+    "declarative",
+    "dom"
+  ],
   "main": "sensibljs.js",
   "files": [
     "sensibljs.js",
