@@ -454,12 +454,47 @@
          */
         function ifElement(element) {
             try {
-                const display = exec(element.getAttribute('s-if'));
+                var display = exec(element.getAttribute('s-if'));
                 if (!element.hasOwnProperty('originalDisplay')) {
-                    // Preserve original display
                     element.originalDisplay = element.style.display;
                 }
-                element.style.display = display ? (element.originalDisplay || '') : 'none';
+
+                var transition = element.getAttribute('s-transition');
+                if (transition !== null) {
+                    var prefix = transition || 's';
+                    if (display && element.style.display === 'none') {
+                        // Enter transition
+                        element.style.display = element.originalDisplay || '';
+                        element.classList.remove(prefix + '-leave-active', prefix + '-leave-to');
+                        element.classList.add(prefix + '-enter');
+                        // Force reflow so the browser registers the starting state
+                        void element.offsetHeight;
+                        element.classList.remove(prefix + '-enter');
+                        element.classList.add(prefix + '-enter-active', prefix + '-enter-to');
+                        element.addEventListener('transitionend', function handler() {
+                            element.classList.remove(prefix + '-enter-active', prefix + '-enter-to');
+                            element.removeEventListener('transitionend', handler);
+                        });
+                    } else if (!display && element.style.display !== 'none') {
+                        // Leave transition
+                        element.classList.remove(prefix + '-enter-active', prefix + '-enter-to');
+                        element.classList.add(prefix + '-leave');
+                        void element.offsetHeight;
+                        element.classList.remove(prefix + '-leave');
+                        element.classList.add(prefix + '-leave-active', prefix + '-leave-to');
+                        element.addEventListener('transitionend', function handler() {
+                            element.classList.remove(prefix + '-leave-active', prefix + '-leave-to');
+                            element.style.display = 'none';
+                            element.removeEventListener('transitionend', handler);
+                        });
+                    } else if (!display && !element.hasOwnProperty('_sTransitionInit')) {
+                        // Initial hide (no animation on first render)
+                        element.style.display = 'none';
+                    }
+                    element._sTransitionInit = true;
+                } else {
+                    element.style.display = display ? (element.originalDisplay || '') : 'none';
+                }
             } catch (error) {
                 console.error(error.message);
             }

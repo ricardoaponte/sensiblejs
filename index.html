@@ -90,6 +90,18 @@
         .valid-border { border-color: var(--green) !important; }
         .invalid-border { border-color: var(--red) !important; }
 
+        /* Transition: fade */
+        .fade-enter { opacity: 0; }
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        .fade-enter-to { opacity: 1; }
+        .fade-leave-to { opacity: 0; }
+
+        /* Transition: slide */
+        .slide-enter { opacity: 0; transform: translateY(-10px); }
+        .slide-enter-active, .slide-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .slide-enter-to { opacity: 1; transform: translateY(0); }
+        .slide-leave-to { opacity: 0; transform: translateY(-10px); }
+
         /* Live output */
         .live-output { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; min-height: 40px; font-size: 0.95rem; }
         .live-dot { display: inline-block; width: 6px; height: 6px; background: var(--green); border-radius: 50%; margin-right: 6px; animation: pulse 2s infinite; }
@@ -153,7 +165,7 @@
                 <div class="stat-label">Dependencies</div>
             </div>
             <div class="stat">
-                <div class="stat-value">15</div>
+                <div class="stat-value">16</div>
                 <div class="stat-label">Directives</div>
             </div>
             <div class="stat">
@@ -328,6 +340,60 @@ let store = {
   }
 };
 <span class="tag">&lt;/script&gt;</span></div>
+    </details>
+</section>
+
+<!-- ===== DEMO: s-transition ===== -->
+<section>
+    <div class="section-tag">Animation</div>
+    <div class="section-title">s-transition</div>
+    <div class="section-desc">Animate elements when they enter or leave. Add <code>s-transition="name"</code> to any element with <code>s-if</code>. SensibleJS applies CSS classes at each stage — you define the transitions in CSS.</div>
+
+    <div class="demo">
+        <div class="demo-header">
+            <span class="demo-label"><span class="live-dot"></span>Live</span>
+            <span class="demo-directive">s-transition</span>
+        </div>
+        <div class="demo-body">
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                <button class="btn btn-sm" s-click="showFade = !showFade">Toggle Fade</button>
+                <button class="btn btn-sm btn-outline" s-click="showSlide = !showSlide">Toggle Slide</button>
+            </div>
+            <div class="live-output" s-if="showFade" s-transition="fade" style="margin-bottom: 8px;">
+                This element fades in and out.
+            </div>
+            <div class="live-output" s-if="showSlide" s-transition="slide" style="border-color: var(--accent);">
+                This element slides in and out.
+            </div>
+        </div>
+    </div>
+
+    <details class="code-toggle"><summary>View code</summary>
+    <div class="code-block"><span class="comment">&lt;!-- Add s&#45;transition to any s&#45;if element --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s&#45;if</span>=<span class="val">"show"</span> <span class="attr">s&#45;transition</span>=<span class="val">"fade"</span><span class="tag">&gt;</span>Fades in/out<span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s&#45;if</span>=<span class="val">"show"</span> <span class="attr">s&#45;transition</span>=<span class="val">"slide"</span><span class="tag">&gt;</span>Slides in/out<span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Define the transition in CSS --&gt;</span>
+<span class="tag">&lt;style&gt;</span>
+<span class="comment">/* Fade transition */</span>
+.fade-enter         { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active  { transition: opacity 0.3s ease; }
+.fade-enter-to      { opacity: 1; }
+.fade-leave-to      { opacity: 0; }
+
+<span class="comment">/* Slide transition */</span>
+.slide-enter         { opacity: 0; transform: translateY(-10px); }
+.slide-enter-active,
+.slide-leave-active  { transition: opacity 0.3s, transform 0.3s; }
+.slide-enter-to      { opacity: 1; transform: translateY(0); }
+.slide-leave-to      { opacity: 0; transform: translateY(-10px); }
+<span class="tag">&lt;/style&gt;</span>
+
+<span class="comment">&lt;!-- Class lifecycle:
+  Enter: {name}-enter → {name}-enter-active + {name}-enter-to → cleanup
+  Leave: {name}-leave → {name}-leave-active + {name}-leave-to → display:none
+--&gt;</span></div>
     </details>
 </section>
 
@@ -1034,6 +1100,10 @@ let store = {
             // s-if demo
             showGreeting: { type: Boolean, default: true },
             showDetails:  { type: Boolean, default: false },
+
+            // s-transition demo
+            showFade:  { type: Boolean, default: true },
+            showSlide: { type: Boolean, default: true },
 
             // s-for demo
             tasks:   { type: Array, default: [{ id: 1, text: 'Try editing this task' }, { id: 2, text: 'Add a new one above' }, { id: 3, text: 'Or remove me' }] },
