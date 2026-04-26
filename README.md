@@ -104,6 +104,7 @@ let store = {
 | `persist` | `true`/`false` — override the store-level persist setting for this variable |
 | `callBack` | Function called whenever the value changes. `this` is the new value. |
 | `computed` | Expression string — makes this a read-only computed variable (no `type` or `default` needed) |
+| `watch` | Function called with `(newValue, oldValue)` on every change — more flexible than `callBack` |
 
 If no store is defined, SensibleJS creates one automatically and detects variables from `s-bind` attributes in the DOM.
 
@@ -158,6 +159,29 @@ Show or hide elements based on an expression. The element's original display sty
 <button s-if="items.length > 0">Checkout</button>
 <p s-if="name != ''">Hello, {name}</p>
 ```
+
+### `s-transition` — Animated Show/Hide
+
+Add `s-transition="name"` to any `s-if` element to animate enter/leave transitions with CSS classes instead of hard display toggling.
+
+```html
+<div s-if="show" s-transition="fade">Fades in/out</div>
+```
+
+SensibleJS applies classes at each stage:
+- **Enter:** `{name}-enter` → `{name}-enter-active` + `{name}-enter-to` → cleanup
+- **Leave:** `{name}-leave` → `{name}-leave-active` + `{name}-leave-to` → `display: none`
+
+Define your transitions in CSS:
+
+```css
+.fade-enter { opacity: 0; }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-to { opacity: 1; }
+.fade-leave-to { opacity: 0; }
+```
+
+If `s-transition` has no value (e.g., `<div s-transition>`), the prefix defaults to `s-`.
 
 ### `s-for` — List Rendering
 
@@ -280,6 +304,34 @@ Execute an expression when a click occurs *outside* the element.
 </div>
 ```
 
+### `s-text` — Safe Text Content
+
+Set an element's `textContent` from an expression. HTML is escaped — safe for user input.
+
+```html
+<p s-text="username"></p>
+<span s-text="'Hello, ' + name"></span>
+```
+
+### `s-html` — Raw HTML Content
+
+Set an element's `innerHTML` from an expression. **Only use with trusted content.**
+
+```html
+<div s-html="richContent"></div>
+<div s-html="'<strong>' + title + '</strong>'"></div>
+```
+
+### `s-ref` — Element References
+
+Name elements and access them in expressions via `$refs`.
+
+```html
+<input type="text" s-ref="myInput">
+<button s-click="$refs.myInput.focus()">Focus</button>
+<button s-click="$refs.myInput.value = ''">Clear</button>
+```
+
 ### `s-cloak` — Hide Until Ready
 
 Prevents the flash of raw template expressions (e.g., `{name}`) before SensibleJS initializes. The element stays hidden until all data is bound, then the attribute is automatically removed.
@@ -354,6 +406,42 @@ let store = {
 ```
 
 Computed values are read-only getters — you can't assign to them directly. They recalculate whenever any variable referenced in their expression changes.
+
+## Watchers
+
+Add a `watch` function to any variable to react to changes with both new and old values:
+
+```js
+let store = {
+    data: {
+        search: {
+            type: String,
+            default: '',
+            watch: function(newVal, oldVal) {
+                console.log('Changed from', oldVal, 'to', newVal);
+            }
+        }
+    }
+};
+```
+
+`watch` is more flexible than `callBack` — it receives `(newValue, oldValue)` as arguments, while `callBack` only provides the new value via `this`.
+
+## Lifecycle Hook: onInit
+
+Run setup code after SensibleJS finishes initializing. The `onInit` function receives the reactive data object:
+
+```js
+let store = {
+    data: {
+        message: { type: String, default: '' }
+    },
+    onInit: function(data) {
+        data.message = 'Ready at ' + new Date().toLocaleTimeString();
+        // Fetch data, read URL params, run setup logic, etc.
+    }
+};
+```
 
 ## Contenteditable Support
 
