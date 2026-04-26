@@ -3,7 +3,7 @@
 Reactive UI in ~10KB. No build step. No virtual DOM. No dependencies. Just HTML attributes.
 
 ```html
-<script src="sensible.min.js" defer></script>
+<script src="sensibljs.min.js" defer></script>
 
 <input s-bind="name" placeholder="Your name">
 <p s-bind="name">Hello, {name}!</p>
@@ -15,7 +15,7 @@ That's a working two-way binding. Type in the input, the paragraph updates.
 
 **CDN / direct download** (recommended for what this tool is designed for):
 ```html
-<script src="sensible.min.js" defer></script>
+<script src="sensibljs.min.js" defer></script>
 ```
 
 **npm:**
@@ -28,7 +28,7 @@ npm i sensibljs
 Define a store with your variables, then use directives in your HTML:
 
 ```html
-<script src="sensible.min.js" defer></script>
+<script src="sensibljs.min.js" defer></script>
 
 <input s-bind="name" placeholder="Name">
 <p s-bind="name" s-if="name.length > 0">Hello, {name}!</p>

@@ -25,7 +25,7 @@ function assertArrayElements(actual, expected) {
 
 // Load sensible — the UMD wrapper exports the factory return value.
 // Since navigator is undefined in Node, it skips auto-init and returns the internals.
-const sensible = require('../sensible.js');
+const sensible = require('../sensibljs.js');
 
 // --- Unit Tests ---
 
