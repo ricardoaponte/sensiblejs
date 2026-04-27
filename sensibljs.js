@@ -557,7 +557,10 @@
                 var transition = element.getAttribute('s-transition');
                 if (transition !== null) {
                     var prefix = transition || 's';
-                    if (display && element.style.display === 'none') {
+                    if (!element._sTransitionInit) {
+                        // Initial render — apply state without animation
+                        element.style.display = display ? (element.originalDisplay || '') : 'none';
+                    } else if (display && element.style.display === 'none') {
                         // Enter transition
                         element.style.display = element.originalDisplay || '';
                         element.classList.remove(prefix + '-leave-active', prefix + '-leave-to');
@@ -582,9 +585,6 @@
                             element.style.display = 'none';
                             element.removeEventListener('transitionend', handler);
                         });
-                    } else if (!display && !element.hasOwnProperty('_sTransitionInit')) {
-                        // Initial hide (no animation on first render)
-                        element.style.display = 'none';
                     }
                     element._sTransitionInit = true;
                 } else {

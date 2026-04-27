@@ -1,6 +1,6 @@
 {
   "name": "sensibljs",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "Reactive UI in ~10KB. No build step. No virtual DOM. No dependencies. Just HTML attributes.",
   "keywords": [
     "reactive",
