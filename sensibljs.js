@@ -437,13 +437,28 @@
          * @param variable
          */
         function processElements(variable) {
-            // Find computed properties that depend on the changed variable
+            // Find computed properties that depend (directly or transitively)
+            // on the changed variable. A computed-of-computed is reached on a
+            // later pass once its dependency lands in varsToCheck.
             var varsToCheck = [variable];
-            Object.keys(store.data).forEach(function(key) {
-                if (store.data[key].hasOwnProperty('computed') && store.data[key].computed.indexOf(variable) >= 0) {
-                    varsToCheck.push(key);
+            var dataKeys = Object.keys(store.data);
+            var grew = true;
+            while (grew) {
+                grew = false;
+                for (var k = 0; k < dataKeys.length; k++) {
+                    var key = dataKeys[k];
+                    if (varsToCheck.indexOf(key) >= 0) continue;
+                    var def = store.data[key];
+                    if (!def.hasOwnProperty('computed')) continue;
+                    for (var v = 0; v < varsToCheck.length; v++) {
+                        if (def.computed.indexOf(varsToCheck[v]) >= 0) {
+                            varsToCheck.push(key);
+                            grew = true;
+                            break;
+                        }
+                    }
                 }
-            });
+            }
 
             function matches(attrValue, innerHTML) {
                 for (var i = 0; i < varsToCheck.length; i++) {
