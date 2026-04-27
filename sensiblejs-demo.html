@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sensible Tasks · A SensibleJS demo</title>
+
+    <script src="sensibljs.js" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --paper: #f5f0e6;
+            --paper-2: #ede5d4;
+            --card: #fffdf7;
+            --ink: #1a1714;
+            --ink-2: #3a352d;
+            --muted: #8a7f70;
+            --rule: #d9cdb7;
+            --rule-soft: #e8dec8;
+            --accent: #b9410c;
+            --green: #4d7c2a;
+            --shadow: 0 1px 0 rgba(26,23,20,.04), 0 12px 32px -16px rgba(26,23,20,.18);
+
+            --font-display: "Fraunces", Georgia, serif;
+            --font-body: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: "JetBrains Mono", ui-monospace, monospace;
+        }
+
+        /* sensible auto-injects the cloak rule, but we add one as belt+suspenders */
+        [s-cloak] { display: none !important; }
+
+        * { box-sizing: border-box; }
+        html, body { margin: 0; }
+        body {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+        }
+        body::before {
+            content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-image:
+                    radial-gradient(circle at 20% 10%, rgba(185,65,12,.04), transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(77,124,42,.04), transparent 50%);
+        }
+
+        .wrap { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 56px 28px 96px; }
+
+        /* masthead */
+        header.mast {
+            display: grid; grid-template-columns: 1fr auto;
+            align-items: end; gap: 24px;
+            padding-bottom: 28px; margin-bottom: 48px;
+            border-bottom: 1px solid var(--rule);
+        }
+        .eyebrow {
+            font-family: var(--font-mono);
+            font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 14px;
+            display: flex; gap: 14px; align-items: center;
+        }
+        .eyebrow .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 0 4px rgba(185,65,12,.15);
+        }
+        h1.title {
+            font-family: var(--font-display);
+            font-weight: 400; font-style: italic;
+            font-size: clamp(40px, 6vw, 64px);
+            line-height: .95; letter-spacing: -.02em;
+            margin: 0;
+        }
+        h1.title b { font-style: normal; font-weight: 600; }
+        .meta {
+            text-align: right;
+            font-family: var(--font-mono); font-size: 11px;
+            color: var(--muted); line-height: 1.6;
+        }
+        .meta a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+        .meta a:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* section */
+        section.block {
+            background: var(--card);
+            border: 1px solid var(--rule);
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+            padding: 32px;
+            margin-bottom: 28px;
+        }
+        .block-head {
+            display: flex; align-items: baseline; justify-content: space-between;
+            gap: 16px; margin-bottom: 22px;
+            padding-bottom: 14px; border-bottom: 1px dashed var(--rule);
+        }
+        .block-head h2 {
+            font-family: var(--font-display);
+            font-weight: 500; font-size: 22px; letter-spacing: -.01em;
+            margin: 0;
+        }
+        .block-head .num {
+            font-family: var(--font-mono); font-size: 11px;
+            color: var(--muted); letter-spacing: .14em; text-transform: uppercase;
+        }
+
+        /* greeting */
+        .hello { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+        @media (max-width: 720px) { .hello { grid-template-columns: 1fr; } }
+
+        .field-label {
+            font-family: var(--font-mono);
+            font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+            color: var(--muted);
+            display: block; margin-bottom: 8px;
+        }
+        input.name {
+            width: 100%;
+            background: transparent; border: 0;
+            border-bottom: 2px solid var(--ink);
+            padding: 6px 0 10px;
+            font-family: var(--font-display);
+            font-size: 28px; font-weight: 500;
+            color: var(--ink); outline: none;
+            transition: border-color .2s;
+        }
+        input.name:focus { border-color: var(--accent); }
+
+        .greeting {
+            font-family: var(--font-display);
+            font-style: italic; font-weight: 300;
+            font-size: clamp(28px, 3.2vw, 40px);
+            line-height: 1.15;
+            color: var(--ink-2);
+        }
+        .greeting .you { color: var(--accent); font-style: normal; font-weight: 600; }
+        .greeting .placeholder { color: var(--muted); }
+
+        /* fields */
+        .field {
+            background: var(--paper-2);
+            border: 1px solid transparent;
+            border-radius: 3px;
+            padding: 12px 14px;
+            font: inherit; color: var(--ink);
+            outline: none;
+            transition: background .15s, border-color .15s;
+        }
+        .field:focus { background: #fff; border-color: var(--ink); }
+        select.field { cursor: pointer; }
+
+        /* composer */
+        .composer {
+            display: grid;
+            grid-template-columns: 1fr 130px 130px auto;
+            gap: 10px; margin-bottom: 20px;
+        }
+        @media (max-width: 720px) {
+            .composer { grid-template-columns: 1fr 1fr; }
+            .composer .add { grid-column: 1 / -1; }
+        }
+        button.btn {
+            background: var(--ink); color: var(--paper);
+            border: 0; padding: 12px 18px; border-radius: 3px;
+            font: inherit; font-weight: 500;
+            cursor: pointer; transition: background .15s;
+        }
+        button.btn:hover:not([disabled]) { background: var(--accent); }
+        button.btn[disabled] { opacity: .35; cursor: not-allowed; }
+
+        /* filter / search */
+        .filterbar {
+            display: flex; gap: 18px; align-items: center; justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 14px 0;
+            border-top: 1px solid var(--rule-soft);
+            border-bottom: 1px solid var(--rule-soft);
+            margin-bottom: 18px;
+        }
+        .pills { display: flex; gap: 4px; }
+        .pill {
+            background: transparent; border: 1px solid transparent;
+            color: var(--muted);
+            padding: 6px 12px; border-radius: 100px;
+            font-family: var(--font-mono);
+            font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+            cursor: pointer; transition: all .15s;
+        }
+        .pill:hover { color: var(--ink); }
+        .pill.is-active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+        .search-wrap { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 280px; }
+        .search-wrap .field { flex: 1; padding: 8px 12px; font-size: 14px; }
+        .search-status {
+            font-family: var(--font-mono); font-size: 10px;
+            color: var(--muted); letter-spacing: .1em; text-transform: uppercase;
+        }
+
+        /* task list */
+        .tasks { list-style: none; padding: 0; margin: 0 0 16px; }
+        .task {
+            display: grid; grid-template-columns: auto 1fr auto auto;
+            gap: 14px; align-items: center;
+            padding: 14px 4px;
+            border-bottom: 1px solid var(--rule-soft);
+        }
+        .tasks > div:last-child .task { border-bottom: 0; }
+
+        .check {
+            appearance: none; -webkit-appearance: none;
+            width: 20px; height: 20px;
+            border: 1.5px solid var(--ink-2);
+            border-radius: 50%;
+            cursor: pointer; position: relative; flex-shrink: 0;
+            transition: background .15s, border-color .15s;
+        }
+        .check:hover { border-color: var(--accent); }
+        .check:checked { background: var(--green); border-color: var(--green); }
+        .check:checked::after {
+            content: ""; position: absolute;
+            left: 5px; top: 2px;
+            width: 6px; height: 11px;
+            border: solid #fff; border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .task-title { font-size: 16px; line-height: 1.4; }
+        .task-title.done { text-decoration: line-through; color: var(--muted); }
+
+        .task-meta {
+            font-family: var(--font-mono);
+            font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+            padding: 3px 8px; border-radius: 100px;
+            background: var(--paper-2); color: var(--ink-2);
+        }
+        .task-meta[data-priority="low"]  { background: #ece5d2; color: var(--muted); }
+        .task-meta[data-priority="med"]  { background: #f3d9b8; color: var(--accent); }
+        .task-meta[data-priority="high"] { background: #b9410c; color: #fff; }
+
+        .x {
+            background: transparent; border: 0;
+            color: var(--muted); cursor: pointer;
+            width: 28px; height: 28px; border-radius: 50%;
+            font-size: 18px; line-height: 1;
+            transition: all .15s;
+        }
+        .x:hover { background: var(--accent); color: #fff; }
+
+        .empty {
+            text-align: center; padding: 38px 16px;
+            color: var(--muted);
+            font-family: var(--font-display); font-style: italic;
+            font-size: 18px;
+        }
+        .empty::before { content: "✦"; display: block; font-size: 24px; color: var(--rule); margin-bottom: 8px; }
+
+        /* progress / stats */
+        .stats {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            border: 1px solid var(--rule); border-radius: 3px;
+            overflow: hidden; margin-top: 22px;
+        }
+        .stat { padding: 16px 18px; border-right: 1px solid var(--rule); background: var(--paper-2); }
+        .stat:last-child { border-right: 0; }
+        .stat .k {
+            font-family: var(--font-mono);
+            font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+            color: var(--muted); margin-bottom: 6px;
+        }
+        .stat .v { font-family: var(--font-display); font-size: 28px; font-weight: 500; line-height: 1; }
+
+        .progress-wrap { margin-top: 18px; }
+        .progress-label {
+            display: flex; justify-content: space-between; align-items: baseline;
+            font-family: var(--font-mono); font-size: 11px;
+            letter-spacing: .1em; text-transform: uppercase;
+            color: var(--muted); margin-bottom: 8px;
+        }
+        .progress-track { height: 6px; background: var(--paper-2); border-radius: 100px; overflow: hidden; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--green));
+            border-radius: 100px;
+            transition: width .4s cubic-bezier(.2,.8,.2,1);
+        }
+
+        /* personalize */
+        .person { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+        @media (max-width: 720px) { .person { grid-template-columns: 1fr; } }
+        .person input[type="color"] {
+            width: 100%; height: 56px;
+            border: 1px solid var(--rule); border-radius: 3px;
+            background: var(--card); cursor: pointer;
+        }
+        .person input[type="range"] { width: 100%; accent-color: var(--accent); }
+        .preview {
+            margin-top: 18px; padding: 28px 22px;
+            border-radius: 3px; border: 1px dashed var(--rule);
+            background: var(--paper-2);
+            text-align: center;
+            transition: all .25s;
+        }
+        .preview .swatch-text {
+            font-family: var(--font-display);
+            font-style: italic; font-weight: 500;
+        }
+
+        /* activity log */
+        .log {
+            background: var(--paper-2);
+            border-left: 3px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: 0 3px 3px 0;
+            font-family: var(--font-mono);
+            font-size: 12px; line-height: 1.7;
+            color: var(--ink-2);
+            min-height: 56px;
+            white-space: pre-wrap;
+        }
+        .log.empty-log { color: var(--muted); font-style: italic; }
+
+        /* code echo */
+        .echo {
+            background: #1a1714; color: #f5f0e6;
+            font-family: var(--font-mono); font-size: 12px;
+            padding: 18px 22px; border-radius: 3px;
+            line-height: 1.7; overflow-x: auto;
+            white-space: pre;
+            margin: 0;
+        }
+
+        /* inline widget */
+        .inline-widget {
+            display: flex; align-items: center; gap: 16px;
+            padding: 16px 20px;
+            background: var(--paper-2);
+            border-radius: 3px;
+            border: 1px dashed var(--rule);
+        }
+        .inline-widget .pad { flex: 1; }
+        .inline-widget .num-big {
+            font-family: var(--font-display);
+            font-size: 32px; font-weight: 500;
+            min-width: 48px; text-align: center;
+            color: var(--accent);
+        }
+        .inline-widget button {
+            background: var(--ink); color: var(--paper);
+            border: 0; width: 36px; height: 36px;
+            border-radius: 50%; cursor: pointer;
+            font-size: 18px; line-height: 1;
+        }
+        .inline-widget button:hover { background: var(--accent); }
+
+        /* helper */
+        .helper {
+            font-family: var(--font-mono);
+            font-size: 11px; color: var(--muted);
+            letter-spacing: .04em;
+            margin-top: 6px;
+        }
+        .helper code {
+            background: var(--paper-2);
+            padding: 1px 6px; border-radius: 2px;
+            color: var(--accent);
+        }
+
+        /* transitions */
+        .fade-enter, .fade-leave-to { opacity: 0; }
+        .fade-enter-active, .fade-leave-active { transition: opacity .25s ease; }
+        .fade-enter-to { opacity: 1; }
+
+        .slide-enter { opacity: 0; transform: translateX(-12px); }
+        .slide-enter-active, .slide-leave-active { transition: opacity .3s ease, transform .3s ease; }
+        .slide-enter-to { opacity: 1; transform: translateX(0); }
+        .slide-leave-to { opacity: 0; transform: translateX(12px); }
+
+        footer {
+            text-align: center;
+            margin-top: 56px; padding-top: 24px;
+            border-top: 1px solid var(--rule);
+            font-family: var(--font-mono); font-size: 11px;
+            color: var(--muted); letter-spacing: .08em;
+        }
+        footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+        footer a:hover { color: var(--accent); border-color: var(--accent); }
+    </style>
+</head>
+
+<body s-cloak>
+<div class="wrap">
+
+    <header class="mast">
+        <div>
+            <div class="eyebrow">
+                <span class="dot"></span>
+                <span>A SensibleJS demo · ~10KB · no build step</span>
+            </div>
+            <h1 class="title"><i>Sensible</i> <b>Tasks</b></h1>
+        </div>
+        <div class="meta">
+            reactive ui in html attributes<br>
+            <a href="https://github.com/ricardoaponte/sensiblejs" target="_blank" rel="noopener">github.com/ricardoaponte/sensiblejs</a>
+        </div>
+    </header>
+
+    <!-- 01 — greeting (s-bind, computed, s-if, s-text) -->
+    <section class="block">
+        <div class="block-head">
+            <h2>Live two-way binding</h2>
+            <span class="num">01 · s-bind · computed · s-text</span>
+        </div>
+
+        <div class="hello">
+            <div>
+                <span class="field-label">your name</span>
+                <input type="text" class="name" s-bind="name" placeholder="type here…" autocomplete="off">
+                <div class="helper">Bound to <code>name</code>. Persists in localStorage.</div>
+            </div>
+
+            <div>
+                <div class="greeting" s-if="name.length === 0">
+                    <span class="placeholder">…and the page will know you.</span>
+                </div>
+                <div class="greeting" s-if="name.length > 0" s-transition="fade">
+                    <span s-text="timeOfDay"></span>, <span class="you" s-text="name"></span>.<br>
+                    You have <span class="you" s-text="remaining"></span>
+                    <span s-if="remaining === 1">thing</span><span s-if="remaining !== 1">things</span> to do.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 02 — tasks (helpers, s-key-value pattern, s-debounce) -->
+    <section class="block">
+        <div class="block-head">
+            <h2>The task list</h2>
+            <span class="num">02 · s-for · s-key · s-debounce · s-attr · s-ref</span>
+        </div>
+
+        <div class="composer">
+            <input
+                type="text" class="field"
+                s-bind="draft" s-ref="draftInput"
+                s-on="keydown.enter: addTask()"
+                placeholder="What needs doing?" autocomplete="off">
+
+            <select class="field" s-bind="draftPriority">
+                <option value="low">Low</option>
+                <option value="med">Medium</option>
+                <option value="high">High</option>
+            </select>
+
+            <select class="field" s-bind="draftBucket">
+                <option value="Today">Today</option>
+                <option value="Soon">Soon</option>
+                <option value="Later">Later</option>
+            </select>
+
+            <button class="btn add" s-click="addTask()" s-attr="disabled: draft.trim().length === 0">Add</button>
+        </div>
+
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 14px;" s-if="tasks.length > 0">
+            <span s-text="remaining"></span> pending · <span s-text="completed"></span> done · <span s-text="tasks.length"></span> total
+        </div>
+
+        <div class="filterbar">
+            <div class="pills">
+                <button class="pill" s-class="is-active: filter == 'all'"    s-click="filter = 'all'">All</button>
+                <button class="pill" s-class="is-active: filter == 'active'" s-click="filter = 'active'">Active</button>
+                <button class="pill" s-class="is-active: filter == 'done'"   s-click="filter = 'done'">Done</button>
+            </div>
+
+            <div class="search-wrap">
+                <input
+                    type="text" class="field"
+                    s-bind="query" s-debounce="200"
+                    placeholder="search…" autocomplete="off">
+                <span class="search-status" s-if="query.length > 0"><span s-text="matches"></span> hit(s)</span>
+            </div>
+        </div>
+
+        <div class="tasks">
+            <div s-for="t of visibleTasks" s-key="t.id">
+                <div class="task">
+                    <input type="checkbox" class="check" s-attr="checked: t.done" onclick="toggleTask(this)">
+                    <span class="task-title" s-class="done: t.done" s-text="t.title"></span>
+                    <span class="task-meta" s-attr="data-priority: t.priority">
+              <span s-text="t.bucket"></span> · <span s-text="t.priority"></span>
+            </span>
+                    <button class="x" onclick="removeTask(this)" title="Remove">×</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty" s-if="visibleTasks.length === 0">
+            <span s-if="tasks.length === 0">No tasks yet — add one above.</span>
+            <span s-if="tasks.length > 0 && query.length > 0">Nothing matches "<span s-text="query"></span>".</span>
+            <span s-if="tasks.length > 0 && query.length == 0 && filter == 'active'">All caught up. Nice.</span>
+            <span s-if="tasks.length > 0 && query.length == 0 && filter == 'done'">Nothing done yet.</span>
+        </div>
+
+        <div class="progress-wrap" s-if="tasks.length > 0">
+            <div class="progress-label">
+                <span>progress</span>
+                <span><span s-text="percent"></span>%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" s-css="width: {percent + '%'}"></div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat"><div class="k">total</div>     <div class="v" s-text="tasks.length"></div></div>
+            <div class="stat"><div class="k">done</div>      <div class="v" s-text="completed"></div></div>
+            <div class="stat"><div class="k">remaining</div> <div class="v" s-text="remaining"></div></div>
+        </div>
+    </section>
+
+    <!-- 03 — activity (watcher) -->
+    <section class="block">
+        <div class="block-head">
+            <h2>Activity</h2>
+            <span class="num">03 · watch</span>
+        </div>
+        <div class="log" s-class="empty-log: activity == ''" s-text="activity || 'No activity yet — add or remove a task.'"></div>
+        <div class="helper">Driven by a <code>watch</code> on <code>tasks</code> in the store.</div>
+    </section>
+
+    <!-- 04 — personalize (s-css multi-prop, s-blur) -->
+    <section class="block">
+        <div class="block-head">
+            <h2>Personalize</h2>
+            <span class="num">04 · s-css · s-blur</span>
+        </div>
+
+        <div class="person">
+            <div>
+                <span class="field-label">accent color</span>
+                <input type="color" s-bind="accentColor">
+                <div class="helper">Live <code>s-bind</code> — updates on every pick.</div>
+            </div>
+
+            <div>
+                <span class="field-label">preview size · <span s-text="previewSize"></span>px</span>
+                <input type="range" min="14" max="48" s-bind="previewSize">
+            </div>
+        </div>
+
+        <div style="margin-top: 18px;">
+            <span class="field-label">tagline · committed on blur</span>
+            <input type="text" class="field" style="width:100%" s-bind="tagline" s-blur placeholder="A few words for the preview…">
+            <div class="helper"><code>s-blur</code> — the store updates only when the field loses focus, not on every keystroke.</div>
+        </div>
+
+        <div class="preview"
+             s-css="background-color: {accentColor + '22'}; border-color: {accentColor}; color: {accentColor}">
+            <div class="swatch-text" s-css="font-size: {previewSize + 'px'}">
+                <span s-if="name.length > 0">— <span s-text="name"></span> —</span>
+                <span s-if="name.length == 0">— sensible —</span>
+            </div>
+            <div class="swatch-text" style="margin-top:8px; font-size:14px; opacity:.7" s-if="tagline.length > 0" s-text="tagline"></div>
+        </div>
+    </section>
+
+    <!-- 05 — inline widget (s-data) -->
+    <section class="block">
+        <div class="block-head">
+            <h2>Inline state, no store</h2>
+            <span class="num">05 · s-data</span>
+        </div>
+        <div class="inline-widget" s-data="{count: 0}">
+            <div class="pad">
+                <div style="font-family: var(--font-display); font-size: 18px; font-weight: 500;">A self-contained counter</div>
+                <div class="helper">Its state lives in <code>s-data="{count: 0}"</code> on the wrapper. No store entry needed.</div>
+            </div>
+            <button s-click="count = Math.max(0, count - 1)">−</button>
+            <div class="num-big" s-text="count"></div>
+            <button s-click="count++">+</button>
+        </div>
+    </section>
+
+    <!-- 06 — store echo -->
+    <section class="block">
+        <div class="block-head">
+            <h2>The store, live</h2>
+            <span class="num">06 · s-text · computed</span>
+        </div>
+        <pre class="echo" s-text="storeJson"></pre>
+        <div class="helper"><code>storeJson</code> is a computed value — <code>JSON.stringify</code> over the reactive state.</div>
+    </section>
+
+    <footer>
+        Built with
+        <a href="https://github.com/ricardoaponte/sensiblejs" target="_blank" rel="noopener">SensibleJS</a> ·
+        no build step · no virtual DOM · just HTML attributes
+    </footer>
+</div>
+
+<script>
+    // Store data is exposed as script-scope globals — so we just write
+    // `tasks`, `draft`, etc. directly. No .value, no store.data lookup.
+
+    function addTask () {
+        if (!draft || draft.trim() === '') return;
+        tasks.push({
+            id: Date.now(),
+            title: draft.trim(),
+            done: false,
+            priority: draftPriority,
+            bucket: draftBucket
+        });
+        draft = '';
+        if (typeof $refs !== 'undefined' && $refs.draftInput) $refs.draftInput.focus();
+    }
+
+    function removeTask (btn) {
+        var key = btn.closest('[s-key-value]').getAttribute('s-key-value');
+        for (var i = 0; i < tasks.length; i++) {
+            if (String(tasks[i].id) === key) { tasks.splice(i, 1); return; }
+        }
+    }
+
+    function toggleTask (cb) {
+        var key = cb.closest('[s-key-value]').getAttribute('s-key-value');
+        for (var i = 0; i < tasks.length; i++) {
+            if (String(tasks[i].id) === key) {
+                // splice-replace guarantees reactivity for nested mutations
+                var next = Object.assign({}, tasks[i], { done: !tasks[i].done });
+                tasks.splice(i, 1, next);
+                return;
+            }
+        }
+    }
+
+    let store = {
+        persist: true,
+        localPrefix: 'st_',
+
+        data: {
+            // greeting
+            name: { type: String, default: '' },
+
+            // composer
+            draft:         { type: String, default: '', persist: false },
+            draftPriority: { type: String, default: 'med' },
+            draftBucket:   { type: String, default: 'Today' },
+
+            // tasks + watcher
+            tasks: {
+                type: Array,
+                default: [
+                    { id: 1, title: 'Try editing this — toggle the circle', done: false, priority: 'low',  bucket: 'Today' },
+                    { id: 2, title: 'Search "demo" to filter the list',     done: false, priority: 'med',  bucket: 'Today' },
+                    { id: 3, title: 'Change the accent color below',        done: false, priority: 'high', bucket: 'Soon'  },
+                    { id: 4, title: 'Read the SensibleJS README',           done: true,  priority: 'low',  bucket: 'Later' }
+                ],
+                watch: function (newVal, oldVal) {
+                    var before = (oldVal || []).length, after = (newVal || []).length;
+                    var stamp  = new Date().toLocaleTimeString();
+                    var line;
+                    if (after > before)      line = '[' + stamp + '] + task added (now ' + after + ')';
+                    else if (after < before) line = '[' + stamp + '] − task removed (now ' + after + ')';
+                    else                     line = '[' + stamp + '] · task updated';
+                    activity = (activity ? activity + '\n' : '') + line;
+                }
+            },
+            filter: { type: String, default: 'all', persist: false },
+            query:  { type: String, default: '', persist: false },
+
+            // activity (driven by watcher)
+            activity: { type: String, default: '', persist: false },
+
+            // personalize
+            accentColor: { type: String, default: '#b9410c' },
+            previewSize: { type: Number, default: 28 },
+            tagline:     { type: String, default: 'curated for you' },
+
+            // computed
+            timeOfDay: {
+                computed: "(new Date().getHours() < 12 ? 'Good morning' : (new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'))"
+            },
+            completed: { computed: 'tasks.filter(t => t.done).length' },
+            remaining: { computed: 'tasks.filter(t => !t.done).length' },
+            percent:   { computed: 'tasks.length === 0 ? 0 : Math.round((tasks.filter(t => t.done).length / tasks.length) * 100)' },
+            visibleTasks: {
+                computed: "tasks.filter(t => (filter === 'all' || (filter === 'active' && !t.done) || (filter === 'done' && t.done)) && (query.length === 0 || t.title.toLowerCase().indexOf(query.toLowerCase()) !== -1))"
+            },
+            matches: {
+                computed: "tasks.filter(t => query.length === 0 || t.title.toLowerCase().indexOf(query.toLowerCase()) !== -1).length"
+            },
+            storeJson: {
+                computed: "JSON.stringify({name: name, filter: filter, query: query, totalTasks: tasks.length, completed: completed, remaining: remaining, percent: percent, accentColor: accentColor, previewSize: previewSize, tagline: tagline}, null, 2)"
+            }
+        },
+
+        onInit: function (data) {
+            console.log('[SensibleTasks] initialized at', new Date().toLocaleTimeString());
+        }
+    };
+</script>
+</body>
+</html>

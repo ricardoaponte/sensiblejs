@@ -3,7 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
     <title>SensibleJS - Reactive UI in ~10KB</title>
+    <script>
+        // Apply persisted theme before paint to avoid FOUC. SensibleJS stores
+        // primitive strings in localStorage as plain text (no JSON wrapping).
+        (function () {
+            try {
+                var t = localStorage.getItem('__demo_themeMode');
+                if (t === 'light' || t === 'dark') {
+                    document.documentElement.setAttribute('data-theme', t);
+                }
+            } catch (e) {}
+        })();
+    </script>
     <script src="sensibljs.min.js" defer></script>
     <style>
         [s-cloak] { display: none !important; }
@@ -14,6 +27,30 @@
             --accent: #6366f1; --accent-hover: #818cf8;
             --green: #22c55e; --red: #ef4444; --yellow: #eab308;
             --radius: 8px; --font: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+        }
+        :root[data-theme="light"] {
+            --bg: #fafafa; --surface: #ffffff; --surface-2: #f3f4f6;
+            --border: #e5e7eb; --text: #111827; --text-muted: #6b7280;
+            --accent: #6366f1; --accent-hover: #4f46e5;
+            --green: #16a34a; --red: #dc2626; --yellow: #ca8a04;
+        }
+        @media (prefers-color-scheme: light) {
+            :root:not([data-theme]) {
+                --bg: #fafafa; --surface: #ffffff; --surface-2: #f3f4f6;
+                --border: #e5e7eb; --text: #111827; --text-muted: #6b7280;
+                --accent: #6366f1; --accent-hover: #4f46e5;
+                --green: #16a34a; --red: #dc2626; --yellow: #ca8a04;
+            }
+        }
+
+        /* Theme toggle (fixed top-right) */
+        .theme-toggle { position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--border); border-radius: 100px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .theme-toggle button { background: transparent; border: 0; color: var(--text-muted); cursor: pointer; padding: 5px 11px; border-radius: 100px; font-family: var(--font); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.15s, background-color 0.15s; }
+        .theme-toggle button:hover { color: var(--text); }
+        .theme-toggle button.is-active { background: var(--accent); color: white; }
+        @media (max-width: 520px) {
+            .theme-toggle { top: 8px; right: 8px; }
+            .theme-toggle button { padding: 4px 9px; font-size: 0.62rem; }
         }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
         code, pre, .code-block { font-family: var(--font); }
@@ -113,6 +150,29 @@
         .todo-item .remove { margin-left: auto; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; border: none; background: none; padding: 2px 6px; border-radius: 4px; }
         .todo-item .remove:hover { color: var(--red); background: rgba(239,68,68,0.1); }
 
+        /* Tasks (s-for demo) */
+        .task-composer { display: grid; grid-template-columns: 1fr 110px 110px auto; gap: 8px; margin-bottom: 14px; }
+        @media (max-width: 640px) { .task-composer { grid-template-columns: 1fr 1fr; } .task-composer .btn { grid-column: 1 / -1; } }
+        .task-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); flex-wrap: wrap; margin-bottom: 14px; }
+        .filter-pills { display: flex; gap: 4px; }
+        .filter-pill { background: transparent; color: var(--text-muted); border: 1px solid transparent; padding: 4px 12px; border-radius: 100px; font-family: var(--font); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+        .filter-pill:hover { color: var(--text); }
+        .filter-pill.is-active { background: var(--accent); color: white; border-color: var(--accent); }
+        .task-search { display: flex; align-items: center; gap: 8px; flex: 0 1 280px; }
+        .task-search input { flex: 1; }
+        .task-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: 12px; align-items: center; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 6px; }
+        .task-check { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; border: 1.5px solid var(--text-muted); border-radius: 50%; cursor: pointer; position: relative; flex-shrink: 0; background: transparent; }
+        .task-check:hover { border-color: var(--accent); }
+        .task-check:checked { background: var(--green); border-color: var(--green); }
+        .task-check:checked::after { content: ""; position: absolute; left: 4px; top: 1px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+        .task-title { font-size: 0.9rem; }
+        .task-title.done { text-decoration: line-through; color: var(--text-muted); }
+        .task-pill { font-family: var(--font); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; background: var(--bg); color: var(--text-muted); white-space: nowrap; }
+        .task-pill[data-priority="med"]  { color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+        .task-pill[data-priority="high"] { color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+        .task-row .remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; line-height: 1; padding: 2px 8px; border-radius: 4px; }
+        .task-row .remove:hover { color: var(--red); background: rgba(239,68,68,0.1); }
+
         /* Quickstart */
         .quickstart-steps { display: grid; gap: 16px; }
         .step { display: flex; gap: 16px; align-items: flex-start; }
@@ -149,6 +209,13 @@
     </style>
 </head>
 <body s-cloak>
+
+<!-- ===== THEME TOGGLE ===== -->
+<div class="theme-toggle" role="group" aria-label="Color theme">
+    <button s-class="is-active: themeMode == 'light'"  s-click="themeMode = 'light'"  aria-label="Light theme">Light</button>
+    <button s-class="is-active: themeMode == 'system'" s-click="themeMode = 'system'" aria-label="Match system">System</button>
+    <button s-class="is-active: themeMode == 'dark'"   s-click="themeMode = 'dark'"   aria-label="Dark theme">Dark</button>
+</div>
 
 <!-- ===== HERO ===== -->
 <div class="hero">
@@ -211,7 +278,7 @@ let store = {
                 <p>Use directives in your HTML</p>
                 <div class="code-block">
                     <span class="tag">&lt;input</span> <span class="attr">s-bind</span>=<span class="val">"name"</span><span class="tag">&gt;</span>
-                    <span class="tag">&lt;p><span class="attr">s-bind</span>=<span class="val">"name"</span>Hello1, {name}!<span class="tag">&lt;/p&gt;
+                    <span class="tag">&lt;p><span class="attr">s-bind</span>=<span class="val">"name"</span>Hello, {name}!<span class="tag">&lt;/p&gt;
                     <span class="tag">&lt;button</span> <span class="attr">s-click</span>=<span class="val">"count++"</span><span class="tag">&gt;</span>Clicked {count} times<span class="tag">&lt;/button&gt;</span></div>
             </div>
         </div>
@@ -401,80 +468,141 @@ let store = {
 <section>
     <div class="section-tag">List Rendering</div>
     <div class="section-title">s-for</div>
-    <div class="section-desc">Render lists from arrays. Add, remove, and reorder items reactively.</div>
+    <div class="section-desc">Render lists from arrays. Filter, search, toggle, remove &mdash; the rendered list reacts to a computed view, not the raw array.</div>
 
     <div class="demo">
         <div class="demo-header">
             <span class="demo-label"><span class="live-dot"></span>Live</span>
-            <span class="demo-directive">s-for</span>
+            <span class="demo-directive">s-for &middot; s-key &middot; computed &middot; s-debounce</span>
         </div>
-        <div class="demo-split">
-            <div>
-                <div class="input-row">
-                    <label>Add a task</label>
-                    <div class="flex gap-8">
-                        <input type="text" s-bind="newTask" placeholder="What needs doing?" style="flex:1">
-                        <button class="btn btn-sm" onclick="addTask()">Add</button>
-                    </div>
+        <div class="demo-body">
+            <!-- composer: text + priority + bucket + add -->
+            <div class="task-composer">
+                <input type="text" s-bind="taskDraft" s-on="keydown.enter: addTask()" placeholder="What needs doing?" autocomplete="off">
+                <select s-bind="taskDraftPriority">
+                    <option value="low">Low</option>
+                    <option value="med">Medium</option>
+                    <option value="high">High</option>
+                </select>
+                <select s-bind="taskDraftBucket">
+                    <option value="Today">Today</option>
+                    <option value="Soon">Soon</option>
+                    <option value="Later">Later</option>
+                </select>
+                <button class="btn btn-sm" s-click="addTask()" s-attr="disabled: taskDraft.trim().length === 0">Add</button>
+            </div>
+
+            <!-- filter pills + debounced search -->
+            <div class="task-toolbar">
+                <div class="filter-pills">
+                    <button class="filter-pill" s-class="is-active: taskFilter == 'all'"    s-click="taskFilter = 'all'">All</button>
+                    <button class="filter-pill" s-class="is-active: taskFilter == 'active'" s-click="taskFilter = 'active'">Active</button>
+                    <button class="filter-pill" s-class="is-active: taskFilter == 'done'"   s-click="taskFilter = 'done'">Done</button>
                 </div>
-                <div class="text-sm text-muted mt-8">
-                    <span s-bind="tasks" s-if="tasks.length > 0">{tasks.length} task(s)</span>
-                    <span s-if="tasks.length > 0"> &middot; </span>
-                    <button class="btn-sm btn-outline" onclick="tasks.splice(0, tasks.length)" s-if="tasks.length > 0" style="font-size:0.75rem; cursor:pointer;">Clear all</button>
+                <div class="task-search">
+                    <input type="text" s-bind="taskQuery" s-debounce="200" placeholder="search…" autocomplete="off">
+                    <span class="text-sm text-muted mono" s-if="taskQuery.length > 0"><span s-bind="taskMatches">{taskMatches}</span> hit(s)</span>
                 </div>
             </div>
-            <div>
-                <label>Tasks</label>
-                <div s-if="tasks.length > 0">
-                    <div s-for="task of tasks" s-key="task.id">
-                        <div class="todo-item">
-                            <span class="num">#{task.id}</span>
-                            <span>{task.text}</span>
-                            <button class="remove" onclick="removeTask(this)">remove</button>
-                        </div>
+
+            <!-- counts (derived from computed values) -->
+            <div class="text-sm text-muted mono" s-if="tasks.length > 0" style="margin-bottom: 12px;">
+                <span s-bind="taskRemaining">{taskRemaining}</span> pending &middot;
+                <span s-bind="taskCompleted">{taskCompleted}</span> done &middot;
+                <span s-bind="tasks.length">{tasks.length}</span> total
+            </div>
+
+            <!-- the list itself iterates a *computed* (visibleTasks), not the raw array -->
+            <div s-if="visibleTasks.length > 0">
+                <div s-for="t of visibleTasks" s-key="t.id">
+                    <div class="task-row">
+                        <input type="checkbox" class="task-check" s-attr="checked: t.done" onclick="toggleTask(this)">
+                        <span class="task-title" s-class="done: t.done">{t.title}</span>
+                        <span class="task-pill" s-attr="data-priority: t.priority">{t.bucket} &middot; {t.priority}</span>
+                        <button class="remove" onclick="removeTask(this)" title="Remove">&times;</button>
                     </div>
                 </div>
-                <div class="live-output text-sm text-muted" s-if="tasks.length === 0">
-                    No tasks yet. Add one!
-                </div>
+            </div>
+
+            <!-- contextual empty states -->
+            <div class="live-output text-sm text-muted" s-if="tasks.length === 0">
+                No tasks yet &mdash; add one above.
+            </div>
+            <div class="live-output text-sm text-muted" s-if="tasks.length > 0 && visibleTasks.length === 0 && taskQuery.length > 0">
+                Nothing matches "<span s-bind="taskQuery">{taskQuery}</span>".
+            </div>
+            <div class="live-output text-sm text-muted" s-if="tasks.length > 0 && visibleTasks.length === 0 && taskQuery.length === 0 && taskFilter == 'active'">
+                All caught up.
+            </div>
+            <div class="live-output text-sm text-muted" s-if="tasks.length > 0 && visibleTasks.length === 0 && taskQuery.length === 0 && taskFilter == 'done'">
+                Nothing done yet.
             </div>
         </div>
     </div>
 
     <details class="code-toggle"><summary>View code</summary>
-    <div class="code-block"><span class="comment">&lt;!-- HTML: iterate over an array --&gt;</span>
-<span class="tag">&lt;div</span> <span class="attr">s-for</span>=<span class="val">"task of tasks"</span> <span class="attr">s-key</span>=<span class="val">"task.id"</span><span class="tag">&gt;</span>
-  <span class="tag">&lt;span&gt;</span>#{task.id}<span class="tag">&lt;/span&gt;</span>
-  <span class="tag">&lt;span&gt;</span>{task.text}<span class="tag">&lt;/span&gt;</span>
-  <span class="tag">&lt;button</span> <span class="attr">onclick</span>=<span class="val">"removeTask(this)"</span><span class="tag">&gt;</span>remove<span class="tag">&lt;/button&gt;</span>
+    <div class="code-block"><span class="comment">&lt;!-- The s-for iterates over a *computed* view, not the raw array.</span>
+<span class="comment">     Filter pills, search, and toggling re-render automatically. --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s-for</span>=<span class="val">"t of visibleTasks"</span> <span class="attr">s-key</span>=<span class="val">"t.id"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="val">"checkbox"</span> <span class="attr">s-attr</span>=<span class="val">"checked: t.done"</span> <span class="attr">onclick</span>=<span class="val">"toggleTask(this)"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;span</span> <span class="attr">s-class</span>=<span class="val">"done: t.done"</span><span class="tag">&gt;</span>{t.title}<span class="tag">&lt;/span&gt;</span>
+  <span class="tag">&lt;span</span> <span class="attr">s-attr</span>=<span class="val">"data-priority: t.priority"</span><span class="tag">&gt;</span>{t.bucket} &middot; {t.priority}<span class="tag">&lt;/span&gt;</span>
+  <span class="tag">&lt;button</span> <span class="attr">onclick</span>=<span class="val">"removeTask(this)"</span><span class="tag">&gt;</span>&times;<span class="tag">&lt;/button&gt;</span>
 <span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Filter pills: s&#45;class for active state, s&#45;click to set --&gt;</span>
+<span class="tag">&lt;button</span> <span class="attr">s-class</span>=<span class="val">"is-active: taskFilter == 'all'"</span> <span class="attr">s-click</span>=<span class="val">"taskFilter = 'all'"</span><span class="tag">&gt;</span>All<span class="tag">&lt;/button&gt;</span>
+
+<span class="comment">&lt;!-- Search input with 200ms debounce --&gt;</span>
+<span class="tag">&lt;input</span> <span class="attr">s-bind</span>=<span class="val">"taskQuery"</span> <span class="attr">s-debounce</span>=<span class="val">"200"</span><span class="tag">&gt;</span>
 
 <span class="comment">&lt;!-- Store --&gt;</span>
 <span class="tag">&lt;script&gt;</span>
 let store = {
   data: {
-    tasks: {
-      type: Array,
-      default: [
-        { id: <span class="val">1</span>, text: <span class="val">'First task'</span> },
-        { id: <span class="val">2</span>, text: <span class="val">'Second task'</span> }
-      ]
-    },
-    newTask: { type: String, default: <span class="val">''</span>, persist: <span class="val">false</span> }
+    tasks: { type: Array, persist: <span class="val">false</span>, default: [
+      { id: <span class="val">1</span>, title: <span class="val">'Toggle the circle'</span>, done: <span class="val">false</span>, priority: <span class="val">'low'</span>,  bucket: <span class="val">'Today'</span> },
+      { id: <span class="val">2</span>, title: <span class="val">'Search "demo" to filter'</span>, done: <span class="val">false</span>, priority: <span class="val">'med'</span>, bucket: <span class="val">'Today'</span> },
+      { id: <span class="val">3</span>, title: <span class="val">'Bucket me into Soon'</span>, done: <span class="val">false</span>, priority: <span class="val">'high'</span>, bucket: <span class="val">'Soon'</span> }
+    ]},
+    taskDraft:         { type: String, default: <span class="val">''</span>, persist: <span class="val">false</span> },
+    taskDraftPriority: { type: String, default: <span class="val">'med'</span> },
+    taskDraftBucket:   { type: String, default: <span class="val">'Today'</span> },
+    taskFilter:        { type: String, default: <span class="val">'all'</span>, persist: <span class="val">false</span> },
+    taskQuery:         { type: String, default: <span class="val">''</span>, persist: <span class="val">false</span> },
+
+    <span class="comment">// Computed: filter + search reactively rebuild the visible list</span>
+    visibleTasks: { computed: <span class="val">"tasks.filter(t => (taskFilter === 'all' || (taskFilter === 'active' &amp;&amp; !t.done) || (taskFilter === 'done' &amp;&amp; t.done)) &amp;&amp; (taskQuery.length === 0 || t.title.toLowerCase().indexOf(taskQuery.toLowerCase()) !== -1))"</span> },
+    taskMatches:   { computed: <span class="val">"tasks.filter(t => taskQuery.length === 0 || t.title.toLowerCase().indexOf(taskQuery.toLowerCase()) !== -1).length"</span> },
+    taskCompleted: { computed: <span class="val">'tasks.filter(t => t.done).length'</span> },
+    taskRemaining: { computed: <span class="val">'tasks.filter(t => !t.done).length'</span> }
   }
 };
 
-<span class="comment">// Add items reactively</span>
+<span class="comment">// Add: push a new object — array observer triggers re-render</span>
 function addTask() {
-  tasks.push({ id: Date.now(), text: newTask });
-  newTask = <span class="val">''</span>;
+  if (taskDraft.trim() === <span class="val">''</span>) return;
+  tasks.push({ id: Date.now(), title: taskDraft.trim(), done: <span class="val">false</span>,
+               priority: taskDraftPriority, bucket: taskDraftBucket });
+  taskDraft = <span class="val">''</span>;
+}
+
+<span class="comment">// Toggle: splice-replace ensures nested mutation is reactive</span>
+function toggleTask(cb) {
+  let key = cb.closest(<span class="val">'[s-key-value]'</span>).getAttribute(<span class="val">'s-key-value'</span>);
+  for (let i = 0; i &lt; tasks.length; i++) {
+    if (String(tasks[i].id) === key) {
+      tasks.splice(i, <span class="val">1</span>, Object.assign({}, tasks[i], { done: !tasks[i].done }));
+      return;
+    }
+  }
 }
 
 <span class="comment">// Remove by key from s-key-value attribute</span>
 function removeTask(btn) {
   let key = btn.closest(<span class="val">'[s-key-value]'</span>).getAttribute(<span class="val">'s-key-value'</span>);
   for (let i = 0; i &lt; tasks.length; i++) {
-    if (String(tasks[i].id) === key) { tasks.splice(i, 1); return; }
+    if (String(tasks[i].id) === key) { tasks.splice(i, <span class="val">1</span>); return; }
   }
 }
 <span class="tag">&lt;/script&gt;</span></div>
@@ -1306,13 +1434,26 @@ let store = {
 </footer>
 
 <script>
-    let taskIdCounter = 0;
-
     function addTask() {
-        if (newTask.trim() === '') return;
-        taskIdCounter++;
-        tasks.push({ id: taskIdCounter, text: newTask });
-        newTask = '';
+        if (taskDraft.trim() === '') return;
+        tasks.push({
+            id: Date.now(),
+            title: taskDraft.trim(),
+            done: false,
+            priority: taskDraftPriority,
+            bucket: taskDraftBucket
+        });
+        taskDraft = '';
+    }
+
+    function toggleTask(cb) {
+        let key = cb.closest('[s-key-value]').getAttribute('s-key-value');
+        for (let i = 0; i < tasks.length; i++) {
+            if (String(tasks[i].id) === key) {
+                tasks.splice(i, 1, Object.assign({}, tasks[i], { done: !tasks[i].done }));
+                return;
+            }
+        }
     }
 
     let photoIds = [11, 15, 22, 27, 29, 33, 36, 39, 42, 48, 54, 57, 59, 65, 76, 84, 91, 96, 103, 110, 119, 129, 137, 142, 152, 160, 164, 167, 169, 175, 180, 188, 193, 197, 200, 209, 211, 214, 217, 219, 222, 225, 227, 230, 237, 239, 243, 247, 250, 256];
@@ -1363,14 +1504,9 @@ let store = {
     }
 
     function removeTask(btn) {
-        event.preventDefault();
-        let idx = btn.closest('[s-key-value]').getAttribute('s-key-value');
-        // Find index by key
+        let key = btn.closest('[s-key-value]').getAttribute('s-key-value');
         for (let i = 0; i < tasks.length; i++) {
-            if (String(tasks[i].id) === idx) {
-                tasks.splice(i, 1);
-                return;
-            }
+            if (String(tasks[i].id) === key) { tasks.splice(i, 1); return; }
         }
     }
 
@@ -1392,8 +1528,21 @@ let store = {
             showSlide: { type: Boolean, default: true },
 
             // s-for demo
-            tasks:   { type: Array, default: [{ id: 1, text: 'Try editing this task' }, { id: 2, text: 'Add a new one above' }, { id: 3, text: 'Or remove me' }] },
-            newTask: { type: String, default: '', persist: false },
+            tasks: { type: Array, persist: false, default: [
+                { id: 1, title: 'Toggle the circle to mark me done', done: false, priority: 'low',  bucket: 'Today' },
+                { id: 2, title: 'Search "filter" to narrow the list', done: false, priority: 'med',  bucket: 'Today' },
+                { id: 3, title: 'Bucket me into "Soon" or "Later"',   done: false, priority: 'high', bucket: 'Soon'  },
+                { id: 4, title: 'Already done — strike-through, muted', done: true, priority: 'low', bucket: 'Later' }
+            ]},
+            taskDraft:         { type: String, default: '', persist: false },
+            taskDraftPriority: { type: String, default: 'med' },
+            taskDraftBucket:   { type: String, default: 'Today' },
+            taskFilter:        { type: String, default: 'all', persist: false },
+            taskQuery:         { type: String, default: '', persist: false },
+            visibleTasks: { computed: "tasks.filter(t => (taskFilter === 'all' || (taskFilter === 'active' && !t.done) || (taskFilter === 'done' && t.done)) && (taskQuery.length === 0 || t.title.toLowerCase().indexOf(taskQuery.toLowerCase()) !== -1))" },
+            taskMatches:   { computed: "tasks.filter(t => taskQuery.length === 0 || t.title.toLowerCase().indexOf(taskQuery.toLowerCase()) !== -1).length" },
+            taskCompleted: { computed: 'tasks.filter(t => t.done).length' },
+            taskRemaining: { computed: 'tasks.filter(t => !t.done).length' },
 
             // s-css demo
             cssColor:   { type: String, default: '#6366f1' },
@@ -1460,9 +1609,32 @@ let store = {
 
             // onInit demo
             initMessage: { type: String, default: '', persist: false },
+
+            // Theme toggle (light / dark / system). Initial value is applied by an
+            // inline script in <head> to avoid FOUC; this watcher keeps the
+            // <html data-theme> attribute in sync as the user clicks the toggle.
+            themeMode: {
+                type: String,
+                default: 'system',
+                watch: function (newVal) {
+                    if (newVal === 'light' || newVal === 'dark') {
+                        document.documentElement.setAttribute('data-theme', newVal);
+                    } else {
+                        document.documentElement.removeAttribute('data-theme');
+                    }
+                }
+            },
         },
         onInit: function(data) {
             data.initMessage = 'SensibleJS initialized at ' + new Date().toLocaleTimeString();
+            // Reconcile the <html data-theme> attribute with the loaded value.
+            // The pre-paint script only set it when stored value was light/dark;
+            // here we also handle the 'system' case (or first-visit default).
+            if (data.themeMode === 'light' || data.themeMode === 'dark') {
+                document.documentElement.setAttribute('data-theme', data.themeMode);
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
         }
     };
 </script>
