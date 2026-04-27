@@ -186,6 +186,10 @@
         /**
          * Process all directives
          */
+        // Elements inside s-for are handled by processForDirectives — skip them in global processors
+        // Checks both rendered s-for children ([s-key-value]) and unprocessed s-for templates ([s-for])
+        function insideFor(el) { return el.closest('[s-key-value]') !== null || el.closest('[s-for]') !== null; }
+
         function updateAll() {
             elementBindings();
             elementTexts();
@@ -226,7 +230,7 @@
         function elementCss() {
             // Element CSS
             document.querySelectorAll("[s-css]").forEach((element) => {
-                cssElement(element);
+                if (!insideFor(element)) cssElement(element);
             });
         }
 
@@ -235,7 +239,7 @@
          */
         function elementClasses() {
             document.querySelectorAll("[s-class]").forEach((element) => {
-                classElement(element);
+                if (!insideFor(element)) classElement(element);
             });
         }
 
@@ -244,7 +248,7 @@
          */
         function elementAttrs() {
             document.querySelectorAll("[s-attr]").forEach((element) => {
-                attrElement(element);
+                if (!insideFor(element)) attrElement(element);
             });
         }
 
@@ -265,7 +269,7 @@
         function elementIfs() {
             // Element display
             document.querySelectorAll("[s-if]").forEach((element) => {
-                ifElement(element);
+                if (!insideFor(element)) ifElement(element);
             });
         }
 
@@ -285,6 +289,7 @@
          */
         function elementTexts() {
             document.querySelectorAll("[s-text]").forEach(function(element) {
+                if (insideFor(element)) return;
                 try {
                     element.textContent = exec(element.getAttribute('s-text'));
                 } catch (error) {
@@ -298,6 +303,7 @@
          */
         function elementHtmls() {
             document.querySelectorAll("[s-html]").forEach(function(element) {
+                if (insideFor(element)) return;
                 try {
                     element.innerHTML = exec(element.getAttribute('s-html'));
                 } catch (error) {
@@ -325,7 +331,7 @@
                                 console.error(error.message);
                             }
                         } else {
-                            _data[element.attributes['s-bind'].value] = exec(event.target.value.replace(/\+/g, ""));
+                            _data[element.attributes['s-bind'].value] = event.target.value;
                         }
                     }
                     element.value = exec(getCode(element.attributes['s-bind'].value));
@@ -460,36 +466,42 @@
             });
 
             document.querySelectorAll("[s-if]").forEach((element) => {
+                if (insideFor(element)) return;
                 if (matches(element.getAttribute('s-if'), element.innerHTML)) {
                     ifElement(element);
                 }
             });
 
             document.querySelectorAll("[s-css]").forEach((element) => {
+                if (insideFor(element)) return;
                 if (matches(element.getAttribute('s-css'), element.innerHTML)) {
                     cssElement(element);
                 }
             });
 
             document.querySelectorAll("[s-class]").forEach((element) => {
+                if (insideFor(element)) return;
                 if (matches(element.getAttribute('s-class'))) {
                     classElement(element);
                 }
             });
 
             document.querySelectorAll("[s-attr]").forEach((element) => {
+                if (insideFor(element)) return;
                 if (matches(element.getAttribute('s-attr'))) {
                     attrElement(element);
                 }
             });
 
             document.querySelectorAll("[s-text]").forEach((element) => {
+                if (insideFor(element)) return;
                 if (matches(element.getAttribute('s-text'))) {
                     try { element.textContent = exec(element.getAttribute('s-text')); } catch (e) { console.error(e.message); }
                 }
             });
 
             document.querySelectorAll("[s-html]").forEach((element) => {
+                if (insideFor(element)) return;
                 if (matches(element.getAttribute('s-html'))) {
                     try { element.innerHTML = exec(element.getAttribute('s-html')); } catch (e) { console.error(e.message); }
                 }
@@ -698,6 +710,69 @@
         }
 
         /**
+         * Process directives on elements rendered inside s-for loops.
+         * Uses execForItem so loop variables (e.g. "item") are in scope.
+         */
+        function processForDirectives(el, itemVar, item, index) {
+            // s-text
+            el.querySelectorAll('[s-text]').forEach(function(child) {
+                try { child.textContent = execForItem(child.getAttribute('s-text'), itemVar, item, index); } catch(e) { console.error(e.message); }
+            });
+            // s-html
+            el.querySelectorAll('[s-html]').forEach(function(child) {
+                try { child.innerHTML = execForItem(child.getAttribute('s-html'), itemVar, item, index); } catch(e) { console.error(e.message); }
+            });
+            // s-if
+            el.querySelectorAll('[s-if]').forEach(function(child) {
+                try {
+                    var display = !!execForItem(child.getAttribute('s-if'), itemVar, item, index);
+                    if (!child.hasOwnProperty('originalDisplay')) child.originalDisplay = child.style.display;
+                    child.style.display = display ? (child.originalDisplay || '') : 'none';
+                } catch(e) { console.error(e.message); }
+            });
+            // s-class
+            el.querySelectorAll('[s-class]').forEach(function(child) {
+                try {
+                    child.getAttribute('s-class').split(';').forEach(function(pair) {
+                        if (!(pair = pair.trim())) return;
+                        var cls = pair.substring(0, pair.indexOf(':')).trim();
+                        var expr = pair.substring(pair.indexOf(':') + 1).trim();
+                        if (execForItem(expr, itemVar, item, index)) child.classList.add(cls);
+                        else child.classList.remove(cls);
+                    });
+                } catch(e) { console.error(e.message); }
+            });
+            // s-attr
+            el.querySelectorAll('[s-attr]').forEach(function(child) {
+                try {
+                    child.getAttribute('s-attr').split(';').forEach(function(pair) {
+                        if (!(pair = pair.trim())) return;
+                        var attr = pair.substring(0, pair.indexOf(':')).trim();
+                        if (/^on/i.test(attr)) return;
+                        var expr = pair.substring(pair.indexOf(':') + 1).trim();
+                        var val = execForItem(expr, itemVar, item, index);
+                        if (val === false || val === null || val === undefined) child.removeAttribute(attr);
+                        else if (val === true) child.setAttribute(attr, '');
+                        else child.setAttribute(attr, val);
+                    });
+                } catch(e) { console.error(e.message); }
+            });
+            // s-css
+            el.querySelectorAll('[s-css]').forEach(function(child) {
+                try {
+                    child.getAttribute('s-css').split(';').forEach(function(style) {
+                        if (!(style = style.trim())) return;
+                        var cssAttr = style.substring(0, style.indexOf(':')).trim();
+                        var valExpr = "'" + getCode(style.substring(style.indexOf(':') + 1)) + "'";
+                        var code = String(execForItem(valExpr, itemVar, item, index)).trim();
+                        if (_data[code] === undefined) code = "'" + code + "'";
+                        Object.assign(child.style, exec('{"' + cssAttr + '":' + code + '}'));
+                    });
+                } catch(e) { console.error(e.message); }
+            });
+        }
+
+        /**
          * Process s-for directive with keyed reconciliation
          */
         function forElement(element) {
@@ -721,7 +796,10 @@
 
                 let forAttr = templateElement.getAttribute('s-for');
                 let keyAttr = templateElement.getAttribute('s-key');
-                if (templateElement.innerHTML === '' || !hasCode(templateElement.innerHTML)) return;
+                if (templateElement.innerHTML === '') return;
+                var hasDirectives = hasCode(templateElement.innerHTML) ||
+                    templateElement.querySelector('[s-text],[s-html],[s-if],[s-class],[s-attr],[s-css],[s-bind]') !== null;
+                if (!hasDirectives) return;
 
                 // Parse "item of collection"
                 let parts = forAttr.split(/\s+of\s+/);
@@ -793,6 +871,9 @@
                     if (valueExpr) {
                         try { el.value = execForItem(valueExpr, itemVar, item, index); } catch(e) {}
                     }
+
+                    // Process directives on rendered children (s-text, s-if, s-class, s-attr, s-css, s-html)
+                    processForDirectives(el, itemVar, item, index);
 
                     newChildren.push(el);
                 });
