@@ -1,0 +1,381 @@
+# SensibleJS
+
+> Reactive UI in ~5KB gzipped. No build step. No virtual DOM. No dependencies. Just HTML attributes.
+
+## Quickstart
+
+```html
+<script src="sensibljs.min.js" defer></script>
+
+<input s-bind="name" placeholder="Your name">
+<p s-bind="name">Hello, {name}!</p>
+
+<script>
+let store = {
+    persist: true,
+    data: {
+        name: { type: String, default: '' }
+    }
+};
+</script>
+```
+
+No initialization call needed. SensibleJS detects `window.store` and starts automatically.
+
+## Store Schema
+
+```js
+let store = {
+    persist: true,          // Save to localStorage (default: true)
+    localPrefix: '__',      // Prefix for localStorage keys (default: '__')
+    data: { /* variables */ },
+    onInit: function(data) { /* runs after init */ }
+};
+```
+
+### Variable Options
+
+```js
+data: {
+    name:    { type: String,  default: '' },
+    count:   { type: Number,  default: 0 },
+    active:  { type: Boolean, default: true },
+    items:   { type: Array,   default: [] },
+    config:  { type: Object,  default: { theme: 'dark' } },
+    total:   { computed: 'price * qty' },               // read-only
+    search:  { type: String, default: '', persist: false, watch: function(n, o) {} }
+}
+```
+
+| Option     | Description |
+|------------|-------------|
+| `type`     | `String`, `Number`, `Boolean`, `Array`, `Object` |
+| `default`  | Initial value |
+| `persist`  | Per-variable override of store.persist |
+| `computed` | Expression string; read-only getter |
+| `watch`    | `function(newVal, oldVal)` called on change |
+
+## Directives
+
+| Directive       | Purpose |
+|-----------------|---------|
+| `s-bind`        | Two-way binding for inputs + display |
+| `s-if`          | Conditional show/hide |
+| `s-for`         | List rendering from arrays |
+| `s-text`        | Set textContent (safe) |
+| `s-html`        | Set innerHTML (trusted content only) |
+| `s-class`       | Toggle CSS classes conditionally |
+| `s-css`         | Dynamic inline styles |
+| `s-attr`        | Dynamic HTML attributes |
+| `s-click`       | Click handler |
+| `s-unclick`     | Click-outside handler |
+| `s-on`          | General event binding with modifiers |
+| `s-ref`         | Name element, access via `$refs` |
+| `s-cloak`       | Hide until initialized |
+| `s-data`        | Inline variable definition (no store) |
+| `s-debounce`    | Delay input updates (ms) |
+| `s-blur`        | Update on blur instead of keyup |
+| `s-transition`  | CSS enter/leave animation |
+| `s-src`         | Dynamic image src (for use in s-for) |
+| `s-key`         | Unique key for s-for reconciliation |
+
+## s-bind
+
+```html
+<input type="text" s-bind="name">
+<input type="text" s-bind="name" s-blur>
+<input type="checkbox" s-bind="active">
+<input type="radio" s-bind="color" value="red" name="color">
+<select s-bind="option"><option value="a">A</option></select>
+<input type="number" s-bind="qty">
+<input type="range" s-bind="volume" min="0" max="100">
+<input type="color" s-bind="accent">
+<input type="date" s-bind="startDate">
+<img s-bind="avatarUrl">
+<p s-bind="name">Hello, {name}!</p>
+<div contenteditable="true" s-bind="notes"></div>
+```
+
+## s-if
+
+```html
+<div s-if="isLoggedIn">Welcome back!</div>
+<div s-if="items.length === 0">No items yet.</div>
+<div s-if="show" s-transition="fade">Animated</div>
+```
+
+Preserves original `display` value (flex, grid, inline, etc.).
+
+## s-for
+
+```html
+<div s-for="item of items" s-key="item.id">
+    {item.name} - ${item.price}
+</div>
+```
+
+### Directives inside s-for
+
+All directives work inside s-for templates with access to the loop variable:
+
+```html
+<div s-for="t of tasks" s-key="t.id">
+    <span s-text="t.title"></span>
+    <span s-class="done: t.done; urgent: t.priority === 'high'"></span>
+    <span s-if="t.done">Completed</span>
+    <span s-attr="data-priority: t.priority; disabled: t.done"></span>
+    <span s-css="color: {t.done ? 'gray' : 'black'}"></span>
+    <span s-html="t.richDescription"></span>
+    <button s-click="tasks.updateWhere('id', t.id, {done: !t.done})">Toggle</button>
+    <button s-click="tasks.removeWhere('id', t.id)">Remove</button>
+    <img s-src="{t.imageUrl}">
+</div>
+```
+
+Single quotes work in directive attribute values inside s-for (e.g., `s-if="t.due !== ''"`).
+
+Available in loop scope: the loop variable (`t` above) and `index` (0-based).
+
+### s-if wrapper around s-for (empty state pattern)
+
+Wrap `s-for` in an `s-if` to show/hide the list with an alternate empty state:
+
+```html
+<div s-if="items.length > 0">
+    <div s-for="item of items" s-key="item.id">
+        <span s-text="item.name"></span>
+    </div>
+</div>
+<div s-if="items.length === 0">No items yet.</div>
+```
+
+This is the recommended pattern for conditional list rendering with empty states.
+
+### Reactivity in arrays
+
+Observed methods: `push`, `pop`, `splice`, `reverse`, `shift`, `sort`, `unshift`, `concat`, `update`, `updateWhere`, `removeWhere`.
+
+```js
+// WRONG: direct index assignment is NOT reactive
+items[0].done = true;
+
+// RIGHT: update by index
+items.update(i, { done: true });
+
+// RIGHT: update by property match
+items.updateWhere('id', 123, { done: true });
+
+// RIGHT: remove by property match
+items.removeWhere('id', 123);
+
+// RIGHT: splice still works for full control
+items.splice(i, 1, Object.assign({}, items[i], { done: true }));
+```
+
+### Event handling inside s-for
+
+`s-click` and `s-on` work inside s-for with access to the loop variable and `index`. Store variables remain reactive (mutations trigger re-renders).
+
+```html
+<div s-for="t of tasks" s-key="t.id">
+    <input type="checkbox" s-attr="checked: t.done"
+           s-click="tasks.updateWhere('id', t.id, {done: !t.done})">
+    <button s-click="tasks.removeWhere('id', t.id)">x</button>
+</div>
+```
+
+For handlers outside s-for scope (e.g. `onclick` on elements not in a loop), use `$find(array, el)`:
+
+```html
+<button onclick="toggle(this)">Toggle</button>
+<script>
+function toggle(el) {
+    var match = $find(tasks, el);  // returns {item, index} or null
+    if (match) tasks.update(match.index, { done: !match.item.done });
+}
+</script>
+```
+
+## s-text / s-html
+
+```html
+<p s-text="username"></p>
+<span s-text="'Hello, ' + name"></span>
+<div s-html="richContent"></div>
+```
+
+## s-class
+
+Semicolon-separated `class: expression` pairs:
+
+```html
+<div s-class="active: isActive; error: hasError; hidden: !isVisible"></div>
+```
+
+## s-css
+
+```html
+<div s-css="background-color: {accentColor}; width: {percent + '%'}"></div>
+```
+
+## s-attr
+
+```html
+<button s-attr="disabled: !formValid">Submit</button>
+<a s-attr="href: linkUrl; target: openInNew ? '_blank' : '_self'">Link</a>
+```
+
+`false`/`null`/`undefined` removes the attribute. `true` sets empty attribute.
+
+## s-on
+
+Format: `event.modifier: expression`. Modifiers: `.prevent`, `.stop`, `.enter`, `.escape`.
+
+```html
+<input s-on="keydown.enter: submit()">
+<form s-on="submit.prevent: handleSubmit()">
+<div s-on="mouseenter: hover = true; mouseleave: hover = false">
+```
+
+## s-click / s-unclick
+
+```html
+<button s-click="count++">+1</button>
+<div s-unclick="menuOpen = false">Dropdown</div>
+```
+
+## s-ref
+
+```html
+<input s-ref="myInput">
+<button s-click="$refs.myInput.focus()">Focus</button>
+```
+
+## s-data (inline state)
+
+```html
+<div s-data="{count: 0}">
+    <button s-click="count++">+</button>
+    <span s-bind="count">{count}</span>
+</div>
+```
+
+## s-debounce / s-blur
+
+```html
+<input s-bind="search" s-debounce="300">
+<input s-bind="bio" s-blur>
+```
+
+## s-transition
+
+```html
+<div s-if="show" s-transition="fade">Content</div>
+```
+
+CSS classes applied: `fade-enter`, `fade-enter-active`, `fade-enter-to`, `fade-leave`, `fade-leave-active`, `fade-leave-to`.
+
+## Computed values
+
+```js
+data: {
+    price: { type: Number, default: 10 },
+    qty:   { type: Number, default: 1 },
+    total: { computed: 'price * qty' }
+}
+```
+
+Read-only. Recalculates when dependencies change. Supports transitive dependencies.
+
+### Computed array patterns
+
+Computed values can derive filtered, sorted, or aggregated views from arrays:
+
+```js
+data: {
+    txs:    { type: Array, default: [] },
+    filter: { type: String, default: 'all', persist: false },
+    query:  { type: String, default: '', persist: false },
+
+    // Filtered + searched view (iterate over this in s-for, not the raw array)
+    visibleTxs: {
+        computed: "txs.filter(function(t) { " +
+            "var matchType = filter === 'all' || t.type === filter; " +
+            "var matchQuery = query.length === 0 || t.desc.toLowerCase().indexOf(query.toLowerCase()) !== -1; " +
+            "return matchType && matchQuery; " +
+            "}).slice().reverse()"
+    },
+
+    // Aggregations
+    totalExpenses: { computed: "txs.reduce(function(s,t){ return t.type==='expense' ? s+t.amount : s; }, 0)" },
+    totalIncome:   { computed: "txs.reduce(function(s,t){ return t.type==='income' ? s+t.amount : s; }, 0)" },
+    netBalance:    { computed: "totalIncome - totalExpenses" }
+}
+```
+
+Use `function(){}` syntax (not arrow functions) in computed expressions for broadest compatibility.
+
+## Persistence
+
+```js
+let store = {
+    persist: true,
+    localPrefix: 'myapp_',
+    data: {
+        saved:     { type: String, default: '' },              // persisted
+        temporary: { type: String, default: '', persist: false } // not persisted
+    }
+};
+```
+
+`store.persist` and per-variable `persist` can be toggled at runtime.
+
+### Runtime persistence toggle pattern
+
+To let users toggle localStorage on/off, store the toggle state in its own localStorage key
+(outside the store's prefix) since the toggle itself can't use the store's persistence:
+
+```js
+data: {
+    persist: { type: Boolean, default: localStorage.getItem('myapp_persist') !== '0', persist: false }
+}
+```
+
+```js
+function togglePersist(cb) {
+    persist = cb.checked;
+    localStorage.setItem('myapp_persist', persist ? '1' : '0');
+    store.persist = persist;
+    // For per-variable toggles:
+    ['items', 'settings'].forEach(function(f) { store.data[f].persist = persist; });
+    if (!persist) {
+        // Clear stored data
+        var prefix = store.localPrefix;
+        ['items', 'settings'].forEach(function(f) { localStorage.removeItem(prefix + f); });
+    }
+}
+```
+
+```js
+onInit: function(data) {
+    store.persist = persist;  // Sync store.persist with the restored toggle value
+}
+```
+
+## Expression sandbox
+
+Expressions use `new Function()` in a sandboxed scope.
+
+**Blocked:** `document`, `window`, `self`, `globalThis`, `fetch`, `XMLHttpRequest`, `Function`, `importScripts`, `setTimeout`, `setInterval`, `Proxy`, `Reflect`, `eval`, `constructor`, `__proto__`, `prototype`.
+
+**Allowed:** `Math`, `parseInt`, `parseFloat`, `JSON`, `console`, `isNaN`, `isFinite`, `String`, `Number`, `Boolean`, `Array`, `Object`, `Date`, `RegExp`, `Map`, `Set`, `atob`, `btoa`, `encodeURI`, `decodeURI`.
+
+## Variables are window globals
+
+All store variables are accessible as plain globals: `name`, `count`, `items`, etc. No `.value` wrapper.
+
+```js
+// Setting a variable triggers reactivity
+count = 5;
+items.push({ id: 1, text: 'New' });
+```

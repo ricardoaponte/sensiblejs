@@ -52,10 +52,9 @@
                     }
                     let arrayObserver = new ArrayObserver(_data[variable])
                     arrayObserver.Observe(function () {
-                        if (store.persist) {
-                            if ((store.data[variable].hasOwnProperty('persist') && store.data[variable].persist !== false)) {
-                                localStorage.setItem(store.localPrefix + variable, JSON.stringify(_data[variable]));
-                            }
+                        if (store.persist &&
+                            (!store.data[variable].hasOwnProperty('persist') || store.data[variable].persist === true)) {
+                            localStorage.setItem(store.localPrefix + variable, JSON.stringify(_data[variable]));
                         }
                         if (!initializing) {
                             scheduleUpdate(variable);
@@ -188,7 +187,10 @@
          */
         // Elements inside s-for are handled by processForDirectives — skip them in global processors
         // Checks both rendered s-for children ([s-key-value]) and unprocessed s-for templates ([s-for])
-        function insideFor(el) { return el.closest('[s-key-value]') !== null || el.closest('[s-for]') !== null; }
+        function insideFor(el) {
+            var p = el.parentElement;
+            return p !== null && (p.closest('[s-key-value]') !== null || p.closest('[s-for]') !== null);
+        }
 
         function updateAll() {
             elementBindings();
@@ -218,9 +220,8 @@
          * Define s-click directives
          */
         function elementClick() {
-            // Element CSS
             document.querySelectorAll("[s-click]").forEach((element) => {
-                clickElement(element);
+                if (!insideFor(element)) clickElement(element);
             });
         }
 
@@ -753,6 +754,24 @@
         }
 
         /**
+         * Execute an action expression inside s-for with loop scope.
+         * Only the loop variable and index are injected as params —
+         * store variables resolve through window globals (reactive).
+         */
+        const _forActionCache = {};
+        function execForAction(expression, itemVar, item, index) {
+            if (_dangerous.test(expression)) throw new Error('Blocked: unsafe expression');
+            _validateBrackets(expression);
+            const cacheKey = expression + '|' + itemVar;
+            let fn = _forActionCache[cacheKey];
+            if (!fn) {
+                fn = new Function(itemVar, 'index', '$refs', '"use strict";' + _blocked + 'return ' + expression + ';');
+                _forActionCache[cacheKey] = fn;
+            }
+            return fn(item, index, $refs);
+        }
+
+        /**
          * Evaluate a template expression with a loop item in scope
          */
         const _forFnCache = {};
@@ -832,6 +851,61 @@
                     });
                 } catch(e) { console.error(e.message); }
             });
+            // s-click inside s-for — bind with loop variable in scope
+            _bindForClick(el, itemVar, item, index);
+            el.querySelectorAll('[s-click]').forEach(function(child) {
+                _bindForClick(child, itemVar, item, index);
+            });
+            // s-on inside s-for — bind with loop variable in scope
+            _bindForOn(el, itemVar, item, index);
+            el.querySelectorAll('[s-on]').forEach(function(child) {
+                _bindForOn(child, itemVar, item, index);
+            });
+        }
+
+        /**
+         * Bind s-click directive inside s-for with loop scope
+         */
+        function _bindForClick(element, itemVar, item, index) {
+            if (!element.hasAttribute || !element.hasAttribute('s-click')) return;
+            var expr = element.getAttribute('s-click');
+            if (element._sForClickHandler) {
+                element.removeEventListener('click', element._sForClickHandler);
+            }
+            element._sForClickHandler = function() {
+                try { execForAction(expr, itemVar, item, index); } catch(e) { console.error(e.message); }
+            };
+            element.addEventListener('click', element._sForClickHandler);
+        }
+
+        /**
+         * Bind s-on directives inside s-for with loop scope
+         */
+        function _bindForOn(element, itemVar, item, index) {
+            if (!element.hasAttribute || !element.hasAttribute('s-on')) return;
+            if (element._sForOnHandlers) {
+                element._sForOnHandlers.forEach(function(h) {
+                    element.removeEventListener(h.event, h.fn);
+                });
+            }
+            element._sForOnHandlers = [];
+            element.getAttribute('s-on').split(';').forEach(function(binding) {
+                if (!(binding = binding.trim())) return;
+                const eventPart = binding.substring(0, binding.indexOf(':')).trim();
+                const expr = binding.substring(binding.indexOf(':') + 1).trim();
+                const parts = eventPart.split('.');
+                const eventName = parts[0];
+                const modifiers = parts.slice(1);
+                var handler = function(event) {
+                    if (modifiers.indexOf('prevent') >= 0) event.preventDefault();
+                    if (modifiers.indexOf('stop') >= 0) event.stopPropagation();
+                    if (modifiers.indexOf('enter') >= 0 && event.key !== 'Enter') return;
+                    if (modifiers.indexOf('escape') >= 0 && event.key !== 'Escape') return;
+                    try { execForAction(expr, itemVar, item, index); } catch(e) { console.error(e.message); }
+                };
+                element.addEventListener(eventName, handler);
+                element._sForOnHandlers.push({ event: eventName, fn: handler });
+            });
         }
 
         /**
@@ -860,7 +934,7 @@
                 let keyAttr = templateElement.getAttribute('s-key');
                 if (templateElement.innerHTML === '') return;
                 const hasDirectives = hasCode(templateElement.innerHTML) ||
-                    templateElement.querySelector('[s-text],[s-html],[s-if],[s-class],[s-attr],[s-css],[s-bind]') !== null;
+                    templateElement.querySelector('[s-text],[s-html],[s-if],[s-class],[s-attr],[s-css],[s-bind],[s-click],[s-on]') !== null;
                 if (!hasDirectives) return;
 
                 // Parse "item of collection"
@@ -871,11 +945,19 @@
                 if (!collection || !Array.isArray(collection)) return;
 
                 // Prepare template expression
-                let innerHTML = getCode(templateElement.innerHTML);
+                // Escape single quotes in HTML before getCode converts {…} to concatenation
+                let rawHTML = templateElement.innerHTML.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                // Protect s-click and s-on attribute values from getCode's {…} transformation
+                rawHTML = rawHTML.replace(/\b(s-click|s-on)="([^"]*)"/g, function(m, attr, val) {
+                    return attr + '="' + val.replace(/\{/g, '\x01').replace(/\}/g, '\x02') + '"';
+                });
+                let innerHTML = getCode(rawHTML);
                 if (innerHTML.indexOf('s-src') >= 0) {
                     innerHTML = innerHTML.replace('s-src', 'src');
                 }
                 let contentExpr = getCode("'" + innerHTML + "'");
+                // Restore protected curly braces after all getCode passes
+                contentExpr = contentExpr.replace(/\x01/g, '{').replace(/\x02/g, '}');
 
                 // Prepare value expression for OPTION tags
                 let valueExpr = null;
@@ -887,10 +969,10 @@
                 }
 
                 // Key function: use s-key attribute or fall back to index
+                let keyProp = keyAttr ? keyAttr.replace(itemVar + '.', '') : null;
                 function getKey(item, index) {
-                    if (!keyAttr) return String(index);
-                    let prop = keyAttr.replace(itemVar + '.', '');
-                    return String(item[prop]);
+                    if (!keyProp) return String(index);
+                    return String(item[keyProp]);
                 }
 
                 // Optional s-transition on the s-for template — animates each
@@ -928,6 +1010,7 @@
                         // Reuse existing element, update content
                         el.innerHTML = content;
                         el.setAttribute('s-key-value', key);
+                        if (keyProp) el.setAttribute('s-key-prop', keyProp);
                     } else {
                         // Create new element from template
                         el = templateElement.cloneNode(true);
@@ -936,6 +1019,7 @@
                         if (transitionPrefix) el.removeAttribute('s-transition');
                         el.innerHTML = content;
                         el.setAttribute('s-key-value', key);
+                        if (keyProp) el.setAttribute('s-key-prop', keyProp);
                         if (transitionPrefix) pendingEnter.push(el);
                     }
 
@@ -1106,6 +1190,37 @@
                     return arguments;
                 };
 
+                /**
+                 * Update an item at index by merging changes. Triggers reactivity.
+                 * Usage: tasks.update(i, { done: true })
+                 */
+                a.update = function (index, changes) {
+                    let updated = Object.assign({}, a[index], changes);
+                    return a.splice(index, 1, updated);
+                };
+
+                /**
+                 * Find and update an item where prop === value. Triggers reactivity.
+                 * Usage: tasks.updateWhere('id', t.id, { done: true })
+                 */
+                a.updateWhere = function (prop, value, changes) {
+                    for (let i = 0; i < a.length; i++) {
+                        if (a[i][prop] === value) {
+                            return a.splice(i, 1, Object.assign({}, a[i], changes));
+                        }
+                    }
+                };
+
+                /**
+                 * Find and remove an item where prop === value. Triggers reactivity.
+                 * Usage: tasks.removeWhere('id', t.id)
+                 */
+                a.removeWhere = function (prop, value) {
+                    for (let i = 0; i < a.length; i++) {
+                        if (a[i][prop] === value) return a.splice(i, 1);
+                    }
+                };
+
             } catch (error) {
                 console.log(error);
             }
@@ -1126,22 +1241,18 @@
                 _this.observers.push(notifyCallback);
             }
 
-            // Pre-compute persist decision at creation time (not on every set)
+            // Pre-compute persist keys at creation time; eligibility checked at runtime
             let _effective = obj !== false ? obj : property;
-            let _shouldPersist = false;
-            let _persistKey, _persistObjPrefix;
-            if (store.persist && store.data[_effective] &&
-                (!store.data[_effective].hasOwnProperty('persist') || store.data[_effective].persist === true)) {
-                _shouldPersist = true;
-                _persistKey = store.localPrefix + property;
-                _persistObjPrefix = store.localPrefix + _effective + '.' + property;
-            }
+            let _persistKey = store.localPrefix + property;
+            let _persistObjPrefix = store.localPrefix + _effective + '.' + property;
+            let _persistDef = store.data[_effective];
 
             Object.defineProperty(o, property, {
                 set: function (value) {
                     _this.value = value;
                     for (let i = 0; i < _this.observers.length; i++) _this.observers[i](value);
-                    if (_shouldPersist) {
+                    if (store.persist && _persistDef &&
+                        (!_persistDef.hasOwnProperty('persist') || _persistDef.persist === true)) {
                         if (typeof value == 'object') {
                             localStorage.setItem(_persistObjPrefix, JSON.stringify(value));
                         } else {
@@ -1178,6 +1289,23 @@
         const _data = {};
         const $refs = {};
 
+        /**
+         * Find an array item by its s-key-value from a clicked element.
+         * Usage: var match = $find(tasks, el);  // returns {item, index} or null
+         */
+        function $find(array, el) {
+            var keyEl = el.closest('[s-key-value]');
+            if (!keyEl) return null;
+            var key = keyEl.getAttribute('s-key-value');
+            var prop = keyEl.getAttribute('s-key-prop');
+            if (prop) {
+                for (var i = 0; i < array.length; i++) {
+                    if (String(array[i][prop]) === key) return { item: array[i], index: i };
+                }
+            }
+            return null;
+        }
+
         const storeTemplate = {
             persist: true,
             localPrefix: '__',
@@ -1206,6 +1334,9 @@
 
         // Check if we are being run inside a browser.
         if (typeof navigator !== 'undefined' && !(navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom"))) {
+            // Expose helpers as globals
+            window.$find = $find;
+
             if (typeof store === 'undefined') {
                 window.store = storeTemplate;
                 console.log('Store not defined.')
@@ -1224,7 +1355,8 @@
             ArrayObserver: ArrayObserver,
             storeTemplate: storeTemplate,
             debounce: debounce,
-            _data: _data
+            _data: _data,
+            $find: $find
         };
     }
 )));

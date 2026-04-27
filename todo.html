@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sensible Todo — A SensibleJS App</title>
+
+    <script src="sensibljs.js" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg:         #f8f8f7;
+            --surface:    #ffffff;
+            --surface-2:  #f1f0ee;
+            --text:       #1c1c1a;
+            --text-2:     #6b6b68;
+            --text-3:     #9c9c98;
+            --border:     #e4e3e0;
+            --accent:     #2563eb;
+            --accent-2:   #1d4ed8;
+            --green:      #16a34a;
+            --green-bg:   #dcfce7;
+            --yellow:     #ca8a04;
+            --yellow-bg:  #fef9c3;
+            --red:        #dc2626;
+            --red-bg:     #fee2e2;
+            --radius:     8px;
+            --shadow:     0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+            --shadow-lg:  0 4px 24px rgba(0,0,0,.08);
+            --font:       'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --mono:       'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        [s-cloak] { display: none !important; }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; }
+
+        body {
+            font-family: var(--font);
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Layout */
+        .app {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 48px 20px 96px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin: 0;
+        }
+        .header h1 span { color: var(--accent); }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Toggle switch */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--text-3);
+            font-family: var(--mono);
+            letter-spacing: 0.02em;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch .track {
+            position: absolute;
+            inset: 0;
+            background: var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .switch .track::before {
+            content: "";
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,.15);
+        }
+        .switch input:checked + .track { background: var(--accent); }
+        .switch input:checked + .track::before { transform: translateX(14px); }
+
+        /* Stats bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            text-align: center;
+        }
+        .stat-card .num {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--accent);
+        }
+        .stat-card .label {
+            font-size: 0.7rem;
+            font-family: var(--mono);
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 4px;
+        }
+
+        /* Progress */
+        .progress-bar {
+            height: 4px;
+            background: var(--surface-2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--green));
+            border-radius: 4px;
+            transition: width 0.4s cubic-bezier(.2,.8,.2,1);
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        /* Composer */
+        .composer {
+            padding: 16px;
+            display: flex;
+            gap: 8px;
+        }
+        .composer input[type="text"] {
+            flex: 1;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 14px;
+            font: inherit;
+            font-size: 0.9rem;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .composer input:focus { border-color: var(--accent); }
+        .composer .btn-add {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 10px 20px;
+            font: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .composer .btn-add:hover:not([disabled]) { background: var(--accent-2); }
+        .composer .btn-add[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+        /* Options row */
+        .options-row {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 12px;
+            flex-wrap: wrap;
+        }
+        .options-row select {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 6px 10px;
+            font: inherit;
+            font-size: 0.8rem;
+            color: var(--text);
+            cursor: pointer;
+            outline: none;
+        }
+        .options-row select:focus { border-color: var(--accent); }
+
+        /* Toolbar: filters + search */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 16px;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .filters { display: flex; gap: 4px; }
+        .filter-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 100px;
+            padding: 5px 12px;
+            font: inherit;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-3);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .filter-btn:hover { color: var(--text); }
+        .filter-btn.is-active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .search-box input {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 6px 10px;
+            font: inherit;
+            font-size: 0.8rem;
+            color: var(--text);
+            outline: none;
+            width: 160px;
+            transition: border-color 0.15s;
+        }
+        .search-box input:focus { border-color: var(--accent); }
+        .search-box .hit-count {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: var(--text-3);
+        }
+
+        /* Counts row */
+        .counts-row {
+            padding: 10px 16px;
+            font-size: 0.75rem;
+            font-family: var(--mono);
+            color: var(--text-3);
+            letter-spacing: 0.02em;
+        }
+
+        /* Task list */
+        .task-list { padding: 0; margin: 0; list-style: none; }
+
+        .task-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+        }
+        .task-item:last-child { border-bottom: none; }
+        .task-item:hover { background: var(--surface-2); }
+
+        /* Checkbox */
+        .check {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            background: transparent;
+            transition: all 0.15s;
+        }
+        .check:hover { border-color: var(--accent); }
+        .check.is-checked {
+            background: var(--green);
+            border-color: var(--green);
+        }
+        .check.is-checked::after {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Task content */
+        .task-content {
+            min-width: 0;
+        }
+        .task-title {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .task-title.is-done {
+            text-decoration: line-through;
+            color: var(--text-3);
+        }
+        .task-meta {
+            display: flex;
+            gap: 6px;
+            margin-top: 2px;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 2px 7px;
+            border-radius: 100px;
+            line-height: 1.4;
+        }
+        .badge-priority {
+            background: var(--surface-2);
+            color: var(--text-3);
+        }
+        .badge-priority[data-priority="med"] {
+            background: var(--yellow-bg);
+            color: var(--yellow);
+        }
+        .badge-priority[data-priority="high"] {
+            background: var(--red-bg);
+            color: var(--red);
+        }
+        .badge-bucket {
+            background: var(--surface-2);
+            color: var(--text-2);
+        }
+
+        /* Due date */
+        .task-due {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: var(--text-3);
+            white-space: nowrap;
+        }
+        .task-due.is-overdue { color: var(--red); }
+        .task-due.is-today { color: var(--accent); font-weight: 600; }
+
+        /* Remove button */
+        .btn-remove {
+            background: none;
+            border: none;
+            color: var(--text-3);
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            opacity: 0;
+        }
+        .task-item:hover .btn-remove { opacity: 1; }
+        .btn-remove:hover { background: var(--red-bg); color: var(--red); }
+
+        /* Empty state */
+        .empty-state {
+            padding: 48px 16px;
+            text-align: center;
+            color: var(--text-3);
+        }
+        .empty-state .icon { font-size: 2rem; margin-bottom: 8px; }
+        .empty-state p { margin: 0; font-size: 0.9rem; }
+
+        /* Bulk actions */
+        .bulk-row {
+            display: flex;
+            gap: 8px;
+            padding: 10px 16px;
+            border-top: 1px solid var(--border);
+        }
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 6px 12px;
+            font: inherit;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-2);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-ghost.danger:hover { border-color: var(--red); color: var(--red); }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 48px;
+            font-size: 0.75rem;
+            color: var(--text-3);
+        }
+        footer a {
+            color: var(--text-2);
+            text-decoration: none;
+            border-bottom: 1px solid var(--border);
+        }
+        footer a:hover { color: var(--accent); border-color: var(--accent); }
+
+        /* Transitions */
+        .task-enter { opacity: 0; transform: translateY(-6px); }
+        .task-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+        .task-enter-to { opacity: 1; transform: translateY(0); }
+        .task-leave-active { transition: opacity 0.15s ease, max-height 0.2s ease; overflow: hidden; }
+        .task-leave-to { opacity: 0; }
+
+        /* Responsive */
+        @media (max-width: 520px) {
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .composer { flex-wrap: wrap; }
+            .composer input[type="text"] { width: 100%; }
+            .options-row { flex-wrap: wrap; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .search-box input { width: 100%; }
+            .task-item { grid-template-columns: auto 1fr auto; }
+            .task-due { display: none; }
+            .btn-remove { opacity: 1; }
+        }
+    </style>
+</head>
+
+<body s-cloak>
+<div class="app">
+
+    <!-- Header -->
+    <div class="header">
+        <h1><span>Sensible</span> Todo</h1>
+        <div class="header-actions">
+            <div class="toggle-row">
+                <label class="switch">
+                    <input type="checkbox" s-attr="checked: persist" onclick="togglePersist(this)">
+                    <span class="track"></span>
+                </label>
+                <span s-if="persist">Saved</span>
+                <span s-if="!persist">Not saved</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar" s-if="todos.length > 0">
+        <div class="stat-card">
+            <div class="num" s-text="todos.length"></div>
+            <div class="label">Total</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" s-text="remaining"></div>
+            <div class="label">Active</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" s-text="completed"></div>
+            <div class="label">Done</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" s-text="percent + '%'"></div>
+            <div class="label">Progress</div>
+        </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar" s-if="todos.length > 0">
+        <div class="progress-fill" s-css="width: {percent + '%'}"></div>
+    </div>
+
+    <!-- Main card -->
+    <div class="card">
+
+        <!-- Add todo -->
+        <div class="composer">
+            <input
+                type="text"
+                s-bind="draft"
+                s-ref="draftInput"
+                s-on="keydown.enter: addTodo()"
+                placeholder="What needs to be done?"
+                autocomplete="off">
+            <button
+                class="btn-add"
+                s-click="addTodo()"
+                s-attr="disabled: draft.trim().length === 0">
+                Add
+            </button>
+        </div>
+
+        <!-- Options -->
+        <div class="options-row">
+            <select s-bind="draftPriority">
+                <option value="low">Low priority</option>
+                <option value="med">Medium priority</option>
+                <option value="high">High priority</option>
+            </select>
+            <select s-bind="draftBucket">
+                <option value="Today">Today</option>
+                <option value="This week">This week</option>
+                <option value="Later">Later</option>
+            </select>
+            <input type="date" s-bind="draftDue" style="font-family: inherit; font-size: 0.8rem; padding: 6px 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); outline: none;">
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="filters">
+                <button class="filter-btn" s-class="is-active: filter === 'all'"    s-click="filter = 'all'">All</button>
+                <button class="filter-btn" s-class="is-active: filter === 'active'" s-click="filter = 'active'">Active</button>
+                <button class="filter-btn" s-class="is-active: filter === 'done'"   s-click="filter = 'done'">Done</button>
+            </div>
+            <div class="search-box">
+                <input
+                    type="text"
+                    s-bind="query"
+                    s-debounce="200"
+                    placeholder="Search..."
+                    autocomplete="off">
+                <span class="hit-count" s-if="query.length > 0"><span s-text="matches"></span> hit(s)</span>
+            </div>
+        </div>
+
+        <!-- Counts -->
+        <div class="counts-row" s-if="todos.length > 0">
+            <span s-text="remaining"></span> pending &middot;
+            <span s-text="completed"></span> done &middot;
+            <span s-text="todos.length"></span> total
+            <span s-if="overdueCount > 0"> &middot; <span s-text="overdueCount" style="color: var(--red);"></span> overdue</span>
+        </div>
+
+        <!-- Todo list -->
+        <div s-if="visibleTodos.length > 0">
+            <div s-for="t of visibleTodos" s-key="t.id" s-transition="task">
+                <div class="task-item">
+                    <input
+                        type="checkbox"
+                        class="check"
+                        s-class="is-checked: t.done"
+                        s-attr="checked: t.done"
+                        s-click="todos.updateWhere('id', t.id, {done: !t.done})">
+
+                    <div class="task-content">
+                        <div class="task-title" s-class="is-done: t.done" s-text="t.title"></div>
+                        <div class="task-meta">
+                            <span class="badge badge-priority" s-attr="data-priority: t.priority" s-text="t.priority"></span>
+                            <span class="badge badge-bucket" s-text="t.bucket"></span>
+                        </div>
+                    </div>
+
+                    <span class="task-due" s-if="t.due !== ''" s-class="is-overdue: isOverdue(t); is-today: isToday(t)" s-text="formatDue(t.due)"></span>
+
+                    <button class="btn-remove" s-click="todos.removeWhere('id', t.id)" title="Remove">&times;</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty states -->
+        <div class="empty-state" s-if="todos.length === 0">
+            <div class="icon">&#10024;</div>
+            <p>No todos yet. Add one above to get started.</p>
+        </div>
+        <div class="empty-state" s-if="todos.length > 0 && visibleTodos.length === 0 && query.length > 0">
+            <div class="icon">&#128269;</div>
+            <p>Nothing matches "<span s-text="query"></span>".</p>
+        </div>
+        <div class="empty-state" s-if="todos.length > 0 && visibleTodos.length === 0 && query.length === 0 && filter === 'active'">
+            <div class="icon">&#127881;</div>
+            <p>All done! Nothing active.</p>
+        </div>
+        <div class="empty-state" s-if="todos.length > 0 && visibleTodos.length === 0 && query.length === 0 && filter === 'done'">
+            <div class="icon">&#9744;</div>
+            <p>Nothing completed yet. Keep going!</p>
+        </div>
+
+        <!-- Bulk actions -->
+        <div class="bulk-row" s-if="todos.length > 0">
+            <button class="btn-ghost" s-if="remaining > 0" onclick="markAllDone()">Mark all done</button>
+            <button class="btn-ghost" s-if="completed > 0 && remaining === 0" onclick="markAllActive()">Uncheck all</button>
+            <button class="btn-ghost" s-if="completed > 0" onclick="clearCompleted()">Clear completed (<span s-text="completed"></span>)</button>
+            <span style="flex:1"></span>
+            <button class="btn-ghost danger" s-if="todos.length > 0" onclick="clearAll()">Clear all</button>
+        </div>
+    </div>
+
+    <!-- Activity log -->
+    <div class="card" s-if="activityLog.length > 0" style="font-family: var(--mono); font-size: 0.75rem; color: var(--text-2); padding: 14px 16px; line-height: 1.7; white-space: pre-wrap; max-height: 160px; overflow-y: auto;" s-text="activityLog"></div>
+
+    <footer>
+        Built with <a href="https://github.com/ricardoaponte/sensiblejs" target="_blank" rel="noopener">SensibleJS</a> &middot; no build step &middot; no virtual DOM &middot; just HTML attributes
+    </footer>
+</div>
+
+<script>
+    // === Helpers ===
+
+    function todayStr() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    function isOverdue(t) {
+        return t.due !== '' && !t.done && t.due < todayStr();
+    }
+
+    function isToday(t) {
+        return t.due === todayStr();
+    }
+
+    function formatDue(dateStr) {
+        if (!dateStr) return '';
+        var today = todayStr();
+        if (dateStr === today) return 'Today';
+        var tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        if (dateStr === tomorrow.toISOString().split('T')[0]) return 'Tomorrow';
+        var yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (dateStr === yesterday.toISOString().split('T')[0]) return 'Yesterday';
+        var parts = dateStr.split('-');
+        return parts[1] + '/' + parts[2];
+    }
+
+    // === CRUD ===
+
+    function addTodo() {
+        if (draft.trim() === '') return;
+        todos.push({
+            id: Date.now(),
+            title: draft.trim(),
+            done: false,
+            priority: draftPriority,
+            bucket: draftBucket,
+            due: draftDue,
+            createdAt: todayStr()
+        });
+        draft = '';
+        if (typeof $refs !== 'undefined' && $refs.draftInput) $refs.draftInput.focus();
+    }
+
+
+    // === Bulk ===
+
+    function markAllDone() {
+        for (var i = todos.length - 1; i >= 0; i--) {
+            if (!todos[i].done) todos.update(i, { done: true });
+        }
+    }
+
+    function markAllActive() {
+        for (var i = todos.length - 1; i >= 0; i--) {
+            if (todos[i].done) todos.update(i, { done: false });
+        }
+    }
+
+    function clearCompleted() {
+        for (var i = todos.length - 1; i >= 0; i--) {
+            if (todos[i].done) todos.splice(i, 1);
+        }
+    }
+
+    function clearAll() {
+        todos.splice(0, todos.length);
+    }
+
+    // === Persistence toggle ===
+
+    var _todoFields = ['todos', 'draftPriority', 'draftBucket'];
+
+    function togglePersist(cb) {
+        persist = cb.checked;
+        localStorage.setItem('todo_persist', persist ? '1' : '0');
+        _todoFields.forEach(function(f) { store.data[f].persist = persist; });
+        store.persist = persist;
+        if (!persist) {
+            var prefix = store.localPrefix || '__';
+            _todoFields.forEach(function(f) { localStorage.removeItem(prefix + f); });
+        } else {
+            var prefix = store.localPrefix || '__';
+            localStorage.setItem(prefix + 'todos', JSON.stringify(todos));
+            localStorage.setItem(prefix + 'draftPriority', draftPriority);
+            localStorage.setItem(prefix + 'draftBucket', draftBucket);
+        }
+    }
+
+    // === Store ===
+
+    let store = {
+        persist: true,
+        localPrefix: 'todo_',
+
+        data: {
+            // Persistence toggle (restored manually from localStorage)
+            persist: { type: Boolean, default: localStorage.getItem('todo_persist') !== '0', persist: false },
+
+            // Composer
+            draft:         { type: String, default: '', persist: false },
+            draftPriority: { type: String, default: 'med' },
+            draftBucket:   { type: String, default: 'Today' },
+            draftDue:      { type: String, default: '', persist: false },
+
+            // Todos
+            todos: {
+                type: Array,
+                default: [
+                    { id: 1, title: 'Try checking this off',           done: false, priority: 'low',  bucket: 'Today',     due: '', createdAt: '' },
+                    { id: 2, title: 'Search "check" to filter',        done: false, priority: 'med',  bucket: 'Today',     due: '', createdAt: '' },
+                    { id: 3, title: 'Add a new todo with a due date',  done: false, priority: 'high', bucket: 'This week', due: '', createdAt: '' },
+                    { id: 4, title: 'Read the SensibleJS README',      done: true,  priority: 'low',  bucket: 'Later',     due: '', createdAt: '' }
+                ],
+                watch: function(newVal, oldVal) {
+                    var before = (oldVal || []).length;
+                    var after  = (newVal || []).length;
+                    var stamp  = new Date().toLocaleTimeString();
+                    var line;
+                    if (after > before)      line = '[' + stamp + '] + todo added (now ' + after + ')';
+                    else if (after < before) line = '[' + stamp + '] - todo removed (now ' + after + ')';
+                    else                     line = '[' + stamp + '] ~ todo updated';
+                    activityLog = (activityLog ? activityLog + '\n' : '') + line;
+                }
+            },
+
+            // Filters
+            filter: { type: String, default: 'all', persist: false },
+            query:  { type: String, default: '', persist: false },
+
+            // Activity
+            activityLog: { type: String, default: '', persist: false },
+
+            // Computed
+            completed: { computed: 'todos.filter(function(t) { return t.done; }).length' },
+            remaining: { computed: 'todos.filter(function(t) { return !t.done; }).length' },
+            percent:   { computed: 'todos.length === 0 ? 0 : Math.round(todos.filter(function(t) { return t.done; }).length / todos.length * 100)' },
+            matches:   { computed: "todos.filter(function(t) { return query.length === 0 || t.title.toLowerCase().indexOf(query.toLowerCase()) !== -1; }).length" },
+            overdueCount: { computed: "todos.filter(function(t) { return t.due !== '' && !t.done && t.due < new Date().toISOString().split('T')[0]; }).length" },
+            visibleTodos: {
+                computed: "todos.filter(function(t) { " +
+                    "var matchFilter = filter === 'all' || (filter === 'active' && !t.done) || (filter === 'done' && t.done); " +
+                    "var matchQuery = query.length === 0 || t.title.toLowerCase().indexOf(query.toLowerCase()) !== -1; " +
+                    "return matchFilter && matchQuery; " +
+                    "})"
+            }
+        },
+
+        onInit: function(data) {
+            store.persist = persist;
+            _todoFields.forEach(function(f) { store.data[f].persist = persist; });
+            console.log('[SensibleTodo] initialized, persist:', persist);
+        }
+    };
+</script>
+</body>
+</html>

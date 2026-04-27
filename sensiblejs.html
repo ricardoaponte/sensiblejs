@@ -1,0 +1,979 @@
+<!doctype html>
+<!--
+  SensibleJS — Demo page
+  Single self-contained file. Drop into a gh-pages branch alongside sensibljs.min.js.
+  Showcases every directive in the library.
+
+  © 2020–2026 Ricardo Aponte · MIT
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SensibleJS — Reactive UI in ~10KB</title>
+<meta name="description" content="Reactive UI in ~10KB. No build step. No virtual DOM. No dependencies. Just HTML attributes.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Schibsted+Grotesk:ital,wght@0,400..700;1,400..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f5f1e8;
+    --bg-card: #ede8db;
+    --bg-deep: #1a1814;
+    --ink: #1a1814;
+    --ink-soft: #5a5448;
+    --rule: #cdc6b3;
+    --accent: #c83a17;
+    --accent-soft: rgba(200, 58, 23, 0.08);
+    --warn: #c98e1f;
+    --good: #6b8e23;
+    --max: 720px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Schibsted Grotesk', system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.5;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.09 0 0 0 0 0.08 0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  main {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 80px 28px 120px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ---- masthead ---- */
+  .masthead {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 56px;
+    margin-bottom: 72px;
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 36px;
+  }
+  .meta-row .dot {
+    display: inline-block; width: 6px; height: 6px;
+    background: var(--accent); border-radius: 50%;
+    margin-right: 8px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+
+  h1.title {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 144, "SOFT" 100, "wght" 400;
+    font-size: clamp(72px, 14vw, 144px);
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    margin-bottom: 28px;
+    font-style: italic;
+  }
+  h1.title .stop { color: var(--accent); font-style: normal; }
+
+  .lede {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 36, "SOFT" 60, "wght" 400;
+    font-size: clamp(20px, 2.4vw, 26px);
+    line-height: 1.35;
+    color: var(--ink-soft);
+    max-width: 560px;
+  }
+
+  /* ---- sections ---- */
+  section.demo { margin-top: 96px; }
+  section.demo:first-of-type { margin-top: 0; }
+
+  .num {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 144, "SOFT" 100, "wght" 300;
+    font-style: italic;
+    font-size: 88px;
+    line-height: 1;
+    color: var(--accent);
+    margin-bottom: 18px;
+    margin-left: -4px;
+  }
+
+  h2.section-title {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 48, "wght" 500;
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+
+  .section-blurb {
+    color: var(--ink-soft);
+    margin-bottom: 36px;
+    max-width: 540px;
+  }
+  .section-blurb code,
+  .closing code,
+  .ref-grid code {
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* ---- demo card ---- */
+  .demo-card {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    padding: 40px 32px 36px;
+    position: relative;
+  }
+  .demo-card::before {
+    content: 'LIVE';
+    position: absolute;
+    top: 16px; right: 22px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+  }
+  .demo-card::after {
+    content: '';
+    position: absolute;
+    top: 20px; right: 56px;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
+  .demo-card label {
+    display: block;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  .demo-card input[type=text],
+  .demo-card input[type=email],
+  .demo-card input[type=number],
+  .demo-card input[type=search] {
+    width: 100%;
+    padding: 13px 15px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 16px;
+    margin-bottom: 18px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .demo-card input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .demo-card input[type=color] {
+    width: 56px; height: 40px;
+    border: 1px solid var(--rule);
+    background: var(--bg);
+    cursor: pointer;
+    padding: 4px;
+  }
+  .demo-card input[type=range] {
+    width: 100%;
+    margin-bottom: 18px;
+  }
+
+  .demo-card button {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 13px 24px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .demo-card button:hover { background: var(--accent); }
+  .demo-card button:active { transform: translateY(1px); }
+
+  /* ---- demo 1: reveal text ---- */
+  .reveal {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 36, "SOFT" 60;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.35;
+    color: var(--ink);
+    margin-top: 4px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--rule);
+  }
+
+  /* ---- demo 3: calculator ---- */
+  .calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 520px) {
+    .calc-grid { grid-template-columns: 1fr; gap: 0; }
+  }
+  .calc-grid > div { display: flex; flex-direction: column; }
+  .calc-grid input { margin-bottom: 0; }
+
+  .totals {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--rule);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 24px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 19px;
+  }
+  .totals dt {
+    color: var(--ink-soft);
+    font-style: normal;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    align-self: center;
+  }
+  .totals dd {
+    text-align: right;
+    font-variation-settings: "opsz" 36, "SOFT" 50;
+    font-feature-settings: "tnum" 1;
+  }
+  .totals dd.total {
+    font-size: 28px;
+    color: var(--accent);
+    padding-top: 10px;
+    border-top: 1px solid var(--rule);
+  }
+  .totals dt.total-label {
+    padding-top: 10px;
+    border-top: 1px solid var(--rule);
+  }
+
+  /* ---- demo 4: searchable list ---- */
+  .task-list {
+    list-style: none;
+    margin-top: 4px;
+    padding: 0;
+  }
+  .task-list li {
+    padding: 14px 0;
+    border-top: 1px dashed var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    cursor: pointer;
+    transition: opacity 0.2s, color 0.2s;
+  }
+  .task-list li:last-child { border-bottom: 1px dashed var(--rule); }
+  .task-list li:hover { color: var(--accent); }
+  .task-list .bullet {
+    font-family: 'Geist Mono', monospace;
+    font-size: 16px;
+    color: var(--accent);
+    flex-shrink: 0;
+    width: 16px;
+  }
+  .task-list .text { flex: 1; }
+  .task-empty {
+    padding: 20px 0;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+    border-top: 1px dashed var(--rule);
+  }
+
+  /* ---- demo 5: progress bar ---- */
+  .progress-wrap {
+    margin-top: 4px;
+    margin-bottom: 18px;
+    height: 12px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-bar {
+    height: 100%;
+    max-width: 100%;
+    background: var(--ink-soft);
+    transition: width 0.25s ease, background-color 0.3s ease;
+  }
+  .progress-bar.warning { background: var(--warn); }
+  .progress-bar.ready { background: var(--good); }
+  .progress-bar.full { background: var(--accent); }
+
+  .progress-status {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+  }
+  .progress-status .count {
+    color: var(--accent);
+    font-family: 'Geist Mono', monospace;
+    font-style: normal;
+    font-size: 14px;
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-right: 4px;
+  }
+
+  /* ---- demo 6: dropdown ---- */
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 200px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    box-shadow: 0 8px 24px rgba(26, 24, 20, 0.08);
+    list-style: none;
+    padding: 6px 0;
+    margin: 0;
+    z-index: 10;
+  }
+  .dropdown-menu li {
+    padding: 10px 18px;
+    cursor: pointer;
+    font-size: 15px;
+    font-family: 'Schibsted Grotesk', sans-serif;
+    transition: background 0.1s;
+  }
+  .dropdown-menu li:hover { background: var(--accent-soft); color: var(--accent); }
+
+  .keypad-hint {
+    margin-top: 18px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  .keypad-hint kbd {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    padding: 2px 7px;
+    font-family: inherit;
+    font-size: 10px;
+    margin: 0 2px;
+  }
+
+  /* transitions for s-transition */
+  .menu-enter, .menu-leave-to { opacity: 0; transform: translateY(-4px); }
+  .menu-enter-active, .menu-leave-active {
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+  .menu-enter-to { opacity: 1; transform: translateY(0); }
+
+  /* ---- source code ---- */
+  details.source { margin-top: 14px; }
+  details.source summary {
+    cursor: pointer;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 12px 0;
+    list-style: none;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  details.source summary::-webkit-details-marker { display: none; }
+  details.source summary:hover { color: var(--accent); }
+  details.source summary::before {
+    content: '▸';
+    display: inline-block;
+    margin-right: 8px;
+    transition: transform 0.2s;
+  }
+  details[open].source summary::before { transform: rotate(90deg); }
+
+  pre.code {
+    background: var(--bg-deep);
+    color: #e8e3d4;
+    padding: 26px 28px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+    tab-size: 2;
+  }
+  pre.code .tag  { color: #e88e5d; }
+  pre.code .attr { color: #d4c5a0; }
+  pre.code .str  { color: #a8c98a; }
+  pre.code .com  { color: #6b6557; font-style: italic; }
+  pre.code .key  { color: #c98ed4; }
+  pre.code .num  { color: #d4c98a; }
+
+  /* ---- ornament ---- */
+  .ornament {
+    text-align: center;
+    margin: 56px 0;
+    color: var(--rule);
+    letter-spacing: 1.2em;
+    font-size: 14px;
+    user-select: none;
+  }
+
+  /* ---- "Also in the box" reference ---- */
+  .ref-wrap {
+    margin-top: 96px;
+    border-top: 1px solid var(--rule);
+    padding-top: 64px;
+  }
+  .ref-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 32px;
+    border-top: 1px solid var(--rule);
+  }
+  @media (max-width: 600px) { .ref-grid { grid-template-columns: 1fr; } }
+  .ref-grid > div {
+    padding: 22px 24px 22px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .ref-grid > div:nth-child(2n) {
+    padding-left: 24px;
+    padding-right: 0;
+    border-left: 1px solid var(--rule);
+  }
+  @media (max-width: 600px) {
+    .ref-grid > div:nth-child(2n) { border-left: none; padding-left: 0; }
+  }
+  .ref-grid h3 {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 21px;
+    margin-bottom: 6px;
+    font-variation-settings: "opsz" 36, "SOFT" 60;
+  }
+  .ref-grid h3 code {
+    font-style: normal;
+    font-size: 14px;
+    background: transparent;
+    color: var(--accent);
+    padding: 0;
+  }
+  .ref-grid p {
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* ---- comparison ---- */
+  .compare-wrap {
+    margin-top: 96px;
+    border-top: 1px solid var(--rule);
+    padding-top: 64px;
+  }
+  table.compare {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    margin-top: 28px;
+  }
+  table.compare th,
+  table.compare td {
+    text-align: left;
+    padding: 15px 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+  table.compare th:first-child,
+  table.compare td:first-child {
+    padding-left: 0;
+    color: var(--ink-soft);
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  table.compare thead th {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 19px;
+    color: var(--ink);
+  }
+  table.compare thead th.us { color: var(--accent); }
+  table.compare tbody td:nth-child(2) { color: var(--accent); font-weight: 500; }
+
+  .closing {
+    margin-top: 36px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 19px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .closing strong { color: var(--ink); font-style: normal; font-weight: 500; }
+
+  /* ---- footer ---- */
+  footer {
+    margin-top: 104px;
+    border-top: 1px solid var(--rule);
+    padding-top: 40px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .masthead > * { animation: rise 0.7s ease-out both; }
+  .masthead > *:nth-child(1) { animation-delay: 0.05s; }
+  .masthead > *:nth-child(2) { animation-delay: 0.20s; }
+  .masthead > *:nth-child(3) { animation-delay: 0.35s; }
+
+  [s-cloak] { display: none !important; }
+</style>
+</head>
+<body>
+
+<main>
+
+  <header class="masthead">
+    <div class="meta-row">
+      <span><span class="dot"></span>Reactive UI · ~10KB</span>
+      <span>MIT · Est. 2020</span>
+    </div>
+    <h1 class="title">Sensible<span class="stop">.</span></h1>
+    <p class="lede">A reactive UI library in about ten kilobytes. No build step, no virtual DOM, no dependencies — just HTML attributes that do what they look like they do. Every directive is below.</p>
+  </header>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="demo">
+    <div class="num">i.</div>
+    <h2 class="section-title">A name, reflected.</h2>
+    <p class="section-blurb">Two-way binding with a template expression. <code>s-bind</code> on the input keeps the variable in sync; <code>s-bind</code> on the paragraph (with <code>{name}</code> in its text) renders the value back. <code>s-if</code> hides the line until you've typed something. Add <code>s-blur</code> to update on blur instead of every keystroke.</p>
+
+    <div class="demo-card">
+      <label for="d1-name">Your name</label>
+      <input s-bind="name" id="d1-name" type="text" placeholder="Type something…">
+
+      <p class="reveal" s-if="name.length &gt; 0" s-bind="name" s-cloak>Pleased to meet you, {name}.</p>
+    </div>
+
+    <details class="source">
+      <summary>View source</summary>
+<pre class="code">&lt;<span class="tag">input</span> <span class="attr">s-bind</span>=<span class="str">"name"</span> <span class="attr">type</span>=<span class="str">"text"</span> <span class="attr">placeholder</span>=<span class="str">"Type something…"</span>&gt;
+
+&lt;<span class="tag">p</span> <span class="attr">s-if</span>=<span class="str">"name.length &gt; 0"</span> <span class="attr">s-bind</span>=<span class="str">"name"</span> <span class="attr">s-cloak</span>&gt;
+  Pleased to meet you, {name}.
+&lt;/<span class="tag">p</span>&gt;</pre>
+    </details>
+  </section>
+
+  <div class="ornament">· · ·</div>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="demo">
+    <div class="num">ii.</div>
+    <h2 class="section-title">A button that knows when.</h2>
+    <p class="section-blurb">Conditional rendering with a compound expression. The submit button stays hidden until both fields have content — no JavaScript, no event listeners, just an attribute that reads like English.</p>
+
+    <div class="demo-card">
+      <label for="d2-name">Name</label>
+      <input s-bind="fullName" id="d2-name" type="text" placeholder="Jane Doe">
+
+      <label for="d2-email">Email</label>
+      <input s-bind="email" id="d2-email" type="email" placeholder="jane@example.com">
+
+      <button s-if="fullName.length &gt; 0 &amp;&amp; email.length &gt; 0">Create record</button>
+    </div>
+
+    <details class="source">
+      <summary>View source</summary>
+<pre class="code">&lt;<span class="tag">input</span> <span class="attr">s-bind</span>=<span class="str">"fullName"</span> <span class="attr">type</span>=<span class="str">"text"</span>&gt;
+&lt;<span class="tag">input</span> <span class="attr">s-bind</span>=<span class="str">"email"</span>    <span class="attr">type</span>=<span class="str">"email"</span>&gt;
+
+&lt;<span class="tag">button</span> <span class="attr">s-if</span>=<span class="str">"fullName.length &gt; 0 &amp;&amp; email.length &gt; 0"</span>&gt;
+  Create record
+&lt;/<span class="tag">button</span>&gt;</pre>
+    </details>
+  </section>
+
+  <div class="ornament">· · ·</div>
+
+  <!-- ============ DEMO 3 ============ -->
+  <section class="demo">
+    <div class="num">iii.</div>
+    <h2 class="section-title">Sums that derive themselves.</h2>
+    <p class="section-blurb">Computed values are read-only variables defined as expressions. <code>subtotal</code> depends on <code>price</code> and <code>quantity</code>; <code>tax</code> depends on <code>subtotal</code>; <code>total</code> depends on both. SensibleJS figures out the chain.</p>
+
+    <div class="demo-card">
+      <div class="calc-grid">
+        <div>
+          <label for="d3-price">Price</label>
+          <input s-bind="price" id="d3-price" type="number" step="0.01" min="0">
+        </div>
+        <div>
+          <label for="d3-qty">Quantity</label>
+          <input s-bind="quantity" id="d3-qty" type="number" min="0">
+        </div>
+      </div>
+
+      <dl class="totals" s-cloak>
+        <dt>Subtotal</dt>
+        <dd s-bind="subtotal">${subtotal.toFixed(2)}</dd>
+
+        <dt>Tax (7%)</dt>
+        <dd s-bind="tax">${tax.toFixed(2)}</dd>
+
+        <dt class="total-label">Total</dt>
+        <dd class="total" s-bind="total">${total.toFixed(2)}</dd>
+      </dl>
+    </div>
+
+    <details class="source">
+      <summary>View source</summary>
+<pre class="code"><span class="com">&lt;!-- HTML --&gt;</span>
+&lt;<span class="tag">input</span> <span class="attr">s-bind</span>=<span class="str">"price"</span>    <span class="attr">type</span>=<span class="str">"number"</span>&gt;
+&lt;<span class="tag">input</span> <span class="attr">s-bind</span>=<span class="str">"quantity"</span> <span class="attr">type</span>=<span class="str">"number"</span>&gt;
+
+&lt;<span class="tag">dd</span> <span class="attr">s-bind</span>=<span class="str">"total"</span>&gt;${total.toFixed(2)}&lt;/<span class="tag">dd</span>&gt;
+
+<span class="com">// Store</span>
+data: {
+  price:    { type: <span class="key">Number</span>, default: <span class="num">10</span> },
+  quantity: { type: <span class="key">Number</span>, default: <span class="num">1</span> },
+  subtotal: { computed: <span class="str">'price * quantity'</span> },
+  tax:      { computed: <span class="str">'subtotal * 0.07'</span> },
+  total:    { computed: <span class="str">'subtotal + tax'</span> }
+}</pre>
+    </details>
+  </section>
+
+  <div class="ornament">· · ·</div>
+
+  <!-- ============ DEMO 4: searchable list ============ -->
+  <section class="demo">
+    <div class="num">iv.</div>
+    <h2 class="section-title">A list that listens.</h2>
+    <p class="section-blurb">List rendering with <code>s-for</code> and keyed reconciliation via <code>s-key</code>. The search input uses <code>s-debounce</code> to wait until you stop typing before filtering. Click any item to toggle its done state — <code>s-class</code> applies the strikethrough, <code>s-click</code> handles the toggle.</p>
+
+    <div class="demo-card">
+      <label for="d4-search">Search</label>
+      <input s-bind="search" s-debounce="150" id="d4-search" type="search" placeholder="Filter tasks…">
+
+      <ul class="task-list" s-cloak>
+        <li s-for="t of filteredTasks" s-key="t.id" s-click="t.done = !t.done">
+          <span class="bullet">{t.done ? '●' : '○'}</span>
+          <span class="text">{t.text}</span>
+        </li>
+      </ul>
+      <p class="task-empty" s-if="filteredTasks.length === 0" s-cloak>No matches.</p>
+    </div>
+
+    <details class="source">
+      <summary>View source</summary>
+<pre class="code"><span class="com">&lt;!-- HTML --&gt;</span>
+&lt;<span class="tag">input</span> <span class="attr">s-bind</span>=<span class="str">"search"</span> <span class="attr">s-debounce</span>=<span class="str">"150"</span> <span class="attr">type</span>=<span class="str">"search"</span>&gt;
+
+&lt;<span class="tag">ul</span>&gt;
+  &lt;<span class="tag">li</span> <span class="attr">s-for</span>=<span class="str">"t of filteredTasks"</span> <span class="attr">s-key</span>=<span class="str">"t.id"</span>
+      <span class="attr">s-click</span>=<span class="str">"t.done = !t.done"</span>&gt;
+    &lt;<span class="tag">span</span>&gt;{t.done ? '●' : '○'}&lt;/<span class="tag">span</span>&gt;
+    &lt;<span class="tag">span</span>&gt;{t.text}&lt;/<span class="tag">span</span>&gt;
+  &lt;/<span class="tag">li</span>&gt;
+&lt;/<span class="tag">ul</span>&gt;
+
+<span class="com">// Store</span>
+data: {
+  search: { type: <span class="key">String</span>, default: <span class="str">''</span> },
+  tasks:  { type: <span class="key">Array</span>, default: [<span class="com">/* … */</span>] },
+  filteredTasks: { computed:
+    <span class="str">"tasks.filter(t =&gt; t.text.toLowerCase().includes(search.toLowerCase()))"</span>
+  }
+}</pre>
+    </details>
+  </section>
+
+  <div class="ornament">· · ·</div>
+
+  <!-- ============ DEMO 5: reactive styles ============ -->
+  <section class="demo">
+    <div class="num">v.</div>
+    <h2 class="section-title">Styles that respond.</h2>
+    <p class="section-blurb">Three directives handle styling without touching JavaScript: <code>s-css</code> writes inline styles, <code>s-class</code> toggles class names, <code>s-attr</code> adds or removes attributes. The bar fills as you type, changes color at thresholds, and updates its <code>aria-valuenow</code> for screen readers.</p>
+
+    <div class="demo-card">
+      <label for="d5-text">Type something</label>
+      <input s-bind="bar" id="d5-text" type="text" placeholder="The longer, the fuller…">
+
+      <div class="progress-wrap"
+           s-attr="aria-valuenow: bar.length; aria-valuemax: 30; role: 'progressbar'">
+        <div class="progress-bar"
+             s-css="width: barWidth"
+             s-class="warning: barWarning; ready: barReady; full: barFull"></div>
+      </div>
+
+      <p class="progress-status" s-if="bar.length &gt; 0" s-cloak>
+        <span class="count" s-text="bar.length"></span> characters typed.
+      </p>
+    </div>
+
+    <details class="source">
+      <summary>View source</summary>
+<pre class="code"><span class="com">&lt;!-- HTML --&gt;</span>
+&lt;<span class="tag">div</span> <span class="attr">s-attr</span>=<span class="str">"aria-valuenow: bar.length; role: 'progressbar'"</span>&gt;
+  &lt;<span class="tag">div</span> <span class="attr">s-css</span>=<span class="str">"width: barWidth"</span>
+       <span class="attr">s-class</span>=<span class="str">"warning: barWarning; ready: barReady; full: barFull"</span>&gt;&lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">div</span>&gt;
+
+&lt;<span class="tag">p</span> <span class="attr">s-if</span>=<span class="str">"bar.length &gt; 0"</span>&gt;
+  &lt;<span class="tag">span</span> <span class="attr">s-text</span>=<span class="str">"bar.length"</span>&gt;&lt;/<span class="tag">span</span>&gt; characters typed.
+&lt;/<span class="tag">p</span>&gt;
+
+<span class="com">// Store — push the logic into computed values</span>
+data: {
+  bar:        { type: <span class="key">String</span>, default: <span class="str">''</span> },
+  barWidth:   { computed: <span class="str">"bar.length * 3.5 + '%'"</span> },
+  barWarning: { computed: <span class="str">"bar.length &gt;= 5 &amp;&amp; bar.length &lt; 15"</span> },
+  barReady:   { computed: <span class="str">"bar.length &gt;= 15 &amp;&amp; bar.length &lt; 30"</span> },
+  barFull:    { computed: <span class="str">"bar.length &gt;= 30"</span> }
+}</pre>
+    </details>
+  </section>
+
+  <div class="ornament">· · ·</div>
+
+  <!-- ============ DEMO 6: events ============ -->
+  <section class="demo">
+    <div class="num">vi.</div>
+    <h2 class="section-title">Events with manners.</h2>
+    <p class="section-blurb">A dropdown that handles all the small things: opens on click, closes on outside click via <code>s-unclick</code>, closes on <code>Escape</code> via the <code>s-on</code> keyboard modifier, and animates open/closed with <code>s-transition</code>. <code>s-ref</code> would let you focus a specific element from anywhere.</p>
+
+    <div class="demo-card">
+      <div class="dropdown" s-unclick="menuOpen = false" s-on="keydown.escape: menuOpen = false">
+        <button s-click="menuOpen = !menuOpen" s-ref="menuTrigger">
+          <span s-text="menuOpen ? 'Close menu ▴' : 'Open menu ▾'"></span>
+        </button>
+
+        <ul class="dropdown-menu" s-if="menuOpen" s-transition="menu" s-cloak>
+          <li s-click="(menuOpen = false, lastChoice = 'Profile')">Profile</li>
+          <li s-click="(menuOpen = false, lastChoice = 'Settings')">Settings</li>
+          <li s-click="(menuOpen = false, lastChoice = 'Sign out')">Sign out</li>
+        </ul>
+      </div>
+
+      <p class="keypad-hint">Try <kbd>Esc</kbd> or click outside · Last choice: <span s-text="lastChoice || '—'"></span></p>
+    </div>
+
+    <details class="source">
+      <summary>View source</summary>
+<pre class="code">&lt;<span class="tag">div</span> <span class="attr">s-unclick</span>=<span class="str">"menuOpen = false"</span>
+     <span class="attr">s-on</span>=<span class="str">"keydown.escape: menuOpen = false"</span>&gt;
+
+  &lt;<span class="tag">button</span> <span class="attr">s-click</span>=<span class="str">"menuOpen = !menuOpen"</span> <span class="attr">s-ref</span>=<span class="str">"menuTrigger"</span>&gt;
+    &lt;<span class="tag">span</span> <span class="attr">s-text</span>=<span class="str">"menuOpen ? 'Close ▴' : 'Open ▾'"</span>&gt;&lt;/<span class="tag">span</span>&gt;
+  &lt;/<span class="tag">button</span>&gt;
+
+  &lt;<span class="tag">ul</span> <span class="attr">s-if</span>=<span class="str">"menuOpen"</span> <span class="attr">s-transition</span>=<span class="str">"menu"</span>&gt;
+    &lt;<span class="tag">li</span> <span class="attr">s-click</span>=<span class="str">"(menuOpen = false, lastChoice = 'Profile')"</span>&gt;Profile&lt;/<span class="tag">li</span>&gt;
+    <span class="com">&lt;!-- … --&gt;</span>
+  &lt;/<span class="tag">ul</span>&gt;
+&lt;/<span class="tag">div</span>&gt;
+
+<span class="com">/* CSS for the named transition */</span>
+.menu-enter, .menu-leave-to { opacity: <span class="num">0</span>; transform: translateY(-<span class="num">4</span>px); }
+.menu-enter-active, .menu-leave-active { transition: all <span class="num">0.18</span>s ease; }</pre>
+    </details>
+  </section>
+
+  <!-- ============ ALSO IN THE BOX ============ -->
+  <section class="ref-wrap">
+    <h2 class="section-title">Also in the box.</h2>
+    <p class="section-blurb">Directives and features that didn't get their own demo, but are worth knowing about.</p>
+
+    <div class="ref-grid">
+      <div>
+        <h3><code>s-html</code> — Raw HTML</h3>
+        <p>Sets <code>innerHTML</code> from an expression. The unsafe sibling of <code>s-text</code> — only use with trusted content.</p>
+      </div>
+
+      <div>
+        <h3><code>s-src</code> — Image binding</h3>
+        <p>Binds an <code>img</code> tag's <code>src</code> attribute. Especially useful inside <code>s-for</code> loops over avatar URLs or thumbnail lists.</p>
+      </div>
+
+      <div>
+        <h3><code>s-data</code> — Inline state</h3>
+        <p>Define variables right in the markup, no global store needed. Perfect for one-off widgets: <code>&lt;div s-data="{open: false}"&gt;</code></p>
+      </div>
+
+      <div>
+        <h3>Watchers</h3>
+        <p>Add a <code>watch</code> function to any variable to react to changes. Receives <code>(newValue, oldValue)</code>. Good for logging, syncing to APIs, or triggering side effects.</p>
+      </div>
+
+      <div>
+        <h3><code>onInit</code></h3>
+        <p>A lifecycle hook that fires once after the store initializes. Read URL params, fetch initial data, or set up the world before anything renders.</p>
+      </div>
+
+      <div>
+        <h3>Persistence</h3>
+        <p>Set <code>persist: true</code> on the store and every variable saves to <code>localStorage</code> automatically. State survives refreshes with zero glue code.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMPARE ============ -->
+  <section class="compare-wrap">
+    <h2 class="section-title">When to reach for it.</h2>
+    <p class="section-blurb">SensibleJS isn't trying to replace your framework. It's another option in the same neighborhood as Alpine — with one less thing to wire up.</p>
+
+    <table class="compare">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="us">SensibleJS</th>
+          <th>Alpine</th>
+          <th>Vue</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Install</td><td>script tag</td><td>script tag</td><td>npm + build</td></tr>
+        <tr><td>Size</td><td>~10KB</td><td>~15KB</td><td>~30KB+</td></tr>
+        <tr><td>Build step</td><td>none</td><td>none</td><td>required</td></tr>
+        <tr><td>Persistence</td><td>built-in</td><td>manual</td><td>manual</td></tr>
+        <tr><td>Computed values</td><td>yes</td><td>via plugin</td><td>yes</td></tr>
+      </tbody>
+    </table>
+
+    <p class="closing">Alpine and Vue are both excellent. SensibleJS answers a slightly different question: <strong>what if the library knew about <code>localStorage</code> and didn't make me wire it up myself?</strong></p>
+  </section>
+
+  <footer>
+    <span>© 2020–2026 Ricardo Aponte · MIT</span>
+    <span><a href="https://github.com/ricardoaponte/sensiblejs">GitHub →</a></span>
+  </footer>
+
+</main>
+
+<!-- ============ STORE ============ -->
+<script>
+  let store = {
+    persist: false,
+    data: {
+      // Demo 1
+      name: { type: String, default: '' },
+
+      // Demo 2
+      fullName: { type: String, default: '' },
+      email:    { type: String, default: '' },
+
+      // Demo 3 — computed calculator
+      price:    { type: Number, default: 10 },
+      quantity: { type: Number, default: 1 },
+      subtotal: { computed: 'price * quantity' },
+      tax:      { computed: 'subtotal * 0.07' },
+      total:    { computed: 'subtotal + tax' },
+
+      // Demo 4 — searchable list
+      search: { type: String, default: '' },
+      tasks: {
+        type: Array,
+        default: [
+          { id: 1, text: 'Read the README',     done: true  },
+          { id: 2, text: 'Try every demo',      done: false },
+          { id: 3, text: 'Star the repo',       done: false },
+          { id: 4, text: 'Build something tiny', done: false },
+          { id: 5, text: 'Tell a friend',       done: false }
+        ]
+      },
+      filteredTasks: {
+        computed: "tasks.filter(t => t.text.toLowerCase().includes(search.toLowerCase()))"
+      },
+
+      // Demo 5 — progress bar (logic in computed values, not inline)
+      bar:        { type: String, default: '' },
+      barWidth:   { computed: "bar.length * 3.5 + '%'" },
+      barWarning: { computed: "bar.length >= 5 && bar.length < 15" },
+      barReady:   { computed: "bar.length >= 15 && bar.length < 30" },
+      barFull:    { computed: "bar.length >= 30" },
+
+      // Demo 6 — dropdown
+      menuOpen:   { type: Boolean, default: false },
+      lastChoice: { type: String,  default: '' }
+    }
+  };
+</script>
+
+<!-- ============ LIBRARY ============ -->
+<script src="./sensibljs.min.js" defer></script>
+
+</body>
+</html>

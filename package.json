@@ -1,6 +1,6 @@
 {
   "name": "sensibljs",
-  "version": "1.6.3",
+  "version": "1.7.0",
   "description": "Reactive UI in ~5KB gzipped (18KB minified). No build step. No virtual DOM. No dependencies. Just HTML attributes.",
   "keywords": [
     "reactive",
@@ -21,6 +21,8 @@
   "files": [
     "sensibljs.js",
     "sensibljs.min.js",
+    "llms.txt",
+    "llms-full.txt",
     "LICENSE",
     "README.md"
   ],

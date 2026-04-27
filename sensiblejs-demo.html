@@ -372,6 +372,36 @@
             color: var(--accent);
         }
 
+        /* persist toggle */
+        .persist-toggle {
+            display: flex; align-items: center; gap: 10px;
+            font-family: var(--font-mono);
+            font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+            color: var(--muted);
+        }
+        .switch {
+            position: relative; display: inline-block;
+            width: 36px; height: 20px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch .slider {
+            position: absolute; inset: 0;
+            background: var(--rule);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .switch .slider::before {
+            content: ""; position: absolute;
+            left: 2px; top: 2px;
+            width: 16px; height: 16px;
+            background: var(--card);
+            border-radius: 50%;
+            transition: transform .2s;
+        }
+        .switch input:checked + .slider { background: var(--green); }
+        .switch input:checked + .slider::before { transform: translateX(16px); }
+
         /* transitions */
         .fade-enter, .fade-leave-to { opacity: 0; }
         .fade-enter-active, .fade-leave-active { transition: opacity .25s ease; }
@@ -406,6 +436,14 @@
             <h1 class="title"><i>Sensible</i> <b>Tasks</b></h1>
         </div>
         <div class="meta">
+            <div class="persist-toggle" style="justify-content: flex-end; margin-bottom: 8px;">
+                <label class="switch">
+                    <input type="checkbox" s-attr="checked: persist" onclick="togglePersist(this)">
+                    <span class="slider"></span>
+                </label>
+                <span s-if="persist">localStorage on</span>
+                <span s-if="!persist">localStorage off</span>
+            </div>
             reactive ui in html attributes<br>
             <a href="https://github.com/ricardoaponte/sensiblejs" target="_blank" rel="noopener">github.com/ricardoaponte/sensiblejs</a>
         </div>
@@ -422,7 +460,7 @@
             <div>
                 <span class="field-label">your name</span>
                 <input type="text" class="name" s-bind="name" placeholder="type here…" autocomplete="off">
-                <div class="helper">Bound to <code>name</code>. Persists in localStorage.</div>
+                <div class="helper">Bound to <code>name</code>. <span s-if="persist">Persists in localStorage.</span><span s-if="!persist">localStorage off — data resets on reload.</span></div>
             </div>
 
             <div>
@@ -490,12 +528,12 @@
         <div class="tasks">
             <div s-for="t of visibleTasks" s-key="t.id">
                 <div class="task">
-                    <input type="checkbox" class="check" s-attr="checked: t.done" onclick="toggleTask(this)">
+                    <input type="checkbox" class="check" s-attr="checked: t.done" s-click="tasks.updateWhere('id', t.id, {done: !t.done})">
                     <span class="task-title" s-class="done: t.done" s-text="t.title"></span>
                     <span class="task-meta" s-attr="data-priority: t.priority">
               <span s-text="t.bucket"></span> · <span s-text="t.priority"></span>
             </span>
-                    <button class="x" onclick="removeTask(this)" title="Remove">×</button>
+                    <button class="x" s-click="tasks.removeWhere('id', t.id)" title="Remove">×</button>
                 </div>
             </div>
         </div>
@@ -621,22 +659,19 @@
         if (typeof $refs !== 'undefined' && $refs.draftInput) $refs.draftInput.focus();
     }
 
-    function removeTask (btn) {
-        var key = btn.closest('[s-key-value]').getAttribute('s-key-value');
-        for (var i = 0; i < tasks.length; i++) {
-            if (String(tasks[i].id) === key) { tasks.splice(i, 1); return; }
-        }
-    }
-
-    function toggleTask (cb) {
-        var key = cb.closest('[s-key-value]').getAttribute('s-key-value');
-        for (var i = 0; i < tasks.length; i++) {
-            if (String(tasks[i].id) === key) {
-                // splice-replace guarantees reactivity for nested mutations
-                var next = Object.assign({}, tasks[i], { done: !tasks[i].done });
-                tasks.splice(i, 1, next);
-                return;
+    function togglePersist (cb) {
+        persist = cb.checked;
+        localStorage.setItem('sensibletasks_persist', persist ? '1' : '0');
+        store.persist = persist;
+        if (!persist) {
+            // Clear all localStorage keys for this store
+            var prefix = store.localPrefix || '__';
+            var toRemove = [];
+            for (var i = 0; i < localStorage.length; i++) {
+                var key = localStorage.key(i);
+                if (key.indexOf(prefix) === 0) toRemove.push(key);
             }
+            toRemove.forEach(function (k) { localStorage.removeItem(k); });
         }
     }
 
@@ -645,6 +680,9 @@
         localPrefix: 'st_',
 
         data: {
+            // persistence toggle (restored manually from localStorage)
+            persist: { type: Boolean, default: localStorage.getItem('sensibletasks_persist') !== '0', persist: false },
+
             // greeting
             name: { type: String, default: '' },
 
@@ -702,6 +740,7 @@
         },
 
         onInit: function (data) {
+            store.persist = persist;
             console.log('[SensibleTasks] initialized at', new Date().toLocaleTimeString());
         }
     };
