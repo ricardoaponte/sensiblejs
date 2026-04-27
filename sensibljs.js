@@ -17,18 +17,18 @@
 
             getData(store);
 
-            var initializing = true;
-            var _pendingUpdates = {};
-            var _rafScheduled = false;
+            let initializing = true;
+            let _pendingUpdates = {};
+            let _rafScheduled = false;
             function scheduleUpdate(variable) {
                 _pendingUpdates[variable] = true;
                 if (!_rafScheduled) {
                     _rafScheduled = true;
                     requestAnimationFrame(function() {
                         _rafScheduled = false;
-                        var vars = Object.keys(_pendingUpdates);
+                        const vars = Object.keys(_pendingUpdates);
                         _pendingUpdates = {};
-                        for (var i = 0; i < vars.length; i++) {
+                        for (let i = 0; i < vars.length; i++) {
                             processElements(vars[i]);
                         }
                     });
@@ -51,7 +51,7 @@
                         _data[variable] = [];
                     }
                     let arrayObserver = new ArrayObserver(_data[variable])
-                    arrayObserver.Observe(function (result, method) {
+                    arrayObserver.Observe(function () {
                         if (store.persist) {
                             if ((store.data[variable].hasOwnProperty('persist') && store.data[variable].persist !== false)) {
                                 localStorage.setItem(store.localPrefix + variable, JSON.stringify(_data[variable]));
@@ -63,7 +63,7 @@
                     });
                 } else if (store.data[variable].hasOwnProperty('type') && store.data[variable].type === Object) {
                     const observer = new Observer(_data, variable, variable);
-                    observer.Observe(function (value) {
+                    observer.Observe(function () {
                         if (!initializing) {
                             scheduleUpdate(variable);
                         }
@@ -71,7 +71,7 @@
                     _data[variable] = {};
                     Object.keys(store.data[variable].default).forEach(function (property) {
                         const observer = new Observer(_data[variable], property, variable);
-                        observer.Observe(function (value) {
+                        observer.Observe(function () {
                             if (!initializing) {
                                 scheduleUpdate(variable);
                             }
@@ -79,7 +79,7 @@
                     });
                 } else {
                     const observer = new Observer(_data, variable, false);
-                    observer.Observe(function (value) {
+                    observer.Observe(function () {
                         if (!initializing) {
                             scheduleUpdate(variable);
                         }
@@ -170,12 +170,12 @@
          * Execute watchers for a variable
          * @param variable
          */
-        var _previousValues = {};
+        const _previousValues = {};
         function executeWatcher(variable) {
             if (typeof store.data[variable] === 'undefined') return;
             if (store.data[variable].hasOwnProperty('watch') && typeof store.data[variable].watch === 'function') {
-                var newVal = _data[variable];
-                var oldVal = _previousValues[variable];
+                const newVal = _data[variable];
+                const oldVal = _previousValues[variable];
                 store.data[variable].watch(newVal, oldVal);
             }
             _previousValues[variable] = typeof _data[variable] === 'object'
@@ -264,7 +264,7 @@
 
         /**
          * Define s-if directives
-         * Evaluate each elements s-if. display or not
+         * Evaluate each element s-if. display or not
          */
         function elementIfs() {
             // Element display
@@ -354,15 +354,15 @@
                 case "text":
                 case "email":
                 case "textarea":
-                    var senser = 'onkeyup';
+                    let senser = 'onkeyup';
                     if (element.attributes['s-blur'] && element.attributes['s-blur'].value === "") {
                         senser = 'onblur';
                     }
-                    var handler = function (event) {
+                    const handler = function (event) {
                         if (event.target.value === _data[element.attributes['s-bind'].value]) return;
                         _data[element.attributes['s-bind'].value] = event.target.value;
                     };
-                    var debounceMs = element.getAttribute('s-debounce');
+                    const debounceMs = element.getAttribute('s-debounce');
                     element[senser] = debounceMs ? debounce(handler, parseInt(debounceMs, 10)) : handler;
                     element.value = exec(getCode(element.attributes['s-bind'].value));
                     break;
@@ -384,7 +384,7 @@
                                 _data[element.attributes['s-bind'].value] = element.innerText;
                             });
                         }
-                        var ceVal = _data[element.attributes['s-bind'].value];
+                        const ceVal = _data[element.attributes['s-bind'].value];
                         if (ceVal !== undefined && element.innerText !== ceVal + '') {
                             element.innerText = ceVal;
                         }
@@ -399,7 +399,7 @@
                                     element.src = image;
                                     // The only way I could set this.
                                     if (element.id === "") {
-                                        element.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
+                                        element.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substring(0, 10);
                                     }
                                     document.getElementById(element.id).src = image;
                                 }
@@ -440,17 +440,17 @@
             // Find computed properties that depend (directly or transitively)
             // on the changed variable. A computed-of-computed is reached on a
             // later pass once its dependency lands in varsToCheck.
-            var varsToCheck = [variable];
-            var dataKeys = Object.keys(store.data);
-            var grew = true;
+            const varsToCheck = [variable];
+            const dataKeys = Object.keys(store.data);
+            let grew = true;
             while (grew) {
                 grew = false;
-                for (var k = 0; k < dataKeys.length; k++) {
-                    var key = dataKeys[k];
+                for (let k = 0; k < dataKeys.length; k++) {
+                    const key = dataKeys[k];
                     if (varsToCheck.indexOf(key) >= 0) continue;
-                    var def = store.data[key];
+                    const def = store.data[key];
                     if (!def.hasOwnProperty('computed')) continue;
-                    for (var v = 0; v < varsToCheck.length; v++) {
+                    for (let v = 0; v < varsToCheck.length; v++) {
                         if (def.computed.indexOf(varsToCheck[v]) >= 0) {
                             varsToCheck.push(key);
                             grew = true;
@@ -461,7 +461,7 @@
             }
 
             function matches(attrValue, innerHTML) {
-                for (var i = 0; i < varsToCheck.length; i++) {
+                for (let i = 0; i < varsToCheck.length; i++) {
                     if (attrValue.indexOf(varsToCheck[i]) >= 0) return true;
                     if (innerHTML && innerHTML.indexOf(varsToCheck[i]) >= 0) return true;
                 }
@@ -564,14 +564,14 @@
          */
         function ifElement(element) {
             try {
-                var display = exec(element.getAttribute('s-if'));
+                const display = exec(element.getAttribute('s-if'));
                 if (!element.hasOwnProperty('originalDisplay')) {
                     element.originalDisplay = element.style.display;
                 }
 
-                var transition = element.getAttribute('s-transition');
+                const transition = element.getAttribute('s-transition');
                 if (transition !== null) {
-                    var prefix = transition || 's';
+                    const prefix = transition || 's';
                     if (!element._sTransitionInit) {
                         // Initial render — apply state without animation
                         element.style.display = display ? (element.originalDisplay || '') : 'none';
@@ -611,7 +611,7 @@
         }
 
         /**
-         * Apply enter transition to an element rendered inside an s-for.
+         * Apply to enter transition to an element rendered inside an s-for.
          * Element must already be in the DOM at its final position.
          */
         function applyForEnter(el, prefix) {
@@ -636,7 +636,7 @@
         function applyForLeave(el, prefix) {
             if (el._sLeaving) return;
             el._sLeaving = true;
-            var height = el.offsetHeight;
+            const height = el.offsetHeight;
             el.style.maxHeight = height + 'px';
             el.style.overflow = 'hidden';
             void el.offsetHeight;
@@ -645,7 +645,7 @@
             // Inline override so the transition has an explicit target value
             // even if the user's CSS class doesn't set max-height.
             requestAnimationFrame(function() { el.style.maxHeight = '0px'; });
-            var done = false;
+            let done = false;
             function finish() {
                 if (done) return;
                 done = true;
@@ -687,8 +687,8 @@
             try {
                 element.getAttribute('s-class').split(';').forEach(function (pair) {
                     if (!(pair = pair.trim())) return;
-                    var cls = pair.substring(0, pair.indexOf(':')).trim();
-                    var expr = pair.substring(pair.indexOf(':') + 1).trim();
+                    const cls = pair.substring(0, pair.indexOf(':')).trim();
+                    const expr = pair.substring(pair.indexOf(':') + 1).trim();
                     element.classList.toggle(cls, !!exec(expr));
                 });
             } catch (error) {
@@ -703,10 +703,10 @@
             try {
                 element.getAttribute('s-attr').split(';').forEach(function (pair) {
                     if (!(pair = pair.trim())) return;
-                    var attr = pair.substring(0, pair.indexOf(':')).trim();
+                    const attr = pair.substring(0, pair.indexOf(':')).trim();
                     if (/^on/i.test(attr)) return; // Block event handler attributes
-                    var expr = pair.substring(pair.indexOf(':') + 1).trim();
-                    var val = exec(expr);
+                    const expr = pair.substring(pair.indexOf(':') + 1).trim();
+                    const val = exec(expr);
                     if (val === false || val === null || val === undefined) {
                         element.removeAttribute(attr);
                     } else if (val === true) {
@@ -737,11 +737,11 @@
             element._sOnBound = true;
             element.getAttribute('s-on').split(';').forEach(function (binding) {
                 if (!(binding = binding.trim())) return;
-                var eventPart = binding.substring(0, binding.indexOf(':')).trim();
-                var expr = binding.substring(binding.indexOf(':') + 1).trim();
-                var parts = eventPart.split('.');
-                var eventName = parts[0];
-                var modifiers = parts.slice(1);
+                const eventPart = binding.substring(0, binding.indexOf(':')).trim();
+                const expr = binding.substring(binding.indexOf(':') + 1).trim();
+                const parts = eventPart.split('.');
+                const eventName = parts[0];
+                const modifiers = parts.slice(1);
                 element.addEventListener(eventName, function (event) {
                     if (modifiers.indexOf('prevent') >= 0) event.preventDefault();
                     if (modifiers.indexOf('stop') >= 0) event.stopPropagation();
@@ -755,20 +755,19 @@
         /**
          * Evaluate a template expression with a loop item in scope
          */
-        var _forFnCache = {};
+        const _forFnCache = {};
         function execForItem(expression, itemVar, item, index) {
             if (_dangerous.test(expression)) throw new Error('Blocked: unsafe expression');
             _validateBrackets(expression);
-            var cacheKey = expression + '|' + itemVar;
-            var fn = _forFnCache[cacheKey];
+            const cacheKey = expression + '|' + itemVar;
+            let fn = _forFnCache[cacheKey];
+            const keys = Object.keys(store.data);
             if (!fn) {
-                var keys = Object.keys(store.data);
-                var paramNames = keys.concat([itemVar, 'index']);
+                const paramNames = keys.concat([itemVar, 'index']);
                 fn = new Function(paramNames.join(','), '"use strict";' + _blocked + 'return ' + expression + ';');
                 _forFnCache[cacheKey] = fn;
             }
-            var keys = Object.keys(store.data);
-            var paramVals = keys.map(function(k) { return _data[k]; }).concat([item, index]);
+            const paramVals = keys.map(function(k) { return _data[k]; }).concat([item, index]);
             return fn.apply(null, paramVals);
         }
 
@@ -788,7 +787,7 @@
             // s-if
             el.querySelectorAll('[s-if]').forEach(function(child) {
                 try {
-                    var display = !!execForItem(child.getAttribute('s-if'), itemVar, item, index);
+                    const display = !!execForItem(child.getAttribute('s-if'), itemVar, item, index);
                     if (!child.hasOwnProperty('originalDisplay')) child.originalDisplay = child.style.display;
                     child.style.display = display ? (child.originalDisplay || '') : 'none';
                 } catch(e) { console.error(e.message); }
@@ -798,8 +797,8 @@
                 try {
                     child.getAttribute('s-class').split(';').forEach(function(pair) {
                         if (!(pair = pair.trim())) return;
-                        var cls = pair.substring(0, pair.indexOf(':')).trim();
-                        var expr = pair.substring(pair.indexOf(':') + 1).trim();
+                        const cls = pair.substring(0, pair.indexOf(':')).trim();
+                        const expr = pair.substring(pair.indexOf(':') + 1).trim();
                         if (execForItem(expr, itemVar, item, index)) child.classList.add(cls);
                         else child.classList.remove(cls);
                     });
@@ -810,10 +809,10 @@
                 try {
                     child.getAttribute('s-attr').split(';').forEach(function(pair) {
                         if (!(pair = pair.trim())) return;
-                        var attr = pair.substring(0, pair.indexOf(':')).trim();
+                        const attr = pair.substring(0, pair.indexOf(':')).trim();
                         if (/^on/i.test(attr)) return;
-                        var expr = pair.substring(pair.indexOf(':') + 1).trim();
-                        var val = execForItem(expr, itemVar, item, index);
+                        const expr = pair.substring(pair.indexOf(':') + 1).trim();
+                        const val = execForItem(expr, itemVar, item, index);
                         if (val === false || val === null || val === undefined) child.removeAttribute(attr);
                         else if (val === true) child.setAttribute(attr, '');
                         else child.setAttribute(attr, val);
@@ -825,9 +824,9 @@
                 try {
                     child.getAttribute('s-css').split(';').forEach(function(style) {
                         if (!(style = style.trim())) return;
-                        var cssAttr = style.substring(0, style.indexOf(':')).trim();
-                        var valExpr = "'" + getCode(style.substring(style.indexOf(':') + 1)) + "'";
-                        var code = String(execForItem(valExpr, itemVar, item, index)).trim();
+                        const cssAttr = style.substring(0, style.indexOf(':')).trim();
+                        const valExpr = "'" + getCode(style.substring(style.indexOf(':') + 1)) + "'";
+                        let code = String(execForItem(valExpr, itemVar, item, index)).trim();
                         if (_data[code] === undefined) code = "'" + code + "'";
                         Object.assign(child.style, exec('{"' + cssAttr + '":' + code + '}'));
                     });
@@ -860,7 +859,7 @@
                 let forAttr = templateElement.getAttribute('s-for');
                 let keyAttr = templateElement.getAttribute('s-key');
                 if (templateElement.innerHTML === '') return;
-                var hasDirectives = hasCode(templateElement.innerHTML) ||
+                const hasDirectives = hasCode(templateElement.innerHTML) ||
                     templateElement.querySelector('[s-text],[s-html],[s-if],[s-class],[s-attr],[s-css],[s-bind]') !== null;
                 if (!hasDirectives) return;
 
@@ -961,9 +960,9 @@
                 // and use insertBefore so leaving siblings stay in their slot.
                 // Without transitions, appendChild is fine — it moves nodes.
                 if (transitionPrefix) {
-                    var cursor = parentElement.firstChild;
-                    for (var i = 0; i < newChildren.length; i++) {
-                        var target = newChildren[i];
+                    let cursor = parentElement.firstChild;
+                    for (let i = 0; i < newChildren.length; i++) {
+                        const target = newChildren[i];
                         while (cursor && cursor._sLeaving) cursor = cursor.nextSibling;
                         if (cursor !== target) {
                             parentElement.insertBefore(target, cursor);
@@ -1012,11 +1011,11 @@
          * @param value
          * @returns {*}
          */
-        var _blocked = 'var document=void 0,window=void 0,self=void 0,globalThis=void 0,' +
+        const _blocked = 'var document=void 0,window=void 0,self=void 0,globalThis=void 0,' +
             'fetch=void 0,XMLHttpRequest=void 0,Function=void 0,' +
             'importScripts=void 0,setTimeout=void 0,setInterval=void 0,' +
             'Proxy=void 0,Reflect=void 0;';
-        var _dangerous = /(\bconstructor\b|__proto__|getOwnPropertyDescriptor|defineProperty|getPrototypeOf|\beval\b|\bprototype\b)/;
+        const _dangerous = /(\bconstructor\b|__proto__|getOwnPropertyDescriptor|defineProperty|getPrototypeOf|\beval\b|\bprototype\b)/;
         /**
          * Validate bracket notation used as property access (not array literals).
          * Blocks computed property access like obj["con"+"structor"], obj[atob(...)], etc.
@@ -1025,20 +1024,20 @@
         function _validateBrackets(value) {
             // Match bracket access preceded by an identifier, closing paren, closing bracket, or quote
             // This distinguishes property access from array literals
-            var bracketAccessRe = /(?:[\w$\)\]'"])\s*\[([^\[\]]*)\]/g;
-            var match;
+            const bracketAccessRe = /[\w$)\]'"]\s*\[([^\[\]]*)\]/g;
+            let match;
             while ((match = bracketAccessRe.exec(value)) !== null) {
-                var inner = match[1].trim();
+                const inner = match[1].trim();
                 // Allow: numbers, simple quoted strings, simple identifiers, identifier.property
                 if (/^(\d+|'[^']*'|"[^"]*"|[a-zA-Z_$][\w$]*(\.[a-zA-Z_$][\w$]*)*)$/.test(inner)) continue;
                 throw new Error('Blocked: unsafe bracket expression');
             }
         }
-        var _fnCache = {};
+        const _fnCache = {};
         function exec(value) {
             if (_dangerous.test(value)) throw new Error('Blocked: unsafe expression');
             _validateBrackets(value);
-            var fn = _fnCache[value];
+            let fn = _fnCache[value];
             if (!fn) {
                 fn = new Function('$refs', '"use strict";' + _blocked + 'return ' + value + ';');
                 _fnCache[value] = fn;
@@ -1116,6 +1115,7 @@
          * Original Code by Blaize Stewart, Aug 7, 2019
          * @param o
          * @param property
+         * @param obj
          * @constructor
          */
         function Observer(o, property, obj) {
@@ -1158,7 +1158,7 @@
         // Taken from @stimulus:
         function domReady() {
             return new Promise(resolve => {
-                if (document.readyState == "loading") {
+                if (document.readyState === "loading") {
                     document.addEventListener("DOMContentLoaded", resolve);
                 } else {
                     resolve();
@@ -1167,16 +1167,16 @@
         }
 
         function debounce(fn, delay) {
-            var timer;
+            let timer;
             return function() {
-                var args = arguments, ctx = this;
+                const args = arguments, ctx = this;
                 clearTimeout(timer);
                 timer = setTimeout(function() { fn.apply(ctx, args); }, delay);
             };
         }
 
-        var _data = {};
-        var $refs = {};
+        const _data = {};
+        const $refs = {};
 
         const storeTemplate = {
             persist: true,
@@ -1193,57 +1193,14 @@
                 const data = attribute === '' ? {} : attribute;
                 const dataObjects = exec(`${data}`);
                 Object.keys(dataObjects).forEach(function(key) {
-                    var val = dataObjects[key];
-                    var type = Array.isArray(val) ? Array
+                    const val = dataObjects[key];
+                    const type = Array.isArray(val) ? Array
                         : val !== null && typeof val === 'object' ? Object
                         : typeof val === 'boolean' ? Boolean
                         : typeof val === 'number' ? Number
                         : String;
                     store.data[key] = { type: type, default: val };
                 });
-            }
-        }
-
-        /**
-         * Initiate callbacks recognition.
-         */
-        /**
-         * Initiate existing id recognition.
-         */
-        function getVariables(store) {
-            for (let variable of document.querySelectorAll('[s-bind]')) {
-                let variableName = variable.getAttribute('s-bind');
-                if (variable.type === 'select-one') {
-                    let dataSource = variable.getAttribute('s-data');
-                    if (dataSource !== null) {
-                        _data[dataSource] = [];
-                        Array.from(variable.options).forEach(function(option) {
-                            _data[dataSource].push({id: option.value, value: option.text})
-                        });
-                    }
-                    store.data[variableName] = {};
-                    store.data[variableName].type = String;
-                }
-                else if (variableName.indexOf('[') >= 0) {
-                    variableName = variableName.replace('[', '').replace(']', '');
-                    store.data[variableName] = {};
-                    store.data[variableName].type = Array;
-                } else if (variableName.indexOf('{') >= 0) {
-                    variableName = variableName.replace('{', '').replace('}', '');
-                    store.data[variableName] = {};
-                    store.data[variableName].type = Object;
-                }
-                if (!store.data.hasOwnProperty(variableName)) {
-                    store.data[variableName] = {};
-                    store.data[variableName].type = String;
-                    if (variable.hasOwnProperty('value')) {
-                        store.data[variableName].default = variable.value;
-                    } else if (variable.getAttribute('value')) {
-                        store.data[variableName].default = variable.getAttribute('value');
-                    } else {
-                        store.data[variableName].default = '';
-                    }
-                }
             }
         }
 
