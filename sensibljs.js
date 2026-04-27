@@ -596,6 +596,54 @@
         }
 
         /**
+         * Apply enter transition to an element rendered inside an s-for.
+         * Element must already be in the DOM at its final position.
+         */
+        function applyForEnter(el, prefix) {
+            el.classList.remove(prefix + '-leave-active', prefix + '-leave-to');
+            el.classList.add(prefix + '-enter');
+            void el.offsetHeight;
+            el.classList.remove(prefix + '-enter');
+            el.classList.add(prefix + '-enter-active', prefix + '-enter-to');
+            function handler(e) {
+                if (e.target !== el) return;
+                el.classList.remove(prefix + '-enter-active', prefix + '-enter-to');
+                el.removeEventListener('transitionend', handler);
+            }
+            el.addEventListener('transitionend', handler);
+        }
+
+        /**
+         * Apply leave transition to an element rendered inside an s-for.
+         * Captures current height so a CSS max-height transition collapses
+         * smoothly from the natural size to 0. Removes the node when done.
+         */
+        function applyForLeave(el, prefix) {
+            if (el._sLeaving) return;
+            el._sLeaving = true;
+            var height = el.offsetHeight;
+            el.style.maxHeight = height + 'px';
+            el.style.overflow = 'hidden';
+            void el.offsetHeight;
+            el.classList.remove(prefix + '-enter-active', prefix + '-enter-to');
+            el.classList.add(prefix + '-leave-active', prefix + '-leave-to');
+            // Inline override so the transition has an explicit target value
+            // even if the user's CSS class doesn't set max-height.
+            requestAnimationFrame(function() { el.style.maxHeight = '0px'; });
+            var done = false;
+            function finish() {
+                if (done) return;
+                done = true;
+                el.removeEventListener('transitionend', onEnd);
+                if (el.parentElement) el.parentElement.removeChild(el);
+            }
+            function onEnd(e) { if (e.target === el) finish(); }
+            el.addEventListener('transitionend', onEnd);
+            // Safety net: if no transition fires (no matching CSS), still clean up.
+            setTimeout(finish, 700);
+        }
+
+        /**
          * Set elements sensible appearance
          */
         function cssElement(element) {
@@ -831,15 +879,22 @@
                     return String(item[prop]);
                 }
 
-                // Map existing children by key
+                // Optional s-transition on the s-for template — animates each
+                // item as it's added to or removed from the visible collection.
+                let transitionPrefix = templateElement.getAttribute('s-transition');
+
+                // Map existing children by key. Skip elements that are mid-leave
+                // so they don't get matched against incoming items.
                 let existingByKey = new Map();
                 Array.from(parentElement.children).forEach(function(child) {
+                    if (child._sLeaving) return;
                     let key = child.getAttribute('s-key-value');
                     if (key !== null) existingByKey.set(key, child);
                 });
 
                 // Build new children list with reconciliation
                 let newChildren = [];
+                let pendingEnter = [];
                 let usedKeys = new Set();
                 collection.forEach(function(item, index) {
                     let key = getKey(item, index);
@@ -864,8 +919,10 @@
                         el = templateElement.cloneNode(true);
                         el.removeAttribute('s-for');
                         el.removeAttribute('s-key');
+                        if (transitionPrefix) el.removeAttribute('s-transition');
                         el.innerHTML = content;
                         el.setAttribute('s-key-value', key);
+                        if (transitionPrefix) pendingEnter.push(el);
                     }
 
                     if (valueExpr) {
@@ -878,15 +935,38 @@
                     newChildren.push(el);
                 });
 
-                // Remove elements whose keys are no longer present
+                // Remove (or transition out) elements whose keys are no longer present
                 existingByKey.forEach(function(el, key) {
-                    if (!usedKeys.has(key)) parentElement.removeChild(el);
+                    if (usedKeys.has(key)) return;
+                    if (transitionPrefix) applyForLeave(el, transitionPrefix);
+                    else parentElement.removeChild(el);
                 });
 
-                // Append in correct order (appendChild moves existing nodes)
-                newChildren.forEach(function(child) {
-                    parentElement.appendChild(child);
-                });
+                // Reorder kept children. With transitions active, walk the DOM
+                // and use insertBefore so leaving siblings stay in their slot.
+                // Without transitions, appendChild is fine — it moves nodes.
+                if (transitionPrefix) {
+                    var cursor = parentElement.firstChild;
+                    for (var i = 0; i < newChildren.length; i++) {
+                        var target = newChildren[i];
+                        while (cursor && cursor._sLeaving) cursor = cursor.nextSibling;
+                        if (cursor !== target) {
+                            parentElement.insertBefore(target, cursor);
+                        } else {
+                            cursor = cursor.nextSibling;
+                        }
+                    }
+                } else {
+                    newChildren.forEach(function(child) {
+                        parentElement.appendChild(child);
+                    });
+                }
+
+                // Run enter transitions after DOM ops settle so initial classes
+                // are applied while the element is at its final position.
+                if (transitionPrefix && pendingEnter.length) {
+                    pendingEnter.forEach(function(el) { applyForEnter(el, transitionPrefix); });
+                }
 
             } catch (error) {
                 console.error(error.message);
