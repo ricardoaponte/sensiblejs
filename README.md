@@ -1,6 +1,6 @@
 # SensibleJS
 
-Reactive UI in ~10KB. No build step. No virtual DOM. No dependencies. Just HTML attributes.
+Reactive UI in ~5KB gzipped (18KB minified). No build step. No virtual DOM. No dependencies. Just HTML attributes.
 
 ```html
 <script src="sensibljs.min.js" defer></script>
