@@ -173,6 +173,15 @@
         .task-row .remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; line-height: 1; padding: 2px 8px; border-radius: 4px; }
         .task-row .remove:hover { color: var(--red); background: rgba(239,68,68,0.1); }
 
+        /* s-for enter/leave transitions for tasks. The wrapper around each
+           .task-row is what gets these classes; max-height collapses smoothly
+           on leave (the framework JS-captures the height before transitioning). */
+        .task-enter { opacity: 0; transform: translateY(-6px); }
+        .task-enter-active { transition: opacity 0.22s ease, transform 0.22s ease; }
+        .task-enter-to { opacity: 1; transform: translateY(0); }
+        .task-leave-active { transition: opacity 0.18s ease, max-height 0.22s ease, transform 0.18s ease; overflow: hidden; }
+        .task-leave-to { opacity: 0; transform: translateX(28px); }
+
         /* Quickstart */
         .quickstart-steps { display: grid; gap: 16px; }
         .step { display: flex; gap: 16px; align-items: flex-start; }
@@ -278,8 +287,9 @@ let store = {
                 <p>Use directives in your HTML</p>
                 <div class="code-block">
                     <span class="tag">&lt;input</span> <span class="attr">s-bind</span>=<span class="val">"name"</span><span class="tag">&gt;</span>
-                    <span class="tag">&lt;p><span class="attr">s-bind</span>=<span class="val">"name"</span>Hello, {name}!<span class="tag">&lt;/p&gt;
-                    <span class="tag">&lt;button</span> <span class="attr">s-click</span>=<span class="val">"count++"</span><span class="tag">&gt;</span>Clicked {count} times<span class="tag">&lt;/button&gt;</span></div>
+                    <span class="tag">&lt;p</span> <span class="attr">s-bind</span>=<span class="val">"name"</span><span class="tag">&gt;</span>Hello, {name}!<span class="tag">&lt;/p&gt;</span>
+                    <span class="tag">&lt;button</span> <span class="attr">s-click</span>=<span class="val">"count++"</span><span class="tag">&gt;</span>Clicked {count} times<span class="tag">&lt;/button&gt;</span>
+                </div>
             </div>
         </div>
     </div>
@@ -514,7 +524,7 @@ let store = {
 
             <!-- the list itself iterates a *computed* (visibleTasks), not the raw array -->
             <div s-if="visibleTasks.length > 0">
-                <div s-for="t of visibleTasks" s-key="t.id">
+                <div s-for="t of visibleTasks" s-key="t.id" s-transition="task">
                     <div class="task-row">
                         <input type="checkbox" class="task-check" s-attr="checked: t.done" onclick="toggleTask(this)">
                         <span class="task-title" s-class="done: t.done">{t.title}</span>
@@ -542,8 +552,9 @@ let store = {
 
     <details class="code-toggle"><summary>View code</summary>
     <div class="code-block"><span class="comment">&lt;!-- The s-for iterates over a *computed* view, not the raw array.</span>
-<span class="comment">     Filter pills, search, and toggling re-render automatically. --&gt;</span>
-<span class="tag">&lt;div</span> <span class="attr">s-for</span>=<span class="val">"t of visibleTasks"</span> <span class="attr">s-key</span>=<span class="val">"t.id"</span><span class="tag">&gt;</span>
+<span class="comment">     Filter pills, search, and toggling re-render automatically.</span>
+<span class="comment">     s-transition="task" animates each row as it enters or leaves. --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">s-for</span>=<span class="val">"t of visibleTasks"</span> <span class="attr">s-key</span>=<span class="val">"t.id"</span> <span class="attr">s-transition</span>=<span class="val">"task"</span><span class="tag">&gt;</span>
   <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="val">"checkbox"</span> <span class="attr">s-attr</span>=<span class="val">"checked: t.done"</span> <span class="attr">onclick</span>=<span class="val">"toggleTask(this)"</span><span class="tag">&gt;</span>
   <span class="tag">&lt;span</span> <span class="attr">s-class</span>=<span class="val">"done: t.done"</span><span class="tag">&gt;</span>{t.title}<span class="tag">&lt;/span&gt;</span>
   <span class="tag">&lt;span</span> <span class="attr">s-attr</span>=<span class="val">"data-priority: t.priority"</span><span class="tag">&gt;</span>{t.bucket} &middot; {t.priority}<span class="tag">&lt;/span&gt;</span>
