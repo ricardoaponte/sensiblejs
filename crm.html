@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sensible CRM — A SensibleJS App</title>
+
+    <script src="sensibljs.js" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg:        #f6f5f3;
+            --surface:   #ffffff;
+            --surface-2: #f0efed;
+            --text:      #1a1a18;
+            --text-2:    #5c5c58;
+            --text-3:    #9a9a95;
+            --border:    #e2e1de;
+            --accent:    #2563eb;
+            --accent-2:  #1d4ed8;
+            --green:     #16a34a;
+            --green-bg:  #dcfce7;
+            --green-t:   #15803d;
+            --red:       #dc2626;
+            --red-bg:    #fee2e2;
+            --red-t:     #b91c1c;
+            --yellow:    #ca8a04;
+            --orange:    #ea580c;
+            --purple:    #7c3aed;
+            --teal:      #0d9488;
+            --pink:      #db2777;
+            --radius:    8px;
+            --shadow:    0 1px 3px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.03);
+            --font:      'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --mono:      'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        [s-cloak] { display: none !important; }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; }
+
+        body {
+            font-family: var(--font);
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app { max-width: 760px; margin: 0 auto; padding: 40px 20px 96px; }
+
+        /* Header */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+        .header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.03em; margin: 0; }
+        .header h1 span { color: var(--accent); }
+        .header-right { display: flex; align-items: center; gap: 14px; }
+
+        /* Toggle */
+        .toggle-row { display: flex; align-items: center; gap: 7px; font-size: 0.7rem; color: var(--text-3); font-family: var(--mono); }
+        .switch { position: relative; display: inline-block; width: 32px; height: 18px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch .track { position: absolute; inset: 0; background: var(--border); border-radius: 18px; cursor: pointer; transition: background .2s; }
+        .switch .track::before { content: ""; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; background: white; border-radius: 50%; transition: transform .2s; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+        .switch input:checked + .track { background: var(--accent); }
+        .switch input:checked + .track::before { transform: translateX(14px); }
+
+        /* Card */
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden; }
+        .card-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .card-title { font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em; }
+        .card-badge { font-family: var(--mono); font-size: 0.65rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+        .card-body { padding: 18px; }
+
+        /* Overview */
+        .overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .ov-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
+        .ov-card .value { font-size: 1.25rem; font-weight: 700; line-height: 1.1; font-family: var(--mono); }
+        .ov-card .label { font-size: 0.65rem; font-family: var(--mono); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
+        .ov-green { color: var(--green-t); }
+        .ov-red { color: var(--red-t); }
+        .ov-accent { color: var(--accent); }
+
+        /* Pipeline stages */
+        .pipeline { display: flex; gap: 4px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .pipe-stage {
+            flex: 1; min-width: 72px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 10px 6px; text-align: center; border-top: 3px solid;
+        }
+        .pipe-count { font-size: 1.1rem; font-weight: 700; font-family: var(--mono); line-height: 1; }
+        .pipe-name { font-size: 0.55rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-3); margin-top: 4px; }
+        .pipe-sep { color: var(--border); font-size: 0.75rem; flex-shrink: 0; }
+        .pipe-div { width: 1px; height: 28px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
+
+        /* Composer */
+        .composer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 120px auto;
+            gap: 8px;
+        }
+        .composer-grid .field-group input,
+        .composer-grid .field-group select,
+        .composer-row-2 .field-group input {
+            width: 100%;
+        }
+        .composer-grid input,
+        .composer-grid select,
+        .composer-row-2 input {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 9px 12px;
+            font: inherit;
+            font-size: 0.85rem;
+            color: var(--text);
+            outline: none;
+            transition: border-color .15s;
+        }
+        .composer-grid input:focus,
+        .composer-grid select:focus,
+        .composer-row-2 input:focus { border-color: var(--accent); }
+        .composer-grid select { cursor: pointer; }
+        .composer-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .field-group { position: relative; }
+        .field-label { font-size: 0.62rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); margin-bottom: 4px; }
+
+        /* Buttons */
+        .btn { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 9px 18px; font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .15s; }
+        .btn:hover:not([disabled]) { background: var(--accent-2); }
+        .btn[disabled] { opacity: .35; cursor: not-allowed; }
+        .btn-ghost { background: transparent; border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 12px; font: inherit; font-size: 0.72rem; font-weight: 500; color: var(--text-2); cursor: pointer; transition: all .15s; }
+        .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-ghost.danger:hover { border-color: var(--red); color: var(--red); }
+
+        /* Toolbar & filters */
+        .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+        .pills { display: flex; gap: 3px; flex-wrap: wrap; }
+        .pill { background: transparent; border: 1px solid transparent; border-radius: 100px; padding: 4px 10px; font: inherit; font-size: 0.7rem; font-weight: 500; color: var(--text-3); cursor: pointer; transition: all .15s; }
+        .pill:hover { color: var(--text); }
+        .pill.is-active { background: var(--accent); color: white; border-color: var(--accent); }
+        .filter-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 10px; font: inherit; font-size: 0.78rem; color: var(--text); outline: none; width: 140px; }
+        .filter-input:focus { border-color: var(--accent); }
+
+        /* Contact item */
+        .cx-item {
+            display: grid;
+            grid-template-columns: 10px 1fr auto auto;
+            gap: 14px;
+            align-items: center;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border);
+            transition: background .1s;
+        }
+        .cx-item:last-child { border-bottom: none; }
+        .cx-item:hover { background: var(--surface-2); }
+        .cx-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .cx-content { min-width: 0; }
+        .cx-name { font-size: 0.88rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cx-meta { display: flex; gap: 6px; align-items: center; margin-top: 2px; flex-wrap: wrap; }
+        .cx-badge {
+            font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.04em; text-transform: uppercase;
+            padding: 1px 6px; border-radius: 100px; font-weight: 500; white-space: nowrap;
+        }
+        .cx-company, .cx-email {
+            font-size: 0.72rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .cx-sep { font-size: 0.6rem; color: var(--border); }
+        .cx-value {
+            font-family: var(--mono); font-size: 0.85rem; font-weight: 600; white-space: nowrap; color: var(--text);
+        }
+        .cx-actions { display: flex; gap: 3px; opacity: 0; transition: opacity .15s; }
+        .cx-item:hover .cx-actions { opacity: 1; }
+        .cx-btn {
+            background: none; border: none; color: var(--text-3); cursor: pointer;
+            width: 24px; height: 24px; border-radius: 50%; font-size: 0.82rem; line-height: 1;
+            display: flex; align-items: center; justify-content: center; transition: all .15s;
+        }
+        .cx-btn:hover { background: var(--surface-2); color: var(--text); }
+        .cx-btn.advance:hover { background: #dbeafe; color: var(--accent); }
+        .cx-btn.win:hover { background: var(--green-bg); color: var(--green-t); }
+        .cx-btn.lose:hover { background: var(--red-bg); color: var(--red-t); }
+        .cx-btn.delete:hover { background: var(--red-bg); color: var(--red); }
+
+        /* Empty / bulk */
+        .empty-state { padding: 40px 18px; text-align: center; color: var(--text-3); }
+        .empty-state .icon { font-size: 2rem; margin-bottom: 8px; }
+        .empty-state p { margin: 0; font-size: 0.88rem; }
+        .bulk-row { display: flex; gap: 8px; padding: 10px 18px; border-top: 1px solid var(--border); align-items: center; }
+
+        /* Transitions */
+        .cx-enter { opacity: 0; transform: translateY(-4px); }
+        .cx-enter-active { transition: opacity .2s, transform .2s; }
+        .cx-enter-to { opacity: 1; transform: translateY(0); }
+        .cx-leave-active { transition: opacity .15s, max-height .2s; overflow: hidden; }
+        .cx-leave-to { opacity: 0; }
+
+        /* Footer */
+        footer { text-align: center; margin-top: 48px; font-size: 0.72rem; color: var(--text-3); }
+        footer a { color: var(--text-2); text-decoration: none; border-bottom: 1px solid var(--border); }
+        footer a:hover { color: var(--accent); border-color: var(--accent); }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .overview { grid-template-columns: repeat(2, 1fr); }
+            .pipeline { gap: 3px; }
+            .pipe-stage { min-width: 48px; padding: 8px 4px; }
+            .pipe-name { font-size: 0.5rem; }
+            .pipe-sep { display: none; }
+            .pipe-div { display: none; }
+            .composer-grid { grid-template-columns: 1fr 1fr; }
+            .composer-grid .btn { grid-column: 1 / -1; }
+            .composer-row-2 { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .cx-item { grid-template-columns: 8px 1fr auto; }
+            .cx-value { display: none; }
+            .cx-actions { opacity: 1; }
+        }
+    </style>
+</head>
+
+<body s-cloak>
+<div class="app">
+
+    <!-- Header -->
+    <div class="header">
+        <h1><span>Sensible</span> CRM</h1>
+        <div class="header-right">
+            <div class="toggle-row">
+                <label class="switch">
+                    <input type="checkbox" s-attr="checked: persist" onclick="togglePersist(this)">
+                    <span class="track"></span>
+                </label>
+                <span s-if="persist">Saved</span>
+                <span s-if="!persist">Not saved</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats overview -->
+    <div class="overview">
+        <div class="ov-card">
+            <div class="value ov-accent" s-text="totalContacts"></div>
+            <div class="label">Contacts</div>
+        </div>
+        <div class="ov-card">
+            <div class="value" s-text="'$' + pipelineValue.toLocaleString()"></div>
+            <div class="label">Pipeline</div>
+        </div>
+        <div class="ov-card">
+            <div class="value ov-green" s-text="'$' + wonValue.toLocaleString()"></div>
+            <div class="label">Won</div>
+        </div>
+        <div class="ov-card">
+            <div class="value" s-class="ov-green: conversionRate >= 50; ov-red: conversionRate < 50 && conversionRate > 0" s-text="conversionRate + '%'"></div>
+            <div class="label">Win rate</div>
+        </div>
+    </div>
+
+    <!-- Pipeline stages -->
+    <div class="pipeline">
+        <div class="pipe-stage" style="border-top-color: #9a9a95">
+            <div class="pipe-count" s-text="leadCount"></div>
+            <div class="pipe-name">Lead</div>
+        </div>
+        <div class="pipe-sep">&#8250;</div>
+        <div class="pipe-stage" style="border-top-color: #2563eb">
+            <div class="pipe-count" s-text="contactedCount"></div>
+            <div class="pipe-name">Contacted</div>
+        </div>
+        <div class="pipe-sep">&#8250;</div>
+        <div class="pipe-stage" style="border-top-color: #0d9488">
+            <div class="pipe-count" s-text="qualifiedCount"></div>
+            <div class="pipe-name">Qualified</div>
+        </div>
+        <div class="pipe-sep">&#8250;</div>
+        <div class="pipe-stage" style="border-top-color: #7c3aed">
+            <div class="pipe-count" s-text="proposalCount"></div>
+            <div class="pipe-name">Proposal</div>
+        </div>
+        <div class="pipe-div"></div>
+        <div class="pipe-stage" style="border-top-color: #16a34a">
+            <div class="pipe-count" s-text="wonCount"></div>
+            <div class="pipe-name">Won</div>
+        </div>
+        <div class="pipe-stage" style="border-top-color: #dc2626">
+            <div class="pipe-count" s-text="lostCount"></div>
+            <div class="pipe-name">Lost</div>
+        </div>
+    </div>
+
+    <!-- Add contact -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Add contact</span>
+        </div>
+        <div class="card-body">
+            <div class="composer-grid">
+                <div class="field-group">
+                    <div class="field-label">Name</div>
+                    <input type="text" s-bind="draftName" s-ref="nameInput"
+                           placeholder="Full name" autocomplete="off">
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Company</div>
+                    <input type="text" s-bind="draftCompany" placeholder="Company name" autocomplete="off">
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Deal value</div>
+                    <input type="number" s-bind="draftValue" min="0" step="500"
+                           placeholder="0" style="font-family: var(--mono);">
+                </div>
+                <div class="field-group" style="align-self: end;">
+                    <button class="btn" s-click="addContact()"
+                            s-attr="disabled: draftName.trim().length === 0">Add</button>
+                </div>
+            </div>
+            <div class="composer-row-2">
+                <div class="field-group">
+                    <div class="field-label">Email</div>
+                    <input type="text" s-bind="draftEmail"
+                           s-on="keydown.enter: addContact()"
+                           placeholder="email@company.com" autocomplete="off">
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Phone</div>
+                    <input type="text" s-bind="draftPhone" placeholder="(555) 000-0000" autocomplete="off">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact list -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Contacts</span>
+            <span class="card-badge"><span s-text="visibleContacts.length"></span> shown</span>
+        </div>
+
+        <div class="toolbar">
+            <div class="pills">
+                <button class="pill" s-class="is-active: statusFilter === 'all'"    s-click="statusFilter = 'all'">All</button>
+                <button class="pill" s-class="is-active: statusFilter === 'active'" s-click="statusFilter = 'active'">Active</button>
+                <button class="pill" s-class="is-active: statusFilter === 'won'"    s-click="statusFilter = 'won'">Won</button>
+                <button class="pill" s-class="is-active: statusFilter === 'lost'"   s-click="statusFilter = 'lost'">Lost</button>
+            </div>
+            <input type="text" class="filter-input" s-bind="query" s-debounce="200"
+                   placeholder="Search..." autocomplete="off">
+        </div>
+
+        <!-- List -->
+        <div s-if="visibleContacts.length > 0">
+            <div s-for="c of visibleContacts" s-key="c.id" s-transition="cx">
+                <div class="cx-item">
+                    <div class="cx-dot" s-css="background: {statusColor(c.status)}"></div>
+                    <div class="cx-content">
+                        <div class="cx-name" s-text="c.name"></div>
+                        <div class="cx-meta">
+                            <span class="cx-badge" s-css="background: {statusBg(c.status)}; color: {statusColor(c.status)}" s-text="c.status"></span>
+                            <span class="cx-company" s-text="c.company" s-if="c.company !== ''"></span>
+                            <span class="cx-sep" s-if="c.company !== '' && c.email !== ''">&#183;</span>
+                            <span class="cx-email" s-text="c.email" s-if="c.email !== ''"></span>
+                        </div>
+                    </div>
+                    <span class="cx-value" s-text="'$' + c.value.toLocaleString()"></span>
+                    <div class="cx-actions">
+                        <button class="cx-btn advance" s-if="c.status !== 'won' && c.status !== 'lost'"
+                                s-click="advanceStatus(c.id)" title="Next stage">&#8594;</button>
+                        <button class="cx-btn win" s-if="c.status !== 'won' && c.status !== 'lost'"
+                                s-click="contacts.updateWhere('id', c.id, {status: 'won'})" title="Mark won">&#10003;</button>
+                        <button class="cx-btn lose" s-if="c.status !== 'won' && c.status !== 'lost'"
+                                s-click="contacts.updateWhere('id', c.id, {status: 'lost'})" title="Mark lost">&#10007;</button>
+                        <button class="cx-btn delete"
+                                s-click="contacts.removeWhere('id', c.id)" title="Delete">&times;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty states -->
+        <div class="empty-state" s-if="contacts.length === 0">
+            <div class="icon">&#128101;</div>
+            <p>No contacts yet. Add your first one above.</p>
+        </div>
+        <div class="empty-state" s-if="contacts.length > 0 && visibleContacts.length === 0">
+            <div class="icon">&#128269;</div>
+            <p>No contacts match your filters.</p>
+        </div>
+
+        <!-- Bulk actions -->
+        <div class="bulk-row">
+            <button class="btn-ghost" onclick="loadSample()">Load sample data</button>
+            <span style="flex:1"></span>
+            <button class="btn-ghost danger" s-if="contacts.length > 0" onclick="clearAll()">Clear all</button>
+        </div>
+    </div>
+
+    <footer>
+        Built with <a href="https://github.com/ricardoaponte/sensiblejs" target="_blank" rel="noopener">SensibleJS</a> &middot; no build step &middot; no virtual DOM &middot; just HTML attributes
+    </footer>
+</div>
+
+<script>
+    // === Status helpers ===
+
+    var _statusColors = {
+        lead:      '#9a9a95',
+        contacted: '#2563eb',
+        qualified: '#0d9488',
+        proposal:  '#7c3aed',
+        won:       '#16a34a',
+        lost:      '#dc2626'
+    };
+
+    var _statusBgs = {
+        lead:      '#f0efed',
+        contacted: '#dbeafe',
+        qualified: '#ccfbf1',
+        proposal:  '#ede9fe',
+        won:       '#dcfce7',
+        lost:      '#fee2e2'
+    };
+
+    function statusColor(s) { return _statusColors[s] || '#9a9a95'; }
+    function statusBg(s) { return _statusBgs[s] || '#f0efed'; }
+
+    // === Pipeline advancement ===
+
+    var _stageOrder = ['lead', 'contacted', 'qualified', 'proposal', 'won'];
+
+    function advanceStatus(id) {
+        for (var i = 0; i < contacts.length; i++) {
+            if (contacts[i].id === id) {
+                var idx = _stageOrder.indexOf(contacts[i].status);
+                if (idx >= 0 && idx < _stageOrder.length - 1) {
+                    contacts.update(i, { status: _stageOrder[idx + 1] });
+                }
+                return;
+            }
+        }
+    }
+
+    // === CRUD ===
+
+    function addContact() {
+        if (draftName.trim() === '') return;
+        contacts.push({
+            id:      Date.now(),
+            name:    draftName.trim(),
+            email:   draftEmail.trim(),
+            phone:   draftPhone.trim(),
+            company: draftCompany.trim(),
+            status:  'lead',
+            value:   parseFloat(draftValue) || 0
+        });
+        draftName = '';
+        draftEmail = '';
+        draftPhone = '';
+        draftCompany = '';
+        draftValue = 0;
+        if (typeof $refs !== 'undefined' && $refs.nameInput) $refs.nameInput.focus();
+    }
+
+    function clearAll() {
+        contacts.splice(0, contacts.length);
+    }
+
+    // === Sample data ===
+
+    function loadSample() {
+        var s = [
+            { id: Date.now()+1,  name: 'Sarah Chen',     email: 'sarah@techvision.io',  phone: '(555) 123-4567', company: 'TechVision Inc',    status: 'won',       value: 24000 },
+            { id: Date.now()+2,  name: 'James Wilson',    email: 'jwilson@acme.co',      phone: '(555) 234-5678', company: 'Acme Corp',         status: 'proposal',  value: 18500 },
+            { id: Date.now()+3,  name: 'Maria Garcia',    email: 'maria@innovate.dev',   phone: '(555) 345-6789', company: 'Innovate Labs',     status: 'qualified', value: 32000 },
+            { id: Date.now()+4,  name: 'Alex Thompson',   email: 'alex@summit.biz',      phone: '(555) 456-7890', company: 'Summit Solutions',  status: 'contacted', value: 15000 },
+            { id: Date.now()+5,  name: 'Priya Patel',     email: 'priya@dataflow.ai',    phone: '(555) 567-8901', company: 'DataFlow AI',       status: 'lead',      value: 45000 },
+            { id: Date.now()+6,  name: 'Michael Brown',   email: 'mbrown@vertex.com',    phone: '(555) 678-9012', company: 'Vertex Systems',    status: 'won',       value: 12000 },
+            { id: Date.now()+7,  name: 'Emily Park',      email: 'epark@horizon.co',     phone: '(555) 789-0123', company: 'Horizon Media',     status: 'lost',      value: 28000 },
+            { id: Date.now()+8,  name: 'David Kim',       email: 'dkim@cloudnine.io',    phone: '(555) 890-1234', company: 'CloudNine',         status: 'lead',      value: 9500  },
+            { id: Date.now()+9,  name: 'Rachel Adams',    email: 'radams@bluesky.dev',   phone: '(555) 901-2345', company: 'BlueSky Digital',   status: 'contacted', value: 21000 },
+            { id: Date.now()+10, name: 'Tom Martinez',    email: 'tom@redline.co',       phone: '(555) 012-3456', company: 'Redline Agency',    status: 'proposal',  value: 36000 },
+        ];
+        for (var i = 0; i < s.length; i++) contacts.push(s[i]);
+    }
+
+    // === Persistence toggle ===
+
+    var _crmFields = ['contacts'];
+
+    function togglePersist(cb) {
+        persist = cb.checked;
+        localStorage.setItem('crm_persist', persist ? '1' : '0');
+        _crmFields.forEach(function(f) { store.data[f].persist = persist; });
+        store.persist = persist;
+        if (!persist) {
+            var prefix = store.localPrefix;
+            _crmFields.forEach(function(f) { localStorage.removeItem(prefix + f); });
+        } else {
+            localStorage.setItem(store.localPrefix + 'contacts', JSON.stringify(contacts));
+        }
+    }
+
+    // === Store ===
+
+    let store = {
+        persist: true,
+        localPrefix: 'crm_',
+
+        data: {
+            // Persist toggle
+            persist: { type: Boolean, default: localStorage.getItem('crm_persist') !== '0', persist: false },
+
+            // Contacts
+            contacts: { type: Array, default: [] },
+
+            // Composer
+            draftName:    { type: String, default: '', persist: false },
+            draftEmail:   { type: String, default: '', persist: false },
+            draftPhone:   { type: String, default: '', persist: false },
+            draftCompany: { type: String, default: '', persist: false },
+            draftValue:   { type: Number, default: 0, persist: false },
+
+            // Filters
+            statusFilter: { type: String, default: 'all', persist: false },
+            query:        { type: String, default: '', persist: false },
+
+            // Computed stats
+            totalContacts: { computed: 'contacts.length' },
+            pipelineValue: { computed: "contacts.reduce(function(s,c) { return c.status !== 'lost' ? s + c.value : s; }, 0)" },
+            wonValue:      { computed: "contacts.reduce(function(s,c) { return c.status === 'won' ? s + c.value : s; }, 0)" },
+
+            // Pipeline stage counts
+            leadCount:      { computed: "contacts.filter(function(c) { return c.status === 'lead'; }).length" },
+            contactedCount: { computed: "contacts.filter(function(c) { return c.status === 'contacted'; }).length" },
+            qualifiedCount: { computed: "contacts.filter(function(c) { return c.status === 'qualified'; }).length" },
+            proposalCount:  { computed: "contacts.filter(function(c) { return c.status === 'proposal'; }).length" },
+            wonCount:       { computed: "contacts.filter(function(c) { return c.status === 'won'; }).length" },
+            lostCount:      { computed: "contacts.filter(function(c) { return c.status === 'lost'; }).length" },
+
+            // Derived stats
+            conversionRate: { computed: "wonCount + lostCount > 0 ? Math.round(wonCount / (wonCount + lostCount) * 100) : 0" },
+
+            // Filtered view
+            visibleContacts: {
+                computed: "contacts.filter(function(c) { " +
+                    "var matchStatus = statusFilter === 'all' || c.status === statusFilter || (statusFilter === 'active' && c.status !== 'won' && c.status !== 'lost'); " +
+                    "var matchQuery = query.length === 0 || c.name.toLowerCase().indexOf(query.toLowerCase()) !== -1 || c.company.toLowerCase().indexOf(query.toLowerCase()) !== -1 || c.email.toLowerCase().indexOf(query.toLowerCase()) !== -1; " +
+                    "return matchStatus && matchQuery; " +
+                    "})"
+            }
+        },
+
+        onInit: function(data) {
+            store.persist = persist;
+            _crmFields.forEach(function(f) { store.data[f].persist = persist; });
+        }
+    };
+</script>
+</body>
+</html>

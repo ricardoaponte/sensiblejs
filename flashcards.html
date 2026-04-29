@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sensible Cards — A SensibleJS App</title>
+
+    <script src="sensibljs.js" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg:        #f6f5f3;
+            --surface:   #ffffff;
+            --surface-2: #f0efed;
+            --text:      #1a1a18;
+            --text-2:    #5c5c58;
+            --text-3:    #9a9a95;
+            --border:    #e2e1de;
+            --accent:    #2563eb;
+            --accent-2:  #1d4ed8;
+            --green:     #16a34a;
+            --green-bg:  #dcfce7;
+            --green-t:   #15803d;
+            --red:       #dc2626;
+            --red-bg:    #fee2e2;
+            --red-t:     #b91c1c;
+            --yellow:    #ca8a04;
+            --orange:    #ea580c;
+            --purple:    #7c3aed;
+            --teal:      #0d9488;
+            --pink:      #db2777;
+            --radius:    8px;
+            --shadow:    0 1px 3px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.03);
+            --font:      'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --mono:      'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        [s-cloak] { display: none !important; }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; }
+
+        body {
+            font-family: var(--font);
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app { max-width: 720px; margin: 0 auto; padding: 40px 20px 96px; }
+
+        /* Header */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+        .header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.03em; margin: 0; }
+        .header h1 span { color: var(--accent); }
+        .header-right { display: flex; align-items: center; gap: 14px; }
+
+        /* Toggle */
+        .toggle-row { display: flex; align-items: center; gap: 7px; font-size: 0.7rem; color: var(--text-3); font-family: var(--mono); }
+        .switch { position: relative; display: inline-block; width: 32px; height: 18px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch .track { position: absolute; inset: 0; background: var(--border); border-radius: 18px; cursor: pointer; transition: background .2s; }
+        .switch .track::before { content: ""; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; background: white; border-radius: 50%; transition: transform .2s; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+        .switch input:checked + .track { background: var(--accent); }
+        .switch input:checked + .track::before { transform: translateX(14px); }
+
+        /* Card */
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden; }
+        .card-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .card-title { font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em; }
+        .card-badge { font-family: var(--mono); font-size: 0.65rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+        .card-body { padding: 18px; }
+
+        /* Overview */
+        .overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .ov-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
+        .ov-card .value { font-size: 1.35rem; font-weight: 700; line-height: 1.1; font-family: var(--mono); }
+        .ov-card .label { font-size: 0.65rem; font-family: var(--mono); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
+        .ov-green { color: var(--green-t); }
+        .ov-accent { color: var(--accent); }
+
+        /* Progress bar */
+        .progress-wrap { margin-bottom: 20px; }
+        .progress-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.7rem; color: var(--text-3); margin-bottom: 6px; }
+        .progress-track { height: 8px; background: var(--surface-2); border-radius: 8px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 8px; background: var(--green); transition: width .4s cubic-bezier(.2,.8,.2,1); }
+
+        /* Mode tabs */
+        .mode-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+        .mode-tab { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; font: inherit; font-size: 0.85rem; font-weight: 600; color: var(--text-2); cursor: pointer; text-align: center; transition: all .15s; }
+        .mode-tab:hover { border-color: var(--accent); color: var(--accent); }
+        .mode-tab.is-active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* Composer */
+        .composer { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .composer .full { grid-column: 1 / -1; }
+        .field-group { position: relative; }
+        .field-label { font-size: 0.62rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); margin-bottom: 4px; }
+        .composer input, .composer select {
+            width: 100%; background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 9px 12px; font: inherit; font-size: 0.85rem;
+            color: var(--text); outline: none; transition: border-color .15s;
+        }
+        .composer input:focus, .composer select:focus { border-color: var(--accent); }
+        .composer select { cursor: pointer; }
+
+        /* Buttons */
+        .btn { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 9px 18px; font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .15s; }
+        .btn:hover:not([disabled]) { background: var(--accent-2); }
+        .btn[disabled] { opacity: .35; cursor: not-allowed; }
+        .btn-success { background: var(--green); }
+        .btn-success:hover:not([disabled]) { background: var(--green-t); }
+        .btn-ghost { background: transparent; border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 12px; font: inherit; font-size: 0.72rem; font-weight: 500; color: var(--text-2); cursor: pointer; transition: all .15s; }
+        .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-ghost.danger:hover { border-color: var(--red); color: var(--red); }
+
+        /* Toolbar & filters */
+        .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+        .pills { display: flex; gap: 3px; flex-wrap: wrap; }
+        .pill { background: transparent; border: 1px solid transparent; border-radius: 100px; padding: 4px 10px; font: inherit; font-size: 0.7rem; font-weight: 500; color: var(--text-3); cursor: pointer; transition: all .15s; }
+        .pill:hover { color: var(--text); }
+        .pill.is-active { background: var(--accent); color: white; border-color: var(--accent); }
+        .filter-right { display: flex; gap: 6px; align-items: center; }
+        .filter-select { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 10px; font: inherit; font-size: 0.72rem; color: var(--text-2); cursor: pointer; outline: none; }
+        .filter-input { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 10px; font: inherit; font-size: 0.78rem; color: var(--text); outline: none; width: 120px; }
+        .filter-input:focus { border-color: var(--accent); }
+
+        /* Card grid */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding: 16px; }
+
+        /* Flashcard in browse grid */
+        .fc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; border-left: 3px solid var(--border); transition: border-color .2s, box-shadow .2s; }
+        .fc:hover { box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+        .fc.is-mastered { border-left-color: var(--green); background: #fafff8; }
+        .fc-q { font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; line-height: 1.3; }
+        .fc-a { font-size: 0.78rem; color: var(--text-2); line-height: 1.4; margin-bottom: 10px; }
+        .fc-footer { display: flex; align-items: center; gap: 6px; }
+        .fc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .fc-cat { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 6px; border-radius: 100px; background: var(--surface-2); color: var(--text-3); }
+        .fc-actions { margin-left: auto; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+        .fc:hover .fc-actions { opacity: 1; }
+        .fc-btn { background: none; border: none; color: var(--text-3); cursor: pointer; width: 24px; height: 24px; border-radius: 50%; font-size: 0.85rem; line-height: 1; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+        .fc-btn:hover { background: var(--surface-2); color: var(--text); }
+        .fc-btn.mastered-btn:hover { background: var(--green-bg); color: var(--green-t); }
+        .fc-btn.delete-btn:hover { background: var(--red-bg); color: var(--red); }
+
+        /* Study card — 3D flip */
+        .study-wrapper { max-width: 500px; margin: 0 auto; }
+        .study-progress { text-align: center; margin-bottom: 16px; font-family: var(--mono); font-size: 0.75rem; color: var(--text-3); }
+        .study-card { perspective: 1000px; width: 100%; height: 280px; cursor: pointer; margin-bottom: 24px; }
+        .study-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(.4,.2,.2,1); transform-style: preserve-3d; }
+        .study-card.is-flipped .study-inner { transform: rotateY(180deg); }
+        .study-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); }
+        .study-back { transform: rotateY(180deg); }
+        .study-label { font-family: var(--mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 16px; }
+        .study-text { font-size: 1.3rem; font-weight: 600; text-align: center; line-height: 1.4; }
+        .study-hint { position: absolute; bottom: 16px; font-family: var(--mono); font-size: 0.62rem; color: var(--text-3); }
+        .study-cat { position: absolute; bottom: 16px; font-family: var(--mono); font-size: 0.6rem; color: var(--text-3); padding: 2px 8px; background: var(--surface-2); border-radius: 100px; }
+        .study-actions { display: flex; gap: 12px; justify-content: center; }
+        .study-actions .btn,
+        .study-actions .btn-ghost { min-width: 140px; text-align: center; }
+
+        /* Congrats */
+        .congrats { text-align: center; padding: 48px 20px; }
+        .congrats-icon { font-size: 3rem; margin-bottom: 12px; }
+        .congrats h3 { font-size: 1.2rem; font-weight: 700; margin: 0 0 8px; }
+        .congrats p { color: var(--text-2); margin: 0 0 20px; font-size: 0.9rem; }
+
+        /* Empty state */
+        .empty-state { padding: 40px 18px; text-align: center; color: var(--text-3); }
+        .empty-state .icon { font-size: 2rem; margin-bottom: 8px; }
+        .empty-state p { margin: 0; font-size: 0.88rem; }
+
+        /* Bulk row */
+        .bulk-row { display: flex; gap: 8px; padding: 10px 18px; border-top: 1px solid var(--border); align-items: center; }
+
+        /* Transitions */
+        .fc-enter { opacity: 0; transform: translateY(-4px); }
+        .fc-enter-active { transition: opacity .2s, transform .2s; }
+        .fc-enter-to { opacity: 1; transform: translateY(0); }
+        .fc-leave-active { transition: opacity .15s, max-height .2s; overflow: hidden; }
+        .fc-leave-to { opacity: 0; }
+
+        /* Footer */
+        footer { text-align: center; margin-top: 48px; font-size: 0.72rem; color: var(--text-3); }
+        footer a { color: var(--text-2); text-decoration: none; border-bottom: 1px solid var(--border); }
+        footer a:hover { color: var(--accent); border-color: var(--accent); }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .overview { grid-template-columns: repeat(2, 1fr); }
+            .card-grid { grid-template-columns: 1fr; }
+            .composer { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .fc-actions { opacity: 1; }
+            .study-card { height: 240px; }
+            .study-text { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+
+<body s-cloak>
+<div class="app">
+
+    <!-- Header -->
+    <div class="header">
+        <h1><span>Sensible</span> Cards</h1>
+        <div class="header-right">
+            <div class="toggle-row">
+                <label class="switch">
+                    <input type="checkbox" s-attr="checked: persist" onclick="togglePersist(this)">
+                    <span class="track"></span>
+                </label>
+                <span s-if="persist">Saved</span>
+                <span s-if="!persist">Not saved</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats overview -->
+    <div class="overview">
+        <div class="ov-card">
+            <div class="value ov-accent" s-text="totalCards"></div>
+            <div class="label">Total</div>
+        </div>
+        <div class="ov-card">
+            <div class="value ov-green" s-text="masteredCount"></div>
+            <div class="label">Mastered</div>
+        </div>
+        <div class="ov-card">
+            <div class="value" s-text="unmasteredCount"></div>
+            <div class="label">Remaining</div>
+        </div>
+        <div class="ov-card">
+            <div class="value ov-green" s-text="masteryPercent + '%'"></div>
+            <div class="label">Mastery</div>
+        </div>
+    </div>
+
+    <!-- Mastery progress bar -->
+    <div class="progress-wrap" s-if="totalCards > 0">
+        <div class="progress-labels">
+            <span>Mastery progress</span>
+            <span s-text="masteredCount + ' / ' + totalCards"></span>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" s-css="width: {masteryPercent}%"></div>
+        </div>
+    </div>
+
+    <!-- Mode tabs -->
+    <div class="mode-tabs">
+        <button class="mode-tab" s-class="is-active: mode === 'browse'" s-click="mode = 'browse'">Browse</button>
+        <button class="mode-tab" s-class="is-active: mode === 'study'" s-click="startStudy()" s-attr="disabled: totalCards === 0">Study</button>
+    </div>
+
+    <!-- ============ BROWSE MODE ============ -->
+    <div s-if="mode === 'browse'">
+
+        <!-- Add card form -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Add card</span>
+            </div>
+            <div class="card-body">
+                <div class="composer">
+                    <div class="field-group full">
+                        <div class="field-label">Front (question)</div>
+                        <input type="text" s-bind="draftFront" s-ref="frontInput"
+                               placeholder="What is the capital of France?" autocomplete="off">
+                    </div>
+                    <div class="field-group full">
+                        <div class="field-label">Back (answer)</div>
+                        <input type="text" s-bind="draftBack"
+                               s-on="keydown.enter: addCard()"
+                               placeholder="Paris" autocomplete="off">
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Category</div>
+                        <select s-bind="draftCategory">
+                            <option value="General">General</option>
+                            <option value="Language">Language</option>
+                            <option value="Science">Science</option>
+                            <option value="Math">Math</option>
+                            <option value="History">History</option>
+                            <option value="Code">Code</option>
+                        </select>
+                    </div>
+                    <div class="field-group" style="align-self: end;">
+                        <button class="btn" s-click="addCard()"
+                                s-attr="disabled: draftFront.trim().length === 0 || draftBack.trim().length === 0">Add card</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards list -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Your cards</span>
+                <span class="card-badge"><span s-text="visibleCards.length"></span> shown</span>
+            </div>
+
+            <div class="toolbar">
+                <div class="pills">
+                    <button class="pill" s-class="is-active: filter === 'all'"        s-click="filter = 'all'">All</button>
+                    <button class="pill" s-class="is-active: filter === 'mastered'"   s-click="filter = 'mastered'">Mastered</button>
+                    <button class="pill" s-class="is-active: filter === 'unmastered'" s-click="filter = 'unmastered'">Unmastered</button>
+                </div>
+                <div class="filter-right">
+                    <select class="filter-select" s-bind="catFilter">
+                        <option value="all">All categories</option>
+                        <option value="General">General</option>
+                        <option value="Language">Language</option>
+                        <option value="Science">Science</option>
+                        <option value="Math">Math</option>
+                        <option value="History">History</option>
+                        <option value="Code">Code</option>
+                    </select>
+                    <input type="text" class="filter-input" s-bind="query" s-debounce="200"
+                           placeholder="Search..." autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Card grid -->
+            <div s-if="visibleCards.length > 0">
+                <div class="card-grid">
+                    <div s-for="c of visibleCards" s-key="c.id" s-transition="fc">
+                        <div class="fc" s-class="is-mastered: c.mastered">
+                            <div class="fc-q" s-text="c.front"></div>
+                            <div class="fc-a" s-text="c.back"></div>
+                            <div class="fc-footer">
+                                <div class="fc-dot" s-css="background: {catColor(c.category)}"></div>
+                                <span class="fc-cat" s-text="c.category"></span>
+                                <div class="fc-actions">
+                                    <button class="fc-btn mastered-btn"
+                                            s-click="cards.updateWhere('id', c.id, {mastered: !c.mastered})">&#10003;</button>
+                                    <button class="fc-btn delete-btn"
+                                            s-click="cards.removeWhere('id', c.id)">&times;</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty states -->
+            <div class="empty-state" s-if="cards.length === 0">
+                <div class="icon">&#128218;</div>
+                <p>No flashcards yet. Create your first one above.</p>
+            </div>
+            <div class="empty-state" s-if="cards.length > 0 && visibleCards.length === 0">
+                <div class="icon">&#128269;</div>
+                <p>No cards match your filters.</p>
+            </div>
+
+            <!-- Bulk actions -->
+            <div class="bulk-row">
+                <button class="btn-ghost" onclick="loadSample()">Load sample cards</button>
+                <span style="flex:1"></span>
+                <button class="btn-ghost" s-if="cards.length > 0" onclick="resetProgress()">Reset progress</button>
+                <button class="btn-ghost danger" s-if="cards.length > 0" onclick="clearAll()">Delete all</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ STUDY MODE ============ -->
+    <div s-if="mode === 'study'">
+        <div class="study-wrapper">
+
+            <!-- Active study card -->
+            <div s-if="currentCard !== null">
+                <div class="study-progress">
+                    Card <span s-text="studyIndex + 1"></span> of <span s-text="studyDeck.length"></span>
+                    &mdash; <span s-text="masteredCount"></span> mastered so far
+                </div>
+
+                <div class="study-card" s-click="flipped = !flipped" s-class="is-flipped: flipped">
+                    <div class="study-inner">
+                        <div class="study-face">
+                            <div class="study-label">Question</div>
+                            <div class="study-text" s-text="currentCard ? currentCard.front : ''"></div>
+                            <div class="study-hint">Click to flip</div>
+                        </div>
+                        <div class="study-face study-back">
+                            <div class="study-label">Answer</div>
+                            <div class="study-text" s-text="currentCard ? currentCard.back : ''"></div>
+                            <div class="study-cat" s-text="currentCard ? currentCard.category : ''"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="study-actions" s-if="flipped">
+                    <button class="btn btn-success" s-click="markMastered()">Got it!</button>
+                    <button class="btn-ghost" s-click="keepStudying()">Keep studying</button>
+                </div>
+                <div class="study-actions" s-if="!flipped">
+                    <button class="btn-ghost" s-click="skipCard()">Skip</button>
+                </div>
+            </div>
+
+            <!-- All mastered -->
+            <div s-if="studyDeck.length === 0" class="congrats">
+                <div class="congrats-icon">&#127881;</div>
+                <h3>All cards mastered!</h3>
+                <p>You've mastered all <span s-text="totalCards"></span> cards. Nice work.</p>
+                <div style="display:flex; gap:12px; justify-content:center;">
+                    <button class="btn-ghost" onclick="resetProgress()">Reset progress</button>
+                    <button class="btn" s-click="mode = 'browse'">Back to browse</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        Built with <a href="https://github.com/ricardoaponte/sensiblejs" target="_blank" rel="noopener">SensibleJS</a> &middot; no build step &middot; no virtual DOM &middot; just HTML attributes
+    </footer>
+</div>
+
+<script>
+    // === Category colors ===
+
+    var _catColors = {
+        General:       '#2563eb',
+        Language:      '#0d9488',
+        Science:       '#16a34a',
+        Math:          '#7c3aed',
+        History:       '#ea580c',
+        Code:          '#db2777'
+    };
+
+    function catColor(name) {
+        return _catColors[name] || '#9a9a95';
+    }
+
+    // === CRUD ===
+
+    function addCard() {
+        if (draftFront.trim() === '' || draftBack.trim() === '') return;
+        cards.push({
+            id:       Date.now(),
+            front:    draftFront.trim(),
+            back:     draftBack.trim(),
+            category: draftCategory,
+            mastered: false
+        });
+        draftFront = '';
+        draftBack = '';
+        if (typeof $refs !== 'undefined' && $refs.frontInput) $refs.frontInput.focus();
+    }
+
+    function clearAll() {
+        cards.splice(0, cards.length);
+    }
+
+    function resetProgress() {
+        for (var i = 0; i < cards.length; i++) {
+            if (cards[i].mastered) cards.update(i, { mastered: false });
+        }
+    }
+
+    // === Study mode ===
+
+    function startStudy() {
+        studyIndex = 0;
+        flipped = false;
+        mode = 'study';
+    }
+
+    function markMastered() {
+        if (!currentCard) return;
+        cards.updateWhere('id', currentCard.id, { mastered: true });
+        if (studyDeck.length === 0) return;
+        if (studyIndex >= studyDeck.length) studyIndex = 0;
+        flipped = false;
+    }
+
+    function keepStudying() {
+        if (studyDeck.length <= 1) return;
+        studyIndex = (studyIndex + 1) % studyDeck.length;
+        flipped = false;
+    }
+
+    function skipCard() {
+        if (studyDeck.length <= 1) return;
+        studyIndex = (studyIndex + 1) % studyDeck.length;
+    }
+
+    // === Sample data ===
+
+    function loadSample() {
+        var s = [
+            { id: Date.now()+1,  front: 'Hola',                      back: 'Hello (Spanish)',                              category: 'Language', mastered: false },
+            { id: Date.now()+2,  front: 'Gracias',                   back: 'Thank you (Spanish)',                           category: 'Language', mastered: false },
+            { id: Date.now()+3,  front: 'Bonjour',                   back: 'Hello (French)',                                category: 'Language', mastered: false },
+            { id: Date.now()+4,  front: 'What is H\u2082O?',         back: 'Water',                                         category: 'Science', mastered: false },
+            { id: Date.now()+5,  front: 'Speed of light',            back: '299,792,458 m/s',                               category: 'Science', mastered: false },
+            { id: Date.now()+6,  front: 'Mitochondria function',     back: 'Produces ATP \u2014 the cell\u2019s energy',    category: 'Science', mastered: false },
+            { id: Date.now()+7,  front: 'Pythagorean theorem',       back: 'a\u00B2 + b\u00B2 = c\u00B2',                  category: 'Math',    mastered: false },
+            { id: Date.now()+8,  front: 'Area of a circle',          back: '\u03C0r\u00B2',                                 category: 'Math',    mastered: false },
+            { id: Date.now()+9,  front: 'Year the Berlin Wall fell', back: '1989',                                          category: 'History', mastered: false },
+            { id: Date.now()+10, front: 'First moon landing',        back: 'July 20, 1969 \u2014 Apollo 11',                category: 'History', mastered: false },
+            { id: Date.now()+11, front: 'What does CSS stand for?',  back: 'Cascading Style Sheets',                        category: 'Code',    mastered: false },
+            { id: Date.now()+12, front: 'O(n) means',                back: 'Linear time complexity',                         category: 'Code',    mastered: false },
+        ];
+        for (var i = 0; i < s.length; i++) cards.push(s[i]);
+    }
+
+    // === Persistence toggle ===
+
+    var _cardFields = ['cards', 'draftCategory'];
+
+    function togglePersist(cb) {
+        persist = cb.checked;
+        localStorage.setItem('cards_persist', persist ? '1' : '0');
+        _cardFields.forEach(function(f) { store.data[f].persist = persist; });
+        store.persist = persist;
+        if (!persist) {
+            var prefix = store.localPrefix;
+            _cardFields.forEach(function(f) { localStorage.removeItem(prefix + f); });
+        } else {
+            var prefix = store.localPrefix;
+            localStorage.setItem(prefix + 'cards', JSON.stringify(cards));
+            localStorage.setItem(prefix + 'draftCategory', draftCategory);
+        }
+    }
+
+    // === Store ===
+
+    let store = {
+        persist: true,
+        localPrefix: 'cards_',
+
+        data: {
+            // Persist toggle
+            persist: { type: Boolean, default: localStorage.getItem('cards_persist') !== '0', persist: false },
+
+            // Cards
+            cards: { type: Array, default: [] },
+
+            // Composer
+            draftFront:    { type: String, default: '', persist: false },
+            draftBack:     { type: String, default: '', persist: false },
+            draftCategory: { type: String, default: 'General' },
+
+            // Mode & study state
+            mode:       { type: String,  default: 'browse', persist: false },
+            studyIndex: { type: Number,  default: 0, persist: false },
+            flipped:    { type: Boolean, default: false, persist: false },
+
+            // Filters
+            filter:    { type: String, default: 'all', persist: false },
+            catFilter: { type: String, default: 'all', persist: false },
+            query:     { type: String, default: '', persist: false },
+
+            // Computed stats
+            totalCards:      { computed: 'cards.length' },
+            masteredCount:   { computed: "cards.filter(function(c) { return c.mastered; }).length" },
+            unmasteredCount: { computed: 'totalCards - masteredCount' },
+            masteryPercent:  { computed: "totalCards > 0 ? Math.round(masteredCount / totalCards * 100) : 0" },
+
+            // Filtered view
+            visibleCards: {
+                computed: "cards.filter(function(c) { " +
+                    "var matchFilter = filter === 'all' || (filter === 'mastered' && c.mastered) || (filter === 'unmastered' && !c.mastered); " +
+                    "var matchCat = catFilter === 'all' || c.category === catFilter; " +
+                    "var matchQuery = query.length === 0 || c.front.toLowerCase().indexOf(query.toLowerCase()) !== -1 || c.back.toLowerCase().indexOf(query.toLowerCase()) !== -1; " +
+                    "return matchFilter && matchCat && matchQuery; " +
+                    "})"
+            },
+
+            // Study deck (unmastered cards)
+            studyDeck: {
+                computed: "cards.filter(function(c) { return !c.mastered; })"
+            },
+
+            // Current card being studied
+            currentCard: {
+                computed: "studyDeck.length > 0 && studyIndex < studyDeck.length ? studyDeck[studyIndex] : (studyDeck.length > 0 ? studyDeck[0] : null)"
+            }
+        },
+
+        onInit: function(data) {
+            store.persist = persist;
+            _cardFields.forEach(function(f) { store.data[f].persist = persist; });
+        }
+    };
+</script>
+</body>
+</html>
