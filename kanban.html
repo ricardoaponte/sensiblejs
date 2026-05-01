@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Board &mdash; SensibleJS Demo</title>
+<script src="sensibljs.js" defer></script>
+<style>
+[s-cloak]{display:none!important}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+    --bg:#f1f5f9;--surface:#fff;--surface-2:#f8fafc;--border:#e2e8f0;
+    --text:#1e293b;--text-muted:#64748b;--accent:#6366f1;--accent-bg:rgba(99,102,241,.08);
+    --green:#22c55e;--yellow:#eab308;--orange:#f97316;--red:#ef4444;--blue:#3b82f6;
+    --radius:10px;--font:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+[data-theme="dark"]{
+    --bg:#0f172a;--surface:#1e293b;--surface-2:#334155;--border:#475569;
+    --text:#f1f5f9;--text-muted:#94a3b8;--accent:#818cf8;--accent-bg:rgba(129,140,248,.12);
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+
+/* ---- Top bar ---- */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar-title{font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.topbar-title span{font-size:1.3rem}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+
+/* ---- Buttons ---- */
+.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.82rem;cursor:pointer;font-family:var(--font);transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{opacity:.9;color:#fff}
+.btn-sm{padding:4px 10px;font-size:.78rem}
+.btn-ghost{border:none;background:none;color:var(--text-muted);padding:4px 8px}
+.btn-ghost:hover{color:var(--accent);background:var(--accent-bg)}
+.btn-danger{color:var(--red);border-color:var(--red)}
+.btn-danger:hover{background:var(--red);color:#fff}
+
+/* ---- Pills / Tabs ---- */
+.tabs{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:3px}
+.tab{padding:5px 14px;border-radius:6px;border:none;background:none;color:var(--text-muted);font-size:.82rem;cursor:pointer;font-family:var(--font);transition:all .15s}
+.tab.active{background:var(--accent);color:#fff}
+
+/* ---- Switch ---- */
+.switch{position:relative;display:inline-block;width:36px;height:20px}
+.switch input{opacity:0;width:0;height:0}
+.track{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:20px;transition:.2s}
+.track::before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.track{background:var(--accent)}
+.switch input:checked+.track::before{transform:translateX(16px)}
+
+/* ---- Layout ---- */
+.shell{max-width:1400px;margin:0 auto;padding:20px 24px}
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.toolbar input[type="text"]{padding:7px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:.85rem;width:220px;font-family:var(--font)}
+.toolbar select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:.82rem;font-family:var(--font)}
+
+/* ---- Stats row ---- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-val{font-size:1.4rem;font-weight:700;color:var(--accent)}
+.stat-label{font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+/* ---- Board view ---- */
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.board{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.board{grid-template-columns:1fr}}
+.column{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);min-height:200px;display:flex;flex-direction:column}
+.col-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.col-title{font-weight:600;font-size:.88rem;display:flex;align-items:center;gap:8px}
+.col-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.col-count{background:var(--accent-bg);color:var(--accent);font-size:.75rem;font-weight:600;padding:1px 8px;border-radius:10px}
+.col-body{padding:10px;flex:1;display:flex;flex-direction:column;gap:8px}
+
+/* ---- Cards ---- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;transition:box-shadow .15s}
+.card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card-title{font-weight:600;font-size:.88rem;margin-bottom:6px;line-height:1.3}
+.card-desc{font-size:.8rem;color:var(--text-muted);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.75rem}
+.card-actions{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+
+/* ---- Tags ---- */
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:500}
+.tag-priority-high{background:rgba(239,68,68,.12);color:var(--red)}
+.tag-priority-med{background:rgba(249,115,22,.12);color:var(--orange)}
+.tag-priority-low{background:rgba(34,197,94,.12);color:var(--green)}
+.tag-label{background:var(--accent-bg);color:var(--accent)}
+.tag-assignee{background:var(--surface-2);color:var(--text-muted);border:1px solid var(--border)}
+.tag-due{background:rgba(234,179,8,.1);color:#a16207}
+.tag-due.overdue{background:rgba(239,68,68,.1);color:var(--red)}
+.tag-pts{background:var(--surface-2);color:var(--text-muted);font-weight:600}
+
+/* ---- Table view ---- */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;padding:10px 14px;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--accent-bg)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+
+/* ---- Modal ---- */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:1rem;font-weight:600}
+.modal-body{padding:20px}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.82rem;font-weight:500;margin-bottom:4px;color:var(--text-muted)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--text);font-size:.85rem;font-family:var(--font)}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ---- Activity log ---- */
+.log-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-top:20px}
+.log-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.log-header:hover{background:var(--accent-bg)}
+.log-header h4{font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:8px}
+.log-body{max-height:260px;overflow-y:auto}
+.log-entry{padding:8px 16px;border-bottom:1px solid var(--border);font-size:.8rem;display:flex;align-items:baseline;gap:10px}
+.log-entry:last-child{border-bottom:none}
+.log-time{color:var(--text-muted);font-size:.72rem;white-space:nowrap;min-width:55px}
+.log-msg{color:var(--text)}
+
+/* ---- Misc ---- */
+/* ---- Drag & drop ---- */
+.card[draggable="true"]{cursor:grab}
+.card[draggable="true"]:active{cursor:grabbing}
+.card.dragging{opacity:.35;transform:scale(.97)}
+.column.drag-over{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-bg)}
+.column.drag-over .col-body{min-height:80px}
+
+.empty{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:.9rem}
+.flex{display:flex}.gap-8{gap:8px}.gap-12{gap:12px}.items-center{align-items:center}
+.ml-auto{margin-left:auto}
+.text-muted{color:var(--text-muted)}
+.text-sm{font-size:.82rem}
+.mt-12{margin-top:12px}
+</style>
+</head>
+<body s-cloak>
+
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+    <div class="topbar-title"><span>&#9776;</span> Project Board</div>
+    <div class="tabs">
+        <button class="tab" s-class="active: view === 'board'" s-click="view = 'board'">Board</button>
+        <button class="tab" s-class="active: view === 'table'" s-click="view = 'table'">Table</button>
+    </div>
+    <div class="topbar-right">
+        <label class="switch" title="Persist data">
+            <input type="checkbox" s-attr="checked: persist" onclick="togglePersist(this)">
+            <span class="track"></span>
+        </label>
+        <span class="text-sm text-muted" s-if="persist">Saved</span>
+        <span class="text-sm text-muted" s-if="!persist">Not saved</span>
+        <button class="btn btn-sm" onclick="toggleTheme()">&#9680; Theme</button>
+        <button class="btn btn-accent btn-sm" onclick="openNewTask()">+ New Task</button>
+    </div>
+</div>
+
+<div class="shell">
+
+<!-- ===== STATS ===== -->
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-val" s-text="totalTasks"></div>
+        <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val" s-text="completionRate + '%'"></div>
+        <div class="stat-label">Done</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val" s-text="totalPoints"></div>
+        <div class="stat-label">Story Points</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val" s-text="overdueCount"></div>
+        <div class="stat-label">Overdue</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val" s-text="highPriorityCount"></div>
+        <div class="stat-label">High Priority</div>
+    </div>
+</div>
+
+<!-- ===== TOOLBAR ===== -->
+<div class="toolbar">
+    <input type="text" s-bind="query" s-debounce="200" placeholder="Search tasks...">
+    <select s-bind="filterPriority">
+        <option value="all">All Priorities</option>
+        <option value="high">High</option>
+        <option value="med">Medium</option>
+        <option value="low">Low</option>
+    </select>
+    <select s-bind="filterAssignee">
+        <option value="all">All Assignees</option>
+    </select>
+    <select s-bind="filterLabel">
+        <option value="all">All Labels</option>
+    </select>
+    <span class="text-sm text-muted ml-auto" s-text="visibleTasks.length + ' of ' + totalTasks + ' tasks'"></span>
+</div>
+
+<!-- ===== BOARD VIEW ===== -->
+<div s-if="view === 'board'">
+    <div class="board">
+        <!-- Backlog -->
+        <div class="column" data-status="backlog">
+            <div class="col-header">
+                <div class="col-title"><span class="col-dot" style="background:var(--text-muted)"></span> Backlog</div>
+                <span class="col-count" s-text="backlogCount"></span>
+            </div>
+            <div class="col-body">
+                <div s-if="backlogTasks.length === 0">
+                    <div class="empty" style="padding:20px;font-size:.8rem">No tasks</div>
+                </div>
+                <div s-if="backlogTasks.length > 0">
+                    <div s-for="t of backlogTasks" s-key="t.id">
+                        <div class="card" draggable="true" ondragstart="onCardDragStart(event)">
+                            <div class="card-title" s-text="t.title"></div>
+                            <div class="card-desc" s-if="t.desc !== ''" s-text="t.desc"></div>
+                            <div class="card-meta">
+                                <span class="tag" s-class="tag-priority-high: t.priority === 'high'; tag-priority-med: t.priority === 'med'; tag-priority-low: t.priority === 'low'" s-text="t.priority"></span>
+                                <span class="tag tag-assignee" s-if="t.assignee !== ''" s-text="t.assignee"></span>
+                                <span class="tag tag-pts" s-if="t.points > 0" s-text="t.points + 'pt'"></span>
+                                <span class="tag tag-label" s-if="t.label !== ''" s-text="t.label"></span>
+                                <span class="tag tag-due" s-if="t.due !== ''" s-class="overdue: isOverdue(t.due)" s-text="shortDate(t.due)"></span>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm" s-click="moveTask(t.id, 'progress')">Start &#8594;</button>
+                                <button class="btn btn-sm btn-ghost" s-click="editTask(t.id)">&#9998;</button>
+                                <button class="btn btn-sm btn-ghost btn-danger" s-click="tasks.removeWhere('id', t.id); logAction('Deleted: ' + t.title)">&times;</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="column" data-status="progress">
+            <div class="col-header">
+                <div class="col-title"><span class="col-dot" style="background:var(--blue)"></span> In Progress</div>
+                <span class="col-count" s-text="progressCount"></span>
+            </div>
+            <div class="col-body">
+                <div s-if="progressTasks.length === 0">
+                    <div class="empty" style="padding:20px;font-size:.8rem">No tasks</div>
+                </div>
+                <div s-if="progressTasks.length > 0">
+                    <div s-for="t of progressTasks" s-key="t.id">
+                        <div class="card" draggable="true" ondragstart="onCardDragStart(event)">
+                            <div class="card-title" s-text="t.title"></div>
+                            <div class="card-desc" s-if="t.desc !== ''" s-text="t.desc"></div>
+                            <div class="card-meta">
+                                <span class="tag" s-class="tag-priority-high: t.priority === 'high'; tag-priority-med: t.priority === 'med'; tag-priority-low: t.priority === 'low'" s-text="t.priority"></span>
+                                <span class="tag tag-assignee" s-if="t.assignee !== ''" s-text="t.assignee"></span>
+                                <span class="tag tag-pts" s-if="t.points > 0" s-text="t.points + 'pt'"></span>
+                                <span class="tag tag-label" s-if="t.label !== ''" s-text="t.label"></span>
+                                <span class="tag tag-due" s-if="t.due !== ''" s-class="overdue: isOverdue(t.due)" s-text="shortDate(t.due)"></span>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm" s-click="moveTask(t.id, 'backlog')">&#8592;</button>
+                                <button class="btn btn-sm" s-click="moveTask(t.id, 'review')">Review &#8594;</button>
+                                <button class="btn btn-sm btn-ghost" s-click="editTask(t.id)">&#9998;</button>
+                                <button class="btn btn-sm btn-ghost btn-danger" s-click="tasks.removeWhere('id', t.id); logAction('Deleted: ' + t.title)">&times;</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review -->
+        <div class="column" data-status="review">
+            <div class="col-header">
+                <div class="col-title"><span class="col-dot" style="background:var(--yellow)"></span> Review</div>
+                <span class="col-count" s-text="reviewCount"></span>
+            </div>
+            <div class="col-body">
+                <div s-if="reviewTasks.length === 0">
+                    <div class="empty" style="padding:20px;font-size:.8rem">No tasks</div>
+                </div>
+                <div s-if="reviewTasks.length > 0">
+                    <div s-for="t of reviewTasks" s-key="t.id">
+                        <div class="card" draggable="true" ondragstart="onCardDragStart(event)">
+                            <div class="card-title" s-text="t.title"></div>
+                            <div class="card-desc" s-if="t.desc !== ''" s-text="t.desc"></div>
+                            <div class="card-meta">
+                                <span class="tag" s-class="tag-priority-high: t.priority === 'high'; tag-priority-med: t.priority === 'med'; tag-priority-low: t.priority === 'low'" s-text="t.priority"></span>
+                                <span class="tag tag-assignee" s-if="t.assignee !== ''" s-text="t.assignee"></span>
+                                <span class="tag tag-pts" s-if="t.points > 0" s-text="t.points + 'pt'"></span>
+                                <span class="tag tag-label" s-if="t.label !== ''" s-text="t.label"></span>
+                                <span class="tag tag-due" s-if="t.due !== ''" s-class="overdue: isOverdue(t.due)" s-text="shortDate(t.due)"></span>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm" s-click="moveTask(t.id, 'progress')">&#8592;</button>
+                                <button class="btn btn-sm btn-accent btn-sm" s-click="moveTask(t.id, 'done')">Done &#10003;</button>
+                                <button class="btn btn-sm btn-ghost" s-click="editTask(t.id)">&#9998;</button>
+                                <button class="btn btn-sm btn-ghost btn-danger" s-click="tasks.removeWhere('id', t.id); logAction('Deleted: ' + t.title)">&times;</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Done -->
+        <div class="column" data-status="done">
+            <div class="col-header">
+                <div class="col-title"><span class="col-dot" style="background:var(--green)"></span> Done</div>
+                <span class="col-count" s-text="doneCount"></span>
+            </div>
+            <div class="col-body">
+                <div s-if="doneTasks.length === 0">
+                    <div class="empty" style="padding:20px;font-size:.8rem">No tasks</div>
+                </div>
+                <div s-if="doneTasks.length > 0">
+                    <div s-for="t of doneTasks" s-key="t.id">
+                        <div class="card" draggable="true" ondragstart="onCardDragStart(event)" style="opacity:.75">
+                            <div class="card-title" style="text-decoration:line-through" s-text="t.title"></div>
+                            <div class="card-meta">
+                                <span class="tag" s-class="tag-priority-high: t.priority === 'high'; tag-priority-med: t.priority === 'med'; tag-priority-low: t.priority === 'low'" s-text="t.priority"></span>
+                                <span class="tag tag-assignee" s-if="t.assignee !== ''" s-text="t.assignee"></span>
+                                <span class="tag tag-pts" s-if="t.points > 0" s-text="t.points + 'pt'"></span>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm" s-click="moveTask(t.id, 'review')">&#8592; Reopen</button>
+                                <button class="btn btn-sm btn-ghost btn-danger" s-click="tasks.removeWhere('id', t.id); logAction('Deleted: ' + t.title)">&times;</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TABLE VIEW ===== -->
+<div s-if="view === 'table'">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Title</th>
+                    <th>Priority</th>
+                    <th>Assignee</th>
+                    <th>Label</th>
+                    <th>Points</th>
+                    <th>Due</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr s-if="visibleTasks.length === 0">
+                    <td colspan="8" class="empty">No tasks match your filters.</td>
+                </tr>
+            </tbody>
+            <tbody s-if="visibleTasks.length > 0">
+                <tr s-for="t of visibleTasks" s-key="t.id">
+                    <td>
+                        <span class="status-dot" s-css="background: {statusColor(t.status)}"></span>
+                        <span s-text="statusLabel(t.status)"></span>
+                    </td>
+                    <td>
+                        <span class="card-title" style="margin:0" s-text="t.title"></span>
+                    </td>
+                    <td>
+                        <span class="tag" s-class="tag-priority-high: t.priority === 'high'; tag-priority-med: t.priority === 'med'; tag-priority-low: t.priority === 'low'" s-text="t.priority"></span>
+                    </td>
+                    <td>
+                        <span s-if="t.assignee !== ''" s-text="t.assignee"></span>
+                        <span s-if="t.assignee === ''" class="text-muted">&mdash;</span>
+                    </td>
+                    <td>
+                        <span s-if="t.label !== ''" class="tag tag-label" s-text="t.label"></span>
+                        <span s-if="t.label === ''" class="text-muted">&mdash;</span>
+                    </td>
+                    <td>
+                        <span s-if="t.points > 0" s-text="t.points"></span>
+                        <span s-if="t.points === 0" class="text-muted">&mdash;</span>
+                    </td>
+                    <td>
+                        <span s-if="t.due !== ''" class="tag tag-due" s-class="overdue: isOverdue(t.due)" s-text="shortDate(t.due)"></span>
+                        <span s-if="t.due === ''" class="text-muted">&mdash;</span>
+                    </td>
+                    <td>
+                        <div class="flex gap-8">
+                            <button class="btn btn-sm btn-ghost" s-click="editTask(t.id)">&#9998;</button>
+                            <button class="btn btn-sm btn-ghost" s-if="t.status !== 'done'" s-click="advanceTask(t.id)">&#8594;</button>
+                            <button class="btn btn-sm btn-ghost btn-danger" s-click="tasks.removeWhere('id', t.id); logAction('Deleted: ' + t.title)">&times;</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===== ACTIVITY LOG ===== -->
+<div class="log-panel">
+    <div class="log-header" s-click="showLog = !showLog">
+        <h4>&#128221; Activity Log <span class="col-count" s-text="activityLog.length"></span></h4>
+        <span class="text-sm text-muted" s-if="!showLog">Show</span>
+        <span class="text-sm text-muted" s-if="showLog">Hide</span>
+    </div>
+    <div s-if="showLog">
+        <div class="log-body">
+            <div s-if="recentLog.length === 0">
+                <div class="empty" style="padding:20px;font-size:.82rem">No activity yet.</div>
+            </div>
+            <div s-if="recentLog.length > 0">
+                <div s-for="entry of recentLog" s-key="entry.id">
+                    <div class="log-entry">
+                        <span class="log-time" s-text="entry.time"></span>
+                        <span class="log-msg" s-text="entry.msg"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="padding:8px 16px;border-top:1px solid var(--border)" s-if="activityLog.length > 0">
+            <button class="btn btn-sm btn-ghost btn-danger" s-click="activityLog.splice(0, activityLog.length); logAction('Cleared activity log')">Clear log</button>
+        </div>
+    </div>
+</div>
+
+</div><!-- /shell -->
+
+<!-- ===== CREATE / EDIT MODAL ===== -->
+<div s-if="showModal" class="modal-overlay" onclick="showModal = false">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 s-if="editId === 0">New Task</h3>
+            <h3 s-if="editId !== 0">Edit Task</h3>
+            <button class="btn btn-sm btn-ghost" s-click="showModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div s-if="draftError !== ''" style="background:rgba(239,68,68,.1);color:var(--red);padding:10px 14px;border-radius:6px;font-size:.85rem;margin-bottom:14px" s-text="draftError"></div>
+            <div class="form-group">
+                <label>Title <span style="color:var(--red)">*</span></label>
+                <input type="text" s-bind="draftTitle" placeholder="Task title">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea s-bind="draftDesc" placeholder="Optional description"></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select s-bind="draftStatus">
+                        <option value="backlog">Backlog</option>
+                        <option value="progress">In Progress</option>
+                        <option value="review">Review</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select s-bind="draftPriority">
+                        <option value="low">Low</option>
+                        <option value="med">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Assignee</label>
+                    <select s-bind="draftAssignee">
+                        <option value="">Unassigned</option>
+                        <option value="Alice">Alice</option>
+                        <option value="Bob">Bob</option>
+                        <option value="Carol">Carol</option>
+                        <option value="Dan">Dan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Label</label>
+                    <select s-bind="draftLabel">
+                        <option value="">None</option>
+                        <option value="Feature">Feature</option>
+                        <option value="Bug">Bug</option>
+                        <option value="Chore">Chore</option>
+                        <option value="Design">Design</option>
+                        <option value="Docs">Docs</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Story Points</label>
+                    <select s-bind="draftPoints">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="5">5</option>
+                        <option value="8">8</option>
+                        <option value="13">13</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" s-bind="draftDue">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" s-click="showModal = false">Cancel</button>
+            <button class="btn btn-accent" onclick="event.stopPropagation(); saveTask()">
+                <span s-if="editId === 0">Create Task</span>
+                <span s-if="editId !== 0">Save Changes</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ---- Theme ----
+(function(){
+    var t = localStorage.getItem('kanban_theme');
+    if (t === 'dark') document.documentElement.setAttribute('data-theme','dark');
+})();
+function toggleTheme() {
+    var html = document.documentElement;
+    var isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('kanban_theme', isDark ? 'light' : 'dark');
+}
+
+// ---- Drag & Drop ----
+var _dragTaskId = null;
+
+function onCardDragStart(e) {
+    var keyEl = e.target.closest('[s-key-value]');
+    if (!keyEl) return;
+    _dragTaskId = Number(keyEl.getAttribute('s-key-value'));
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', _dragTaskId);
+}
+
+document.addEventListener('dragover', function(e) {
+    var col = e.target.closest('.column[data-status]');
+    if (!col || !_dragTaskId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    // highlight only the hovered column
+    document.querySelectorAll('.column.drag-over').forEach(function(c) { c.classList.remove('drag-over'); });
+    col.classList.add('drag-over');
+});
+
+document.addEventListener('dragleave', function(e) {
+    var col = e.target.closest('.column[data-status]');
+    if (!col) return;
+    // only remove if we actually left the column (not just entering a child)
+    if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+});
+
+document.addEventListener('drop', function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.column.drag-over').forEach(function(c) { c.classList.remove('drag-over'); });
+    document.querySelectorAll('.card.dragging').forEach(function(c) { c.classList.remove('dragging'); });
+    var col = e.target.closest('.column[data-status]');
+    if (!col || !_dragTaskId) return;
+    var newStatus = col.getAttribute('data-status');
+    moveTask(_dragTaskId, newStatus);
+    _dragTaskId = null;
+});
+
+document.addEventListener('dragend', function() {
+    _dragTaskId = null;
+    document.querySelectorAll('.card.dragging').forEach(function(c) { c.classList.remove('dragging'); });
+    document.querySelectorAll('.column.drag-over').forEach(function(c) { c.classList.remove('drag-over'); });
+});
+
+// ---- Helpers ----
+function statusColor(s) {
+    if (s === 'progress') return '#3b82f6';
+    if (s === 'review') return '#eab308';
+    if (s === 'done') return '#22c55e';
+    return '#94a3b8';
+}
+function statusLabel(s) {
+    if (s === 'backlog') return 'Backlog';
+    if (s === 'progress') return 'In Progress';
+    if (s === 'review') return 'Review';
+    if (s === 'done') return 'Done';
+    return s;
+}
+function shortDate(d) {
+    if (!d) return '';
+    var parts = d.split('-');
+    return parts[1] + '/' + parts[2];
+}
+function isOverdue(d) {
+    if (!d) return false;
+    return new Date(d + 'T23:59:59') < new Date();
+}
+function now() {
+    var d = new Date();
+    return (d.getMonth()+1) + '/' + d.getDate() + ' ' +
+           d.getHours().toString().padStart(2,'0') + ':' +
+           d.getMinutes().toString().padStart(2,'0');
+}
+
+// ---- Persistence ----
+var _kanbanFields = ['tasks', 'activityLog'];
+
+function togglePersist(cb) {
+    persist = cb.checked;
+    localStorage.setItem('kanban_persist', persist ? '1' : '0');
+    store.persist = persist;
+    _kanbanFields.forEach(function(f) { store.data[f].persist = persist; });
+    if (!persist) {
+        var prefix = store.localPrefix;
+        _kanbanFields.forEach(function(f) { localStorage.removeItem(prefix + f); });
+    } else {
+        var prefix = store.localPrefix;
+        localStorage.setItem(prefix + 'tasks', JSON.stringify(tasks));
+        localStorage.setItem(prefix + 'activityLog', JSON.stringify(activityLog));
+    }
+}
+
+// ---- Populate dynamic filter options ----
+function populateFilters() {
+    var assigneeSelect = document.querySelector('select[s-bind="filterAssignee"]');
+    var labelSelect = document.querySelector('select[s-bind="filterLabel"]');
+    if (!assigneeSelect || !labelSelect) return;
+
+    var assignees = {};
+    var labels = {};
+    for (var i = 0; i < tasks.length; i++) {
+        if (tasks[i].assignee) assignees[tasks[i].assignee] = true;
+        if (tasks[i].label) labels[tasks[i].label] = true;
+    }
+
+    // Rebuild assignee options
+    var aVal = filterAssignee;
+    assigneeSelect.innerHTML = '<option value="all">All Assignees</option>';
+    Object.keys(assignees).sort().forEach(function(a) {
+        var opt = document.createElement('option');
+        opt.value = a; opt.textContent = a;
+        assigneeSelect.appendChild(opt);
+    });
+    assigneeSelect.value = aVal;
+
+    // Rebuild label options
+    var lVal = filterLabel;
+    labelSelect.innerHTML = '<option value="all">All Labels</option>';
+    Object.keys(labels).sort().forEach(function(l) {
+        var opt = document.createElement('option');
+        opt.value = l; opt.textContent = l;
+        labelSelect.appendChild(opt);
+    });
+    labelSelect.value = lVal;
+}
+
+// ---- Actions ----
+function logAction(msg) {
+    activityLog.push({ id: Date.now(), time: now(), msg: msg });
+}
+
+function moveTask(id, newStatus) {
+    for (var i = 0; i < tasks.length; i++) {
+        if (tasks[i].id === id) {
+            var old = tasks[i].status;
+            tasks.update(i, { status: newStatus });
+            logAction(tasks[i].title + ': ' + statusLabel(old) + ' → ' + statusLabel(newStatus));
+            return;
+        }
+    }
+}
+
+function advanceTask(id) {
+    var order = ['backlog','progress','review','done'];
+    for (var i = 0; i < tasks.length; i++) {
+        if (tasks[i].id === id) {
+            var idx = order.indexOf(tasks[i].status);
+            if (idx < order.length - 1) {
+                moveTask(id, order[idx + 1]);
+            }
+            return;
+        }
+    }
+}
+
+function openNewTask() {
+    resetDraft();
+    showModal = true;
+}
+
+function resetDraft() {
+    draftError = '';
+    draftTitle = '';
+    draftDesc = '';
+    draftStatus = 'backlog';
+    draftPriority = 'med';
+    draftAssignee = '';
+    draftLabel = '';
+    draftPoints = '0';
+    draftDue = '';
+    editId = 0;
+}
+
+function editTask(id) {
+    for (var i = 0; i < tasks.length; i++) {
+        if (tasks[i].id === id) {
+            var t = tasks[i];
+            draftTitle = t.title;
+            draftDesc = t.desc;
+            draftStatus = t.status;
+            draftPriority = t.priority;
+            draftAssignee = t.assignee;
+            draftLabel = t.label;
+            draftPoints = String(t.points);
+            draftDue = t.due;
+            editId = id;
+            showModal = true;
+            return;
+        }
+    }
+}
+
+function saveTask() {
+    var missing = [];
+    if (draftTitle.trim() === '') missing.push('Title');
+    if (draftAssignee === '') missing.push('Assignee');
+    if (draftLabel === '') missing.push('Label');
+    if (missing.length > 0) {
+        draftError = 'Required: ' + missing.join(', ');
+        return;
+    }
+    draftError = '';
+    var data = {
+        title: draftTitle.trim(),
+        desc: draftDesc.trim(),
+        status: draftStatus,
+        priority: draftPriority,
+        assignee: draftAssignee,
+        label: draftLabel,
+        points: parseInt(draftPoints) || 0,
+        due: draftDue
+    };
+    if (editId !== 0) {
+        tasks.updateWhere('id', editId, data);
+        logAction('Updated: ' + data.title);
+    } else {
+        data.id = Date.now();
+        data.created = new Date().toISOString().slice(0, 10);
+        tasks.push(data);
+        logAction('Created: ' + data.title);
+    }
+    showModal = false;
+    resetDraft();
+    setTimeout(populateFilters, 100);
+}
+
+// ---- Sample data ----
+var _sampleTasks = [
+    { id: 1, title: 'Design landing page mockup', desc: 'Create hi-fi mockups for the new marketing site. Include desktop and mobile breakpoints.', status: 'done', priority: 'high', assignee: 'Alice', label: 'Design', points: 5, due: '2026-04-20', created: '2026-04-10' },
+    { id: 2, title: 'Set up CI/CD pipeline', desc: 'Configure GitHub Actions for test + deploy on push to main.', status: 'done', priority: 'high', assignee: 'Dan', label: 'Chore', points: 8, due: '2026-04-22', created: '2026-04-11' },
+    { id: 3, title: 'Implement user authentication', desc: 'Add login/signup flows with JWT tokens. Include password reset via email.', status: 'review', priority: 'high', assignee: 'Bob', label: 'Feature', points: 13, due: '2026-04-28', created: '2026-04-12' },
+    { id: 4, title: 'Write API documentation', desc: 'Document all REST endpoints with request/response examples.', status: 'review', priority: 'med', assignee: 'Carol', label: 'Docs', points: 5, due: '2026-05-01', created: '2026-04-14' },
+    { id: 5, title: 'Build dashboard widgets', desc: 'Chart components for revenue, users, and conversion metrics.', status: 'progress', priority: 'high', assignee: 'Alice', label: 'Feature', points: 8, due: '2026-05-05', created: '2026-04-15' },
+    { id: 6, title: 'Fix mobile nav overflow', desc: 'Hamburger menu items overflow on screens < 360px.', status: 'progress', priority: 'med', assignee: 'Bob', label: 'Bug', points: 2, due: '2026-04-30', created: '2026-04-16' },
+    { id: 7, title: 'Add dark mode support', desc: 'Implement theme toggle with CSS custom properties. Persist preference.', status: 'progress', priority: 'low', assignee: 'Carol', label: 'Feature', points: 3, due: '2026-05-08', created: '2026-04-17' },
+    { id: 8, title: 'Database migration script', desc: 'Add new columns for user profiles: avatar_url, bio, location.', status: 'backlog', priority: 'med', assignee: 'Dan', label: 'Chore', points: 3, due: '2026-05-10', created: '2026-04-18' },
+    { id: 9, title: 'Integrate payment gateway', desc: 'Stripe integration for subscription billing. Support monthly and annual plans.', status: 'backlog', priority: 'high', assignee: 'Bob', label: 'Feature', points: 13, due: '2026-05-15', created: '2026-04-19' },
+    { id: 10, title: 'Performance audit', desc: 'Run Lighthouse, identify and fix top 5 performance issues.', status: 'backlog', priority: 'med', assignee: 'Alice', label: 'Chore', points: 5, due: '2026-05-12', created: '2026-04-20' },
+    { id: 11, title: 'Onboarding flow', desc: 'Multi-step wizard for new user setup: profile, preferences, team invite.', status: 'backlog', priority: 'low', assignee: '', label: 'Feature', points: 8, due: '', created: '2026-04-21' },
+    { id: 12, title: 'Accessibility review', desc: 'WCAG 2.1 AA compliance check. Fix contrast, ARIA labels, keyboard nav.', status: 'backlog', priority: 'med', assignee: '', label: 'Chore', points: 5, due: '2026-05-20', created: '2026-04-22' },
+    { id: 13, title: 'Email notification templates', desc: 'Design and implement transactional email templates for key events.', status: 'backlog', priority: 'low', assignee: 'Carol', label: 'Design', points: 3, due: '', created: '2026-04-23' },
+    { id: 14, title: 'Search functionality', desc: 'Full-text search across projects, tasks, and comments with debounced input.', status: 'backlog', priority: 'med', assignee: '', label: 'Feature', points: 8, due: '2026-05-25', created: '2026-04-24' },
+    { id: 15, title: 'Rate limiting middleware', desc: 'Implement per-IP and per-user rate limits on API endpoints.', status: 'backlog', priority: 'high', assignee: 'Dan', label: 'Feature', points: 5, due: '2026-05-18', created: '2026-04-25' }
+];
+
+// ---- Store ----
+var _filterExpr = "tasks.filter(function(t) { " +
+    "var mp = filterPriority === 'all' || t.priority === filterPriority; " +
+    "var ma = filterAssignee === 'all' || t.assignee === filterAssignee; " +
+    "var ml = filterLabel === 'all' || t.label === filterLabel; " +
+    "var mq = query.length === 0 || t.title.toLowerCase().indexOf(query.toLowerCase()) !== -1 || t.desc.toLowerCase().indexOf(query.toLowerCase()) !== -1; " +
+    "return mp && ma && ml && mq; " +
+    "})";
+
+var _colFilter = function(status) {
+    return "visibleTasks.filter(function(t) { return t.status === '" + status + "'; })";
+};
+
+let store = {
+    persist: true,
+    localPrefix: 'kanban_',
+    data: {
+        persist: { type: Boolean, default: localStorage.getItem('kanban_persist') !== '0', persist: false },
+
+        // Core data
+        tasks: { type: Array, default: [] },
+        activityLog: { type: Array, default: [] },
+
+        // View state
+        view: { type: String, default: 'board', persist: false },
+        showLog: { type: Boolean, default: false, persist: false },
+        showModal: { type: Boolean, default: false, persist: false },
+        editId: { type: Number, default: 0, persist: false },
+
+        // Filters
+        query: { type: String, default: '', persist: false },
+        filterPriority: { type: String, default: 'all', persist: false },
+        filterAssignee: { type: String, default: 'all', persist: false },
+        filterLabel: { type: String, default: 'all', persist: false },
+
+        // Draft fields
+        draftError: { type: String, default: '', persist: false },
+        draftTitle: { type: String, default: '', persist: false },
+        draftDesc: { type: String, default: '', persist: false },
+        draftStatus: { type: String, default: 'backlog', persist: false },
+        draftPriority: { type: String, default: 'med', persist: false },
+        draftAssignee: { type: String, default: '', persist: false },
+        draftLabel: { type: String, default: '', persist: false },
+        draftPoints: { type: String, default: '0', persist: false },
+        draftDue: { type: String, default: '', persist: false },
+
+        // Computed: filtered + column views
+        visibleTasks: { computed: _filterExpr },
+        backlogTasks: { computed: _colFilter('backlog') },
+        progressTasks: { computed: _colFilter('progress') },
+        reviewTasks: { computed: _colFilter('review') },
+        doneTasks: { computed: _colFilter('done') },
+
+        // Computed: counts
+        totalTasks: { computed: 'tasks.length' },
+        backlogCount: { computed: "tasks.filter(function(t){ return t.status === 'backlog'; }).length" },
+        progressCount: { computed: "tasks.filter(function(t){ return t.status === 'progress'; }).length" },
+        reviewCount: { computed: "tasks.filter(function(t){ return t.status === 'review'; }).length" },
+        doneCount: { computed: "tasks.filter(function(t){ return t.status === 'done'; }).length" },
+
+        // Computed: stats
+        completionRate: { computed: "totalTasks === 0 ? 0 : Math.round(doneCount / totalTasks * 100)" },
+        totalPoints: { computed: "tasks.reduce(function(s,t){ return s + t.points; }, 0)" },
+        overdueCount: { computed: "tasks.filter(function(t){ return t.status !== 'done' && t.due !== '' && new Date(t.due + 'T23:59:59') < new Date(); }).length" },
+        highPriorityCount: { computed: "tasks.filter(function(t){ return t.priority === 'high' && t.status !== 'done'; }).length" },
+
+        // Computed: recent log (newest first, capped at 50)
+        recentLog: { computed: "activityLog.slice().reverse().slice(0, 50)" }
+    },
+    onInit: function(data) {
+        store.persist = persist;
+        _kanbanFields.forEach(function(f) { store.data[f].persist = persist; });
+
+        // Load sample data if empty
+        if (tasks.length === 0) {
+            for (var i = 0; i < _sampleTasks.length; i++) {
+                tasks.push(_sampleTasks[i]);
+            }
+            logAction('Loaded 15 sample tasks');
+        }
+
+        setTimeout(populateFilters, 100);
+    }
+};
+</script>
+</body>
+</html>
