@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reactive Playground &mdash; SensibleJS</title>
+<script src="sensibljs.js" defer></script>
+<style>
+[s-cloak]{display:none!important}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+    --bg:#0f172a;--surface:rgba(30,41,59,.85);--surface-2:rgba(51,65,85,.6);
+    --border:rgba(71,85,105,.5);--text:#f1f5f9;--text-muted:#94a3b8;
+    --accent:#818cf8;--radius:12px;
+    --font:'Segoe UI',system-ui,-apple-system,sans-serif,Arial;
+}
+body{font-family:var(--font),sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;overflow-x:hidden}
+
+/* ---- Animated background ---- */
+body::before{content:'';position:fixed;inset:0;z-index:-1;
+    background:radial-gradient(ellipse at 20% 50%, rgba(99,102,241,.15) 0%, transparent 50%),
+               radial-gradient(ellipse at 80% 20%, rgba(236,72,153,.1) 0%, transparent 50%),
+               radial-gradient(ellipse at 50% 80%, rgba(34,211,238,.08) 0%, transparent 50%);
+}
+
+/* ---- Layout ---- */
+.shell{max-width:1200px;margin:0 auto;padding:24px}
+.hero{text-align:center;padding:40px 0 32px}
+.hero h1{font-size:2rem;font-weight:700;background:linear-gradient(135deg,#818cf8,#ec4899,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--text-muted);font-size:.95rem;margin-top:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+@media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* ---- Cards ---- */
+.card{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.card-title{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* ---- Inputs ---- */
+.row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.row:last-child{margin-bottom:0}
+.row>span:first-child{font-size:.82rem;color:var(--text-muted);min-width:80px}
+.row input[type="range"]{flex:1;accent-color:var(--accent);height:6px}
+.row input[type="color"]{width:36px;height:28px;border:1px solid var(--border);border-radius:6px;padding:0;cursor:pointer;background:none}
+.row .val{font-size:.82rem;font-family:'SF Mono',Consolas,monospace;color:var(--accent);min-width:44px;text-align:right}
+
+/* ---- Metric boxes ---- */
+.metric{text-align:center;padding:16px 12px}
+.metric-value{font-size:1.8rem;font-weight:700;font-family:'SF Mono',Consolas,monospace;line-height:1}
+.metric-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-top:6px}
+
+/* ---- Bar chart ---- */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:140px;padding-top:10px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{border-radius:4px 4px 0 0;width:100%;min-height:2px;transition:height .3s,background .3s}
+.bar-label{font-size:.65rem;color:var(--text-muted)}
+.bar-val{font-size:.68rem;font-family:'SF Mono',Consolas,monospace}
+
+/* ---- Radial progress ---- */
+.radial-wrap{display:flex;justify-content:center;align-items:center;gap:32px;flex-wrap:wrap;padding:10px 0}
+.radial{position:relative;width:110px;height:110px}
+.radial svg{transform:rotate(-90deg);width:110px;height:110px}
+.radial circle{fill:none;stroke-width:8;stroke-linecap:round}
+.radial .track{stroke:var(--surface-2)}
+.radial .fill{transition:stroke-dashoffset .4s,stroke .3s}
+.radial .radial-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.radial .radial-pct{font-size:1.2rem;font-weight:700;font-family:'SF Mono',Consolas,monospace}
+.radial .radial-label{font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+
+/* ---- Color mixer ---- */
+.swatch-row{display:flex;gap:12px;align-items:center;margin-top:14px}
+.swatch{width:60px;height:60px;border-radius:10px;border:2px solid var(--border);transition:background .15s,border-color .3s}
+.swatch-lg{flex:1;height:80px;border-radius:10px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'SF Mono',Consolas,monospace;font-size:.85rem;font-weight:600;transition:all .2s}
+.harmony-row{display:flex;gap:8px;margin-top:12px}
+.harmony-swatch{flex:1;height:36px;border-radius:6px;transition:background .3s}
+
+/* ---- Wave / Pulse ---- */
+.wave-row{display:flex;align-items:flex-end;gap:3px;height:60px;justify-content:center}
+.wave-bar{width:6px;border-radius:3px;transition:height .15s,background .15s}
+.pulse-grid{display:grid;grid-template-columns:repeat(16,1fr);gap:4px}
+.pulse-cell{aspect-ratio:1;border-radius:4px;transition:background .2s,opacity .2s}
+
+/* ---- Cascade chain ---- */
+.chain{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin-top:8px}
+.chain-node{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:.78rem;text-align:center;transition:border-color .3s,box-shadow .3s}
+.chain-node .chain-var{font-family:'SF Mono',Consolas,monospace;color:var(--accent);font-size:.82rem;font-weight:600}
+.chain-node .chain-label{color:var(--text-muted);font-size:.68rem;margin-top:2px}
+.chain-arrow{color:var(--text-muted);font-size:.9rem;padding:0 6px}
+
+/* ---- Live text ---- */
+.live-text{font-size:2.5rem;font-weight:800;text-align:center;padding:20px 0;line-height:1.2;transition:all .3s}
+
+/* ---- Grid playground ---- */
+.grid-demo{border:1px dashed var(--border);border-radius:8px;padding:12px;min-height:120px}
+.grid-demo .grid-cell{border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-family:'SF Mono',Consolas,monospace;color:rgba(255,255,255,.8);min-height:40px;transition:all .3s}
+
+/* ---- Shadow playground ---- */
+.shadow-stage{display:flex;justify-content:center;align-items:center;padding:40px;min-height:180px}
+.shadow-box{width:100px;height:100px;border-radius:16px;transition:all .3s}
+
+/* ---- Footer ---- */
+.footer{text-align:center;padding:40px 0 24px;color:var(--text-muted);font-size:.82rem}
+.footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body s-cloak>
+<div class="shell">
+
+<div class="hero">
+    <h1>Reactive Playground</h1>
+    <p>Every slider, picker, and toggle feeds a chain of computed values. Move anything &mdash; watch everything react.</p>
+</div>
+
+<!-- ================= SECTION 1: CONTROLS + METRICS ================= -->
+<div class="grid-2">
+
+    <!-- Left: Master Controls -->
+    <div class="card">
+        <div class="card-title"><span class="dot" style="background:#818cf8"></span> Master Controls</div>
+        <label class="row">
+            <span>Energy</span>
+            <input type="range" min="0" max="100" s-bind="energy">
+            <span class="val" s-text="energy"></span>
+        </label>
+        <label class="row">
+            <span>Frequency</span>
+            <input type="range" min="1" max="20" s-bind="freq">
+            <span class="val" s-text="freq"></span>
+        </label>
+        <label class="row">
+            <span>Amplitude</span>
+            <input type="range" min="0" max="100" s-bind="amplitude">
+            <span class="val" s-text="amplitude"></span>
+        </label>
+        <label class="row">
+            <span>Decay</span>
+            <input type="range" min="1" max="99" s-bind="decay">
+            <span class="val" s-text="decay + '%'"></span>
+        </label>
+        <label class="row">
+            <span>Spread</span>
+            <input type="range" min="1" max="10" s-bind="spread">
+            <span class="val" s-text="spread"></span>
+        </label>
+        <label class="row">
+            <span>Hue</span>
+            <input type="range" min="0" max="360" s-bind="hue">
+            <span class="val" s-text="hue + '°'"></span>
+        </label>
+        <label class="row">
+            <span>Saturation</span>
+            <input type="range" min="0" max="100" s-bind="sat">
+            <span class="val" s-text="sat + '%'"></span>
+        </label>
+        <label class="row">
+            <span>Lightness</span>
+            <input type="range" min="10" max="90" s-bind="lum">
+            <span class="val" s-text="lum + '%'"></span>
+        </label>
+    </div>
+
+    <!-- Right: Live Metrics -->
+    <div>
+        <div class="card">
+            <div class="card-title"><span class="dot" style="background:#22d3ee"></span> Computed Metrics</div>
+            <div class="grid-3">
+                <div class="metric">
+                    <div class="metric-value" s-text="power" s-css="color: hsl({hue}, {sat}%, {lum}%)"></div>
+                    <div class="metric-label">Power</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" s-text="intensity" s-css="color: hsl({hue + 60}, {sat}%, {lum}%)"></div>
+                    <div class="metric-label">Intensity</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" s-text="resonance" s-css="color: hsl({hue + 120}, {sat}%, {lum}%)"></div>
+                    <div class="metric-label">Resonance</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" s-text="entropy" s-css="color: hsl({hue + 180}, {sat}%, {lum}%)"></div>
+                    <div class="metric-label">Entropy</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" s-text="flux" s-css="color: hsl({hue + 240}, {sat}%, {lum}%)"></div>
+                    <div class="metric-label">Flux</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" s-text="harmony" s-css="color: hsl({hue + 300}, {sat}%, {lum}%)"></div>
+                    <div class="metric-label">Harmony</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cascade chain -->
+        <div class="card">
+            <div class="card-title"><span class="dot" style="background:#f472b6"></span> Reaction Chain</div>
+            <div class="chain">
+                <div class="chain-node">
+                    <div class="chain-var" s-text="energy"></div>
+                    <div class="chain-label">energy</div>
+                </div>
+                <span class="chain-arrow">&times;</span>
+                <div class="chain-node">
+                    <div class="chain-var" s-text="freq"></div>
+                    <div class="chain-label">freq</div>
+                </div>
+                <span class="chain-arrow">=</span>
+                <div class="chain-node" s-css="border-color: hsl({hue}, {sat}%, {lum}%); box-shadow: 0 0 12px hsla({hue}, {sat}%, {lum}%, .3)">
+                    <div class="chain-var" s-text="power"></div>
+                    <div class="chain-label">power</div>
+                </div>
+                <span class="chain-arrow">&times;</span>
+                <div class="chain-node">
+                    <div class="chain-var" s-text="amplitude + '%'"></div>
+                    <div class="chain-label">amplitude</div>
+                </div>
+                <span class="chain-arrow">=</span>
+                <div class="chain-node" s-css="border-color: hsl({hue + 120}, {sat}%, {lum}%); box-shadow: 0 0 12px hsla({hue + 120}, {sat}%, {lum}%, .3)">
+                    <div class="chain-var" s-text="intensity"></div>
+                    <div class="chain-label">intensity</div>
+                </div>
+                <span class="chain-arrow">&rarr;</span>
+                <div class="chain-node" s-css="border-color: hsl({hue + 240}, {sat}%, {lum}%); box-shadow: 0 0 12px hsla({hue + 240}, {sat}%, {lum}%, .3)">
+                    <div class="chain-var" s-text="flux"></div>
+                    <div class="chain-label">flux</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= SECTION 2: VISUALIZATIONS ================= -->
+<div class="grid-2">
+
+    <!-- Bar Chart driven by computed values -->
+    <div class="card">
+        <div class="card-title"><span class="dot" style="background:#22c55e"></span> Reactive Bar Chart</div>
+        <div class="bar-chart">
+            <div class="bar-col">
+                <div class="bar-val" s-text="bar1"></div>
+                <div class="bar" s-css="height: {bar1}%; background: hsl({hue}, {sat}%, {lum}%)"></div>
+                <div class="bar-label">PWR</div>
+            </div>
+            <div class="bar-col">
+                <div class="bar-val" s-text="bar2"></div>
+                <div class="bar" s-css="height: {bar2}%; background: hsl({hue + 40}, {sat}%, {lum}%)"></div>
+                <div class="bar-label">INT</div>
+            </div>
+            <div class="bar-col">
+                <div class="bar-val" s-text="bar3"></div>
+                <div class="bar" s-css="height: {bar3}%; background: hsl({hue + 80}, {sat}%, {lum}%)"></div>
+                <div class="bar-label">RES</div>
+            </div>
+            <div class="bar-col">
+                <div class="bar-val" s-text="bar4"></div>
+                <div class="bar" s-css="height: {bar4}%; background: hsl({hue + 120}, {sat}%, {lum}%)"></div>
+                <div class="bar-label">ENT</div>
+            </div>
+            <div class="bar-col">
+                <div class="bar-val" s-text="bar5"></div>
+                <div class="bar" s-css="height: {bar5}%; background: hsl({hue + 160}, {sat}%, {lum}%)"></div>
+                <div class="bar-label">FLX</div>
+            </div>
+            <div class="bar-col">
+                <div class="bar-val" s-text="bar6"></div>
+                <div class="bar" s-css="height: {bar6}%; background: hsl({hue + 200}, {sat}%, {lum}%)"></div>
+                <div class="bar-label">HRM</div>
+            </div>
+            <div class="bar-col">
+                <div class="bar-val" s-text="bar7"></div>
+                <div class="bar" s-css="height: {bar7}%; background: hsl({hue + 240}, {sat}%, {lum}%)"></div>
+                <div class="bar-label">SPR</div>
+            </div>
+            <div class="bar-col">
+                <div class="bar-val" s-text="bar8"></div>
+                <div class="bar" s-css="height: {bar8}%; background: hsl({hue + 280}, {sat}%, {lum}%)"></div>
+                <div class="bar-label">DCY</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Radial progress rings -->
+    <div class="card">
+        <div class="card-title"><span class="dot" style="background:#eab308"></span> Radial Gauges</div>
+        <div class="radial-wrap">
+            <div class="radial">
+                <svg viewBox="0 0 110 110">
+                    <circle class="track" cx="55" cy="55" r="46"></circle>
+                    <circle class="fill" cx="55" cy="55" r="46"
+                        s-css="stroke: hsl({hue}, {sat}%, {lum}%); stroke-dasharray: 289; stroke-dashoffset: {289 - 289 * energy / 100}"
+                    ></circle>
+                </svg>
+                <div class="radial-text">
+                    <div class="radial-pct" s-text="energy + '%'"></div>
+                    <div class="radial-label">Energy</div>
+                </div>
+            </div>
+            <div class="radial">
+                <svg viewBox="0 0 110 110">
+                    <circle class="track" cx="55" cy="55" r="46"></circle>
+                    <circle class="fill" cx="55" cy="55" r="46"
+                        s-css="stroke: hsl({hue + 120}, {sat}%, {lum}%); stroke-dasharray: 289; stroke-dashoffset: {289 - 289 * amplitude / 100}"
+                    ></circle>
+                </svg>
+                <div class="radial-text">
+                    <div class="radial-pct" s-text="amplitude + '%'"></div>
+                    <div class="radial-label">Amplitude</div>
+                </div>
+            </div>
+            <div class="radial">
+                <svg viewBox="0 0 110 110">
+                    <circle class="track" cx="55" cy="55" r="46"></circle>
+                    <circle class="fill" cx="55" cy="55" r="46"
+                        s-css="stroke: hsl({hue + 240}, {sat}%, {lum}%); stroke-dasharray: 289; stroke-dashoffset: {289 - 289 * decay / 100}"
+                    ></circle>
+                </svg>
+                <div class="radial-text">
+                    <div class="radial-pct" s-text="decay + '%'"></div>
+                    <div class="radial-label">Decay</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= SECTION 3: LIVE TEXT + COLOR ================= -->
+<div class="card">
+    <div class="card-title"><span class="dot" style="background:#ec4899"></span> Live Typography</div>
+    <div class="live-text" s-css="color: hsl({hue}, {sat}%, {lum}%); font-size: {18 + energy * 0.3}px; letter-spacing: {spread - 5}px; text-shadow: 0 0 {amplitude * 0.4}px hsla({hue}, {sat}%, {lum}%, .5); opacity: {0.4 + energy * 0.006}">
+        <span s-text="'Power: ' + power + ' &mdash; Flux: ' + flux"></span>
+    </div>
+</div>
+
+<div class="grid-2">
+    <!-- Color Mixer -->
+    <div class="card">
+        <div class="card-title"><span class="dot" style="background:#a78bfa"></span> HSL Color Mixer</div>
+        <div class="swatch-row">
+            <div class="swatch" s-css="background: hsl({hue}, {sat}%, {lum}%)"></div>
+            <div class="swatch" s-css="background: hsl({hue + 30}, {sat}%, {lum}%)"></div>
+            <div class="swatch" s-css="background: hsl({hue + 60}, {sat}%, {lum}%)"></div>
+            <div class="swatch" s-css="background: hsl({hue + 90}, {sat}%, {lum}%)"></div>
+            <div class="swatch" s-css="background: hsl({hue + 120}, {sat}%, {lum}%)"></div>
+            <div class="swatch" s-css="background: hsl({hue + 150}, {sat}%, {lum}%)"></div>
+        </div>
+        <div style="margin-top:12px">
+            <div class="swatch-lg" s-css="background: linear-gradient(135deg, hsl({hue}, {sat}%, {lum}%), hsl({hue + 180}, {sat}%, {lum}%)); border-color: hsl({hue}, {sat}%, {lum}%)">
+                <span s-text="'hsl(' + hue + ', ' + sat + '%, ' + lum + '%)'"></span>
+            </div>
+        </div>
+        <div class="harmony-row">
+            <div class="harmony-swatch" s-css="background: hsl({hue}, {sat}%, 20%)"></div>
+            <div class="harmony-swatch" s-css="background: hsl({hue}, {sat}%, 30%)"></div>
+            <div class="harmony-swatch" s-css="background: hsl({hue}, {sat}%, 40%)"></div>
+            <div class="harmony-swatch" s-css="background: hsl({hue}, {sat}%, 50%)"></div>
+            <div class="harmony-swatch" s-css="background: hsl({hue}, {sat}%, 60%)"></div>
+            <div class="harmony-swatch" s-css="background: hsl({hue}, {sat}%, 70%)"></div>
+            <div class="harmony-swatch" s-css="background: hsl({hue}, {sat}%, 80%)"></div>
+        </div>
+    </div>
+
+    <!-- Shadow Playground -->
+    <div class="card">
+        <div class="card-title"><span class="dot" style="background:#fb923c"></span> Shadow &amp; Transform Lab</div>
+        <span s-text="spread"></span>
+        <div class="shadow-stage">
+            <div class="shadow-box" s-css="background: hsl({hue}, {sat}%, {lum}%); border-radius: {4 + spread * 4}px; transform: rotate({freq * 3}deg) scale({0.6 + energy * 0.006}); box-shadow: {spread * 2}px {spread * 2}px {amplitude * 0.6}px hsla({hue}, {sat}%, {lum * 0.4}%, .5), -{spread}px -{spread}px {amplitude * 0.3}px hsla({hue + 180}, {sat}%, {lum}%, .2)"></div>
+        </div>
+        <div style="text-align:center;font-size:.78rem;color:var(--text-muted)">
+            rotate(<span s-text="freq * 3"></span>deg) &middot;
+            scale(<span s-text="(0.6 + energy * 0.006).toFixed(2)"></span>) &middot;
+            radius: <span s-text="4 + spread * 4"></span>px &middot;
+            blur: <span s-text="Math.round(amplitude * 0.6)"></span>px
+        </div>
+    </div>
+</div>
+
+<!-- ================= SECTION 4: GRID PLAYGROUND ================= -->
+<div class="card">
+    <div class="card-title"><span class="dot" style="background:#2dd4bf"></span> Reactive CSS Grid</div>
+    <div class="grid-2">
+        <div>
+            <label class="row">
+                <span>Columns</span>
+                <input type="range" min="2" max="8" s-bind="gridCols">
+                <span class="val" s-text="gridCols"></span>
+            </label>
+            <label class="row">
+                <span>Gap</span>
+                <input type="range" min="2" max="24" s-bind="gridGap">
+                <span class="val" s-text="gridGap + 'px'"></span>
+            </label>
+            <label class="row">
+                <span>Cell Height</span>
+                <input type="range" min="20" max="80" s-bind="cellH">
+                <span class="val" s-text="cellH + 'px'"></span>
+            </label>
+            <label class="row">
+                <span>Roundness</span>
+                <input type="range" min="0" max="20" s-bind="cellRound">
+                <span class="val" s-text="cellRound + 'px'"></span>
+            </label>
+        </div>
+        <div class="grid-demo" s-css="display: grid; grid-template-columns: repeat({gridCols}, 1fr); gap: {gridGap}px">
+            <div class="grid-cell" s-css="background: hsl({hue}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">1</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 30}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">2</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 60}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">3</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 90}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">4</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 120}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">5</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 150}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">6</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 180}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">7</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 210}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">8</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 240}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">9</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 270}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">10</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 300}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">11</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 330}, {sat}%, {lum}%); min-height: {cellH}px; border-radius: {cellRound}px">12</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 15}, {sat}%, {lum - 10 > 10 ? lum - 10 : 10}%); min-height: {cellH}px; border-radius: {cellRound}px">13</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 45}, {sat}%, {lum - 10 > 10 ? lum - 10 : 10}%); min-height: {cellH}px; border-radius: {cellRound}px">14</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 75}, {sat}%, {lum - 10 > 10 ? lum - 10 : 10}%); min-height: {cellH}px; border-radius: {cellRound}px">15</div>
+            <div class="grid-cell" s-css="background: hsl({hue + 105}, {sat}%, {lum - 10 > 10 ? lum - 10 : 10}%); min-height: {cellH}px; border-radius: {cellRound}px">16</div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= SECTION 5: WAVE VISUALIZER ================= -->
+<div class="card">
+    <div class="card-title"><span class="dot" style="background:#06b6d4"></span> Waveform &mdash; <span class="val" style="min-width:auto" s-text="freq + ' Hz &times; ' + amplitude + '% amp'"></span></div>
+    <div id="wave-container" class="wave-row"></div>
+</div>
+
+<!-- ================= SECTION 6: PULSE MATRIX ================= -->
+<div class="card">
+    <div class="card-title"><span class="dot" style="background:#f43f5e"></span> Pulse Matrix &mdash; <span class="val" style="min-width:auto" s-text="'spread ' + spread + ' &times; decay ' + decay + '%'"></span></div>
+    <div id="pulse-container" class="pulse-grid"></div>
+</div>
+
+<div class="footer">
+    Built with <a href="index.html">SensibleJS</a> &mdash; every visual element on this page is driven by 8 sliders, 6 primary computed values, and 8 bar computations. Zero JavaScript animation loops.
+</div>
+
+</div><!-- /shell -->
+
+<script>
+/* global energy, freq, amplitude, decay, spread, hue, sat, lum, gridCols, gridGap, cellH, cellRound */
+let store = {
+    persist: false,
+    data: {
+        // ---- Primary inputs ----
+        energy:    { type: Number, default: 15 },
+        freq:      { type: Number, default: 8 },
+        amplitude: { type: Number, default: 65 },
+        decay:     { type: Number, default: 40 },
+        spread:    { type: Number, default: 5 },
+        hue:       { type: Number, default: 250 },
+        sat:       { type: Number, default: 80 },
+        lum:       { type: Number, default: 65 },
+
+        // ---- Grid controls ----
+        gridCols:  { type: Number, default: 4 },
+        gridGap:   { type: Number, default: 8 },
+        cellH:     { type: Number, default: 48 },
+        cellRound: { type: Number, default: 6 },
+
+        // ---- Computed: cascading metrics ----
+        power:     { computed: "Math.round(energy * freq / 10)" },
+        intensity: { computed: "Math.round(power * amplitude / 100)" },
+        resonance: { computed: "Math.round(intensity * (1 + spread / 10))" },
+        entropy:   { computed: "Math.round(resonance * decay / 100)" },
+        flux:      { computed: "Math.round(Math.abs(intensity - entropy) * freq / 5)" },
+        harmony:   { computed: "power + intensity + resonance + entropy + flux > 0 ? Math.round((resonance + harmony_raw) / 2) : 0" },
+        harmony_raw: { computed: "Math.round((power + flux) / 2)" },
+
+        // ---- Computed: bar chart (each bar is a unique derivation) ----
+        bar1: { computed: "Math.min(100, Math.round(energy * 0.9 + freq))" },
+        bar2: { computed: "Math.min(100, Math.round(power * 0.8))" },
+        bar3: { computed: "Math.min(100, Math.round(intensity * 0.6))" },
+        bar4: { computed: "Math.min(100, Math.round(resonance * 0.5))" },
+        bar5: { computed: "Math.min(100, Math.round(entropy * 1.2))" },
+        bar6: { computed: "Math.min(100, Math.round(flux * 0.7))" },
+        bar7: { computed: "Math.min(100, Math.round(spread * 10 + amplitude * 0.3))" },
+        bar8: { computed: "Math.min(100, Math.round(decay * 0.8 + freq * 2))" }
+    },
+    onInit: function() {
+        buildWave();
+        buildPulse();
+        requestAnimationFrame(syncVisuals);
+    }
+};
+
+// ---- Wave Visualizer (CSS-driven, updated by watcher) ----
+const WAVE_BARS = 48;
+function buildWave() {
+    const container = document.getElementById('wave-container');
+    if (!container) return;
+    container.innerHTML = '';
+    for (let i = 0; i < WAVE_BARS; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'wave-bar';
+        bar.dataset.index = String(i);
+        container.appendChild(bar);
+    }
+    updateWave();
+}
+
+function updateWave() {
+    const bars = document.querySelectorAll('#wave-container .wave-bar');
+    const f = freq || 8;
+    const a = amplitude || 50;
+    const h = hue || 250;
+    const s = sat || 80;
+    const l = lum || 65;
+    const sp = spread || 5;
+    for (let i = 0; i < bars.length; i++) {
+        const phase = (i / bars.length) * Math.PI * 2 * f / 5;
+        const height = 8 + Math.abs(Math.sin(phase + sp * 0.3)) * a * 0.5;
+        const barHue = (h + i * (360 / bars.length)) % 360;
+        bars[i].style.height = height + 'px';
+        bars[i].style.background = 'hsl(' + barHue + ',' + s + '%,' + l + '%)';
+    }
+}
+
+// ---- Pulse Matrix (CSS-driven grid) ----
+const PULSE_CELLS = 64;
+function buildPulse() {
+    const container = document.getElementById('pulse-container');
+    if (!container) return;
+    container.innerHTML = '';
+    for (let i = 0; i < PULSE_CELLS; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'pulse-cell';
+        cell.dataset.index = String(i);
+        container.appendChild(cell);
+    }
+    updatePulse();
+}
+
+function updatePulse() {
+    const cells = document.querySelectorAll('#pulse-container .pulse-cell');
+    const e = energy || 50;
+    const d = decay || 50;
+    const sp = spread || 5;
+    const h = hue || 250;
+    const s = sat || 80;
+    const l = lum || 65;
+    const f = freq || 8;
+    const cols = 16;
+    for (let i = 0; i < cells.length; i++) {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const cx = cols / 2, cy = 2;
+        const dist = Math.sqrt((col - cx) * (col - cx) + (row - cy) * (row - cy));
+        const wave = Math.sin(dist * sp * 0.3 - f * 0.5) * 0.5 + 0.5;
+        const brightness = Math.max(0, 1 - dist * d * 0.008) * wave * (e / 100);
+        const cellHue = (h + dist * sp * 8) % 360;
+        cells[i].style.background = 'hsl(' + cellHue + ',' + s + '%,' + Math.round(l * brightness) + '%)';
+        cells[i].style.opacity = String(0.15 + brightness * 0.85);
+    }
+}
+
+// ---- Keep wave + pulse in sync with slider changes ----
+// We use a polling RAF since watchers fire per-variable but we want batched visual updates
+let _lastVals = '';
+function syncVisuals() {
+    const key = [energy, freq, amplitude, decay, spread, hue, sat, lum].join(',');
+    if (key !== _lastVals) {
+        _lastVals = key;
+        updateWave();
+        updatePulse();
+    }
+    requestAnimationFrame(syncVisuals);
+}
+// syncVisuals is started from onInit after store globals exist
+</script>
+</body>
+</html>

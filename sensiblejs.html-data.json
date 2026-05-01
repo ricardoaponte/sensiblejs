@@ -1,0 +1,84 @@
+{
+  "version": 1.1,
+  "tags": [],
+  "globalAttributes": [
+    {
+      "name": "s-bind",
+      "description": "**SensibleJS** — Two-way data binding.\n\nConnects an element to a store variable. Works with text inputs, checkboxes, radios, selects, ranges, color pickers, date inputs, contenteditable, and display elements.\n\n```html\n<input type=\"text\" s-bind=\"name\">\n<p s-bind=\"name\">Hello, {name}!</p>\n```",
+      "references": [{ "name": "SensibleJS Docs", "url": "https://github.com/ricardoaponte/sensiblejs" }]
+    },
+    {
+      "name": "s-text",
+      "description": "**SensibleJS** — Safe text content.\n\nSets `textContent` from an expression. HTML is escaped.\n\n```html\n<span s-text=\"username\"></span>\n<span s-text=\"'Hello, ' + name\"></span>\n<span s-text=\"score >= 90 ? 'Excellent' : 'Good'\"></span>\n```"
+    },
+    {
+      "name": "s-html",
+      "description": "**SensibleJS** — Raw HTML content.\n\nSets `innerHTML` from an expression. Only use with trusted content.\n\n```html\n<div s-html=\"richContent\"></div>\n```"
+    },
+    {
+      "name": "s-if",
+      "description": "**SensibleJS** — Conditional rendering.\n\nShows or hides elements based on an expression. Preserves the element's original `display` value (flex, grid, inline, etc.).\n\n```html\n<div s-if=\"isLoggedIn\">Welcome back!</div>\n<div s-if=\"items.length > 0\">{items.length} items</div>\n```"
+    },
+    {
+      "name": "s-for",
+      "description": "**SensibleJS** — List rendering.\n\nIterates over arrays with keyed reconciliation. Use with `s-key` for efficient DOM updates.\n\n```html\n<div s-for=\"item of items\" s-key=\"item.id\">\n    {item.name}\n</div>\n```\n\nThe loop variable and `index` (0-based) are available inside the loop."
+    },
+    {
+      "name": "s-key",
+      "description": "**SensibleJS** — List item key.\n\nTells `s-for` how to identify each item for efficient DOM reconciliation.\n\n```html\n<div s-for=\"item of items\" s-key=\"item.id\">...</div>\n```"
+    },
+    {
+      "name": "s-click",
+      "description": "**SensibleJS** — Click handler.\n\nExecutes an expression when the element is clicked. Works inside `s-for` with access to the loop variable.\n\n```html\n<button s-click=\"count++\">Increment</button>\n<button s-click=\"items.removeWhere('id', item.id)\">Delete</button>\n```"
+    },
+    {
+      "name": "s-unclick",
+      "description": "**SensibleJS** — Click outside handler.\n\nFires when a click occurs outside the element. Useful for closing dropdowns and modals.\n\n```html\n<div s-unclick=\"menuOpen = false\">\n    <div s-if=\"menuOpen\">Menu content</div>\n</div>\n```"
+    },
+    {
+      "name": "s-on",
+      "description": "**SensibleJS** — General event binding.\n\nFormat: `event.modifier: expression`. Multiple bindings separated by semicolons.\n\nModifiers: `.prevent`, `.stop`, `.enter`, `.escape`\n\n```html\n<input s-on=\"keydown.enter: submitForm()\">\n<form s-on=\"submit.prevent: handleSubmit()\">\n```"
+    },
+    {
+      "name": "s-class",
+      "description": "**SensibleJS** — Conditional CSS classes.\n\nSemicolon-separated `className: expression` pairs.\n\n```html\n<div s-class=\"active: isActive; error: hasError\">...</div>\n```"
+    },
+    {
+      "name": "s-css",
+      "description": "**SensibleJS** — Dynamic inline styles.\n\nSemicolon-separated `property: expression` pairs. Supports `{template}` expressions.\n\n```html\n<div s-css=\"background-color: {color}; opacity: {value / 100}\">...</div>\n```"
+    },
+    {
+      "name": "s-attr",
+      "description": "**SensibleJS** — Dynamic HTML attributes.\n\nSemicolon-separated `attribute: expression` pairs. `false`/`null`/`undefined` removes the attribute, `true` sets it as empty.\n\n```html\n<button s-attr=\"disabled: !formValid\">Submit</button>\n```"
+    },
+    {
+      "name": "s-ref",
+      "description": "**SensibleJS** — Element reference.\n\nNames an element so it can be accessed via `$refs.name` in expressions.\n\n```html\n<input type=\"text\" s-ref=\"myInput\">\n<button s-click=\"$refs.myInput.focus()\">Focus</button>\n```"
+    },
+    {
+      "name": "s-cloak",
+      "description": "**SensibleJS** — Hide until ready.\n\nPrevents flash of unprocessed template expressions. Removed automatically after init.\n\n```html\n<body s-cloak>...</body>\n```"
+    },
+    {
+      "name": "s-data",
+      "description": "**SensibleJS** — Inline variable definition.\n\nDefine variables directly in HTML without a store.\n\n```html\n<div s-data=\"{count: 0, message: 'Hello'}\">\n    <button s-click=\"count++\">{count}</button>\n</div>\n```"
+    },
+    {
+      "name": "s-debounce",
+      "description": "**SensibleJS** — Debounced input.\n\nDelay updates on text inputs until typing stops. Value in milliseconds.\n\n```html\n<input s-bind=\"search\" s-debounce=\"300\">\n```"
+    },
+    {
+      "name": "s-blur",
+      "description": "**SensibleJS** — Update on blur.\n\nSwitch text input binding from `keyup` to `blur` event.\n\n```html\n<input s-bind=\"tagline\" s-blur>\n```",
+      "valueSet": "v"
+    },
+    {
+      "name": "s-transition",
+      "description": "**SensibleJS** — CSS transition animations.\n\nAnimate `s-if` show/hide and `s-for` enter/leave. Applies CSS class lifecycle: `{name}-enter` → `{name}-enter-active` → `{name}-enter-to`.\n\n```html\n<div s-if=\"show\" s-transition=\"fade\">Animated</div>\n```"
+    },
+    {
+      "name": "s-src",
+      "description": "**SensibleJS** — Dynamic image source.\n\nFor images inside `s-for` loops. Uses template syntax.\n\n```html\n<img s-src=\"{photo.url}\" alt=\"{photo.caption}\">\n```"
+    }
+  ]
+}

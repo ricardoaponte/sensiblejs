@@ -44,7 +44,7 @@
         html, body { margin: 0; }
 
         body {
-            font-family: var(--font),serif;
+            font-family: var(--font), sans-serif;
             font-size: 15px;
             line-height: 1.6;
             color: var(--text);
@@ -61,7 +61,7 @@
         .header-right { display: flex; align-items: center; gap: 14px; }
 
         /* Toggle */
-        .toggle-row { display: flex; align-items: center; gap: 7px; font-size: 0.7rem; color: var(--text-3); font-family: var(--mono); }
+        .toggle-row { display: flex; align-items: center; gap: 7px; font-size: 0.7rem; color: var(--text-3); font-family: var(--mono), monospace; }
         .switch { position: relative; display: inline-block; width: 32px; height: 18px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .switch .track { position: absolute; inset: 0; background: var(--border); border-radius: 18px; cursor: pointer; transition: background .2s; }
@@ -73,14 +73,14 @@
         .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden; }
         .card-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .card-title { font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em; }
-        .card-badge { font-family: var(--mono); font-size: 0.65rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+        .card-badge { font-family: var(--mono), monospace; font-size: 0.65rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
         .card-body { padding: 18px; }
 
         /* Overview */
         .overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
         .ov-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
-        .ov-card .value { font-size: 1.25rem; font-weight: 700; line-height: 1.1; font-family: var(--mono); }
-        .ov-card .label { font-size: 0.65rem; font-family: var(--mono); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
+        .ov-card .value { font-size: 1.25rem; font-weight: 700; line-height: 1.1; font-family: var(--mono), monospace; }
+        .ov-card .label { font-size: 0.65rem; font-family: var(--mono), monospace; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
         .ov-green { color: var(--green-t); }
         .ov-red { color: var(--red-t); }
         .ov-accent { color: var(--accent); }
@@ -92,8 +92,8 @@
             background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
             padding: 10px 6px; text-align: center; border-top: 3px solid;
         }
-        .pipe-count { font-size: 1.1rem; font-weight: 700; font-family: var(--mono); line-height: 1; }
-        .pipe-name { font-size: 0.55rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-3); margin-top: 4px; }
+        .pipe-count { font-size: 1.1rem; font-weight: 700; font-family: var(--mono), monospace; line-height: 1; }
+        .pipe-name { font-size: 0.55rem; font-family: var(--mono), monospace; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-3); margin-top: 4px; }
         .pipe-sep { color: var(--border); font-size: 0.75rem; flex-shrink: 0; }
         .pipe-div { width: 1px; height: 28px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
 
@@ -132,7 +132,7 @@
             margin-top: 8px;
         }
         .field-group { position: relative; }
-        .field-label { font-size: 0.62rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); margin-bottom: 4px; }
+        .field-label { font-size: 0.62rem; font-family: var(--mono), monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); margin-bottom: 4px; }
 
         /* Buttons */
         .btn { background: var(--accent); color: white; border: none; border-radius: var(--radius); padding: 9px 18px; font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .15s; }
@@ -168,7 +168,7 @@
         .cx-name { font-size: 0.88rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .cx-meta { display: flex; gap: 6px; align-items: center; margin-top: 2px; flex-wrap: wrap; }
         .cx-badge {
-            font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.04em; text-transform: uppercase;
+            font-family: var(--mono), monospace; font-size: 0.58rem; letter-spacing: 0.04em; text-transform: uppercase;
             padding: 1px 6px; border-radius: 100px; font-weight: 500; white-space: nowrap;
         }
         .cx-company, .cx-email {
@@ -176,7 +176,7 @@
         }
         .cx-sep { font-size: 0.6rem; color: var(--border); }
         .cx-value {
-            font-family: var(--mono); font-size: 0.85rem; font-weight: 600; white-space: nowrap; color: var(--text);
+            font-family: var(--mono), monospace; font-size: 0.85rem; font-weight: 600; white-space: nowrap; color: var(--text);
         }
         .cx-actions { display: flex; gap: 3px; opacity: 0; transition: opacity .15s; }
         .cx-item:hover .cx-actions { opacity: 1; }
@@ -317,7 +317,7 @@
                 <div class="field-group">
                     <div class="field-label">Deal value</div>
                     <input type="number" s-bind="draftValue" min="0" step="500"
-                           placeholder="0" style="font-family: var(--mono);">
+                           placeholder="0" style="font-family: var(--mono), monospace;">
                 </div>
                 <div class="field-group" style="align-self: end;">
                     <button class="btn" s-click="addContact()"
@@ -410,6 +410,7 @@
 </div>
 
 <script>
+    /* global persist, contacts, draftName, draftEmail, draftPhone, draftCompany, draftValue, statusFilter, query, totalContacts, pipelineValue, wonValue, leadCount, contactedCount, qualifiedCount, proposalCount, wonCount, lostCount, conversionRate, visibleContacts */
     // === Status helpers ===
 
     var _statusColors = {

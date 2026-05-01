@@ -18,9 +18,12 @@
     "dom"
   ],
   "main": "sensibljs.js",
+  "web-types": "./web-types.json",
   "files": [
     "sensibljs.js",
     "sensibljs.min.js",
+    "web-types.json",
+    "sensiblejs.html-data.json",
     "llms.txt",
     "llms-full.txt",
     "LICENSE",

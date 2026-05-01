@@ -38,7 +38,7 @@
         body {
             background: var(--paper);
             color: var(--ink);
-            font-family: var(--font-body);
+            font-family: var(--font-body), sans-serif;
             font-size: 16px;
             line-height: 1.55;
             -webkit-font-smoothing: antialiased;
@@ -60,7 +60,7 @@
             border-bottom: 1px solid var(--rule);
         }
         .eyebrow {
-            font-family: var(--font-mono);
+            font-family: var(--font-mono), monospace;
             font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
             color: var(--muted);
             margin-bottom: 14px;
@@ -72,7 +72,7 @@
             box-shadow: 0 0 0 4px rgba(185,65,12,.15);
         }
         h1.title {
-            font-family: var(--font-display);
+            font-family: var(--font-display), serif;
             font-weight: 400; font-style: italic;
             font-size: clamp(40px, 6vw, 64px);
             line-height: .95; letter-spacing: -.02em;
@@ -81,7 +81,7 @@
         h1.title b { font-style: normal; font-weight: 600; }
         .meta {
             text-align: right;
-            font-family: var(--font-mono); font-size: 11px;
+            font-family: var(--font-mono), monospace; font-size: 11px;
             color: var(--muted); line-height: 1.6;
         }
         .meta a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
@@ -102,12 +102,12 @@
             padding-bottom: 14px; border-bottom: 1px dashed var(--rule);
         }
         .block-head h2 {
-            font-family: var(--font-display);
+            font-family: var(--font-display), serif;
             font-weight: 500; font-size: 22px; letter-spacing: -.01em;
             margin: 0;
         }
         .block-head .num {
-            font-family: var(--font-mono); font-size: 11px;
+            font-family: var(--font-mono), monospace; font-size: 11px;
             color: var(--muted); letter-spacing: .14em; text-transform: uppercase;
         }
 
@@ -116,7 +116,7 @@
         @media (max-width: 720px) { .hello { grid-template-columns: 1fr; } }
 
         .field-label {
-            font-family: var(--font-mono);
+            font-family: var(--font-mono), monospace;
             font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
             color: var(--muted);
             display: block; margin-bottom: 8px;
@@ -126,7 +126,7 @@
             background: transparent; border: 0;
             border-bottom: 2px solid var(--ink);
             padding: 6px 0 10px;
-            font-family: var(--font-display);
+            font-family: var(--font-display), serif;
             font-size: 28px; font-weight: 500;
             color: var(--ink); outline: none;
             transition: border-color .2s;
@@ -134,7 +134,7 @@
         input.name:focus { border-color: var(--accent); }
 
         .greeting {
-            font-family: var(--font-display);
+            font-family: var(--font-display), serif;
             font-style: italic; font-weight: 300;
             font-size: clamp(28px, 3.2vw, 40px);
             line-height: 1.15;
@@ -189,7 +189,7 @@
             background: transparent; border: 1px solid transparent;
             color: var(--muted);
             padding: 6px 12px; border-radius: 100px;
-            font-family: var(--font-mono);
+            font-family: var(--font-mono), monospace;
             font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
             cursor: pointer; transition: all .15s;
         }
@@ -199,7 +199,7 @@
         .search-wrap { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 280px; }
         .search-wrap .field { flex: 1; padding: 8px 12px; font-size: 14px; }
         .search-status {
-            font-family: var(--font-mono); font-size: 10px;
+            font-family: var(--font-mono), monospace; font-size: 10px;
             color: var(--muted); letter-spacing: .1em; text-transform: uppercase;
         }
 
@@ -235,7 +235,7 @@
         .task-title.done { text-decoration: line-through; color: var(--muted); }
 
         .task-meta {
-            font-family: var(--font-mono);
+            font-family: var(--font-mono), monospace;
             font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
             padding: 3px 8px; border-radius: 100px;
             background: var(--paper-2); color: var(--ink-2);
@@ -256,7 +256,7 @@
         .empty {
             text-align: center; padding: 38px 16px;
             color: var(--muted);
-            font-family: var(--font-display); font-style: italic;
+            font-family: var(--font-display), serif; font-style: italic;
             font-size: 18px;
         }
         .empty::before { content: "✦"; display: block; font-size: 24px; color: var(--rule); margin-bottom: 8px; }
@@ -270,16 +270,16 @@
         .stat { padding: 16px 18px; border-right: 1px solid var(--rule); background: var(--paper-2); }
         .stat:last-child { border-right: 0; }
         .stat .k {
-            font-family: var(--font-mono);
+            font-family: var(--font-mono), monospace;
             font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
             color: var(--muted); margin-bottom: 6px;
         }
-        .stat .v { font-family: var(--font-display); font-size: 28px; font-weight: 500; line-height: 1; }
+        .stat .v { font-family: var(--font-display), serif; font-size: 28px; font-weight: 500; line-height: 1; }
 
         .progress-wrap { margin-top: 18px; }
         .progress-label {
             display: flex; justify-content: space-between; align-items: baseline;
-            font-family: var(--font-mono); font-size: 11px;
+            font-family: var(--font-mono), monospace; font-size: 11px;
             letter-spacing: .1em; text-transform: uppercase;
             color: var(--muted); margin-bottom: 8px;
         }
@@ -308,7 +308,7 @@
             transition: all .25s;
         }
         .preview .swatch-text {
-            font-family: var(--font-display);
+            font-family: var(--font-display), serif;
             font-style: italic; font-weight: 500;
         }
 
@@ -318,7 +318,7 @@
             border-left: 3px solid var(--accent);
             padding: 14px 18px;
             border-radius: 0 3px 3px 0;
-            font-family: var(--font-mono);
+            font-family: var(--font-mono), monospace;
             font-size: 12px; line-height: 1.7;
             color: var(--ink-2);
             min-height: 56px;
@@ -329,7 +329,7 @@
         /* code echo */
         .echo {
             background: #1a1714; color: #f5f0e6;
-            font-family: var(--font-mono); font-size: 12px;
+            font-family: var(--font-mono), monospace; font-size: 12px;
             padding: 18px 22px; border-radius: 3px;
             line-height: 1.7; overflow-x: auto;
             white-space: pre;
@@ -346,7 +346,7 @@
         }
         .inline-widget .pad { flex: 1; }
         .inline-widget .num-big {
-            font-family: var(--font-display);
+            font-family: var(--font-display), serif;
             font-size: 32px; font-weight: 500;
             min-width: 48px; text-align: center;
             color: var(--accent);
@@ -361,7 +361,7 @@
 
         /* helper */
         .helper {
-            font-family: var(--font-mono);
+            font-family: var(--font-mono), monospace;
             font-size: 11px; color: var(--muted);
             letter-spacing: .04em;
             margin-top: 6px;
@@ -375,7 +375,7 @@
         /* persist toggle */
         .persist-toggle {
             display: flex; align-items: center; gap: 10px;
-            font-family: var(--font-mono);
+            font-family: var(--font-mono), monospace;
             font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
             color: var(--muted);
         }
@@ -416,7 +416,7 @@
             text-align: center;
             margin-top: 56px; padding-top: 24px;
             border-top: 1px solid var(--rule);
-            font-family: var(--font-mono); font-size: 11px;
+            font-family: var(--font-mono), monospace; font-size: 11px;
             color: var(--muted); letter-spacing: .08em;
         }
         footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
@@ -505,7 +505,7 @@
             <button class="btn add" s-click="addTask()" s-attr="disabled: draft.trim().length === 0">Add</button>
         </div>
 
-        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 14px;" s-if="tasks.length > 0">
+        <div style="font-family: var(--font-mono), monospace; font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 14px;" s-if="tasks.length > 0">
             <span s-text="remaining"></span> pending · <span s-text="completed"></span> done · <span s-text="tasks.length"></span> total
         </div>
 
@@ -616,7 +616,7 @@
         </div>
         <div class="inline-widget" s-data="{count: 0}">
             <div class="pad">
-                <div style="font-family: var(--font-display); font-size: 18px; font-weight: 500;">A self-contained counter</div>
+                <div style="font-family: var(--font-display), serif; font-size: 18px; font-weight: 500;">A self-contained counter</div>
                 <div class="helper">Its state lives in <code>s-data="{count: 0}"</code> on the wrapper. No store entry needed.</div>
             </div>
             <button s-click="count = Math.max(0, count - 1)">−</button>
@@ -643,6 +643,7 @@
 </div>
 
 <script>
+    /* global persist, name, draft, draftPriority, draftBucket, tasks, filter, query, activity, accentColor, previewSize, tagline, timeOfDay, completed, remaining, percent, visibleTasks, matches, storeJson */
     // Store data is exposed as script-scope globals — so we just write
     // `tasks`, `draft`, etc. directly. No .value, no store.data lookup.
 

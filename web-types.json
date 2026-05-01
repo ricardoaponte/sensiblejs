@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json.schemastore.org/web-types.json",
+  "name": "sensiblejs",
+  "version": "1.7.0",
+  "description-markup": "markdown",
+  "contributions": {
+    "html": {
+      "attributes": [
+        {
+          "name": "s-bind",
+          "description": "**Two-way data binding.** Connects an element to a store variable. Works with text, checkbox, radio, select, range, color, date, contenteditable, and display elements.\n\n```html\n<input type=\"text\" s-bind=\"name\">\n<p s-bind=\"name\">Hello, {name}!</p>\n```"
+        },
+        {
+          "name": "s-text",
+          "description": "**Safe text content.** Sets `textContent` from an expression. HTML is escaped.\n\n```html\n<span s-text=\"username\"></span>\n<span s-text=\"'Hello, ' + name\"></span>\n```"
+        },
+        {
+          "name": "s-html",
+          "description": "**Raw HTML content.** Sets `innerHTML` from an expression. Only use with trusted content.\n\n```html\n<div s-html=\"richContent\"></div>\n```"
+        },
+        {
+          "name": "s-if",
+          "description": "**Conditional rendering.** Shows or hides elements based on an expression. Preserves the element's original `display` value (flex, grid, inline, etc.).\n\n```html\n<div s-if=\"isLoggedIn\">Welcome back!</div>\n<div s-if=\"items.length > 0\">{items.length} items</div>\n```"
+        },
+        {
+          "name": "s-for",
+          "description": "**List rendering.** Iterates over arrays with keyed reconciliation. The loop variable and `index` (0-based) are available inside.\n\n```html\n<div s-for=\"item of items\" s-key=\"item.id\">\n    {index + 1}. {item.name}\n</div>\n```"
+        },
+        {
+          "name": "s-key",
+          "description": "**List item key.** Tells `s-for` how to identify each item for efficient DOM reconciliation.\n\n```html\n<div s-for=\"item of items\" s-key=\"item.id\">...</div>\n```"
+        },
+        {
+          "name": "s-click",
+          "description": "**Click handler.** Executes an expression when clicked. Works inside `s-for` with loop variable access.\n\n```html\n<button s-click=\"count++\">Increment</button>\n<button s-click=\"tasks.removeWhere('id', t.id)\">Delete</button>\n```"
+        },
+        {
+          "name": "s-unclick",
+          "description": "**Click outside handler.** Fires when a click occurs outside the element. Useful for closing dropdowns and modals.\n\n```html\n<div s-unclick=\"menuOpen = false\">\n    <div s-if=\"menuOpen\">Menu</div>\n</div>\n```"
+        },
+        {
+          "name": "s-on",
+          "description": "**General event binding.** Format: `event.modifier: expression`. Multiple bindings separated by semicolons.\n\nModifiers: `.prevent`, `.stop`, `.enter`, `.escape`\n\n```html\n<input s-on=\"keydown.enter: submit()\">\n<form s-on=\"submit.prevent: handleSubmit()\">\n```"
+        },
+        {
+          "name": "s-class",
+          "description": "**Conditional CSS classes.** Semicolon-separated `className: expression` pairs.\n\n```html\n<div s-class=\"active: isActive; error: hasError\">...</div>\n```"
+        },
+        {
+          "name": "s-css",
+          "description": "**Dynamic inline styles.** Semicolon-separated `property: expression` pairs. Supports `{template}` expressions.\n\n```html\n<div s-css=\"background: {color}; opacity: {val / 100}\">...</div>\n```"
+        },
+        {
+          "name": "s-attr",
+          "description": "**Dynamic HTML attributes.** Semicolon-separated `attribute: expression` pairs. `false`/`null`/`undefined` removes the attribute.\n\n```html\n<button s-attr=\"disabled: !formValid\">Submit</button>\n```"
+        },
+        {
+          "name": "s-ref",
+          "description": "**Element reference.** Names an element for access via `$refs.name` in expressions.\n\n```html\n<input s-ref=\"myInput\">\n<button s-click=\"$refs.myInput.focus()\">Focus</button>\n```"
+        },
+        {
+          "name": "s-cloak",
+          "description": "**Hide until ready.** Prevents flash of unprocessed `{template}` expressions. Removed automatically after init.\n\n```html\n<body s-cloak>...</body>\n```"
+        },
+        {
+          "name": "s-data",
+          "description": "**Inline variable definition.** Define reactive variables directly in HTML without a store.\n\n```html\n<div s-data=\"{count: 0, msg: 'Hello'}\">\n    <button s-click=\"count++\">{count}</button>\n</div>\n```"
+        },
+        {
+          "name": "s-debounce",
+          "description": "**Debounced input.** Delays updates on text inputs until typing stops. Value in milliseconds.\n\n```html\n<input s-bind=\"search\" s-debounce=\"300\">\n```"
+        },
+        {
+          "name": "s-blur",
+          "description": "**Update on blur.** Switches text input binding from `keyup` to `blur` event.\n\n```html\n<input s-bind=\"tagline\" s-blur>\n```"
+        },
+        {
+          "name": "s-transition",
+          "description": "**CSS transition animations.** Animate `s-if` show/hide and `s-for` enter/leave. Applies CSS class lifecycle: `{name}-enter` → `{name}-enter-active` → `{name}-enter-to`.\n\n```html\n<div s-if=\"show\" s-transition=\"fade\">Animated</div>\n```"
+        },
+        {
+          "name": "s-src",
+          "description": "**Dynamic image source.** For images inside `s-for` loops. Uses template syntax.\n\n```html\n<img s-src=\"{photo.url}\">\n```"
+        }
+      ]
+    }
+  }
+}
