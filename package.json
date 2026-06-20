@@ -44,8 +44,8 @@
   },
   "homepage": "https://github.com/ricardoaponte/sensiblejs#readme",
   "devDependencies": {
-    "@babel/cli": "^7.12.1",
-    "@babel/core": "^7.12.3",
+    "@babel/cli": "^8.0.1",
+    "@babel/core": "^8.0.1",
     "babel-preset-minify": "^0.5.1",
     "jsdom": "^29.0.2"
   }
